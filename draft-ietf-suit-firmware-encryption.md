@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-00
+docname: draft-ietf-suit-firmware-encryption-01
 category: std
 
 ipr: pre5378Trust200902
@@ -100,9 +100,10 @@ can be established using a variety of mechanisms; this document defines two
 approaches for use with the IETF SUIT manifest.  Key establishment can be
 provided by the hybrid public-key encryption (HPKE) scheme or AES Key Wrap
 (AES-KW) with a pre-shared key-encryption key.  These choices reduce the
-number of possible key establishment options for interoperability of
-different SUIT manifest implementations. The document also offers a
-number of examples for developers.
+number of possible key establishment options and thereby help increase 
+interoperability between different SUIT manifest parser implementations. 
+
+The document also contains a number of examples for developers.
 
 # Conventions and Terminology
 
@@ -114,7 +115,8 @@ when, and only when, they appear in all capitals, as shown here.
 This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}}
 and the SUIT architecture {{RFC9019}}.
 
-The terms "recipient" and "firmware consumer" are used interchangeably. 
+In context of encryption, the terms "recipient" and "firmware consumer" 
+are used interchangeably.
 
 Additionally, the following abbreviations are used in this document: 
 
@@ -182,13 +184,26 @@ it can be used to encrypt a randomly generated content-encryption key (CEK)
 with a pre-shared key-encryption key (KEK). The COSE conventions for using
 AES-KW are specified in Section 12.2.1 of {{RFC8152}}.  The encrypted CEK is
 carried in the COSE\_recipient structure alongside the information needed for 
-AES-KW. The COSE\_recipient structure, which is a substructure of the COSE\_Encrypt, 
-contains the CEK encrypted by the KEK. When the firmware image is encrypted 
-for use by multiple recipients, the COSE\_recipient structure will contain 
-one encrypted CEK if all of the authorized recipients have access to the KEK.
+AES-KW. The COSE\_recipient structure, which is a substructure of the 
+COSE\_Encrypt structure, contains the CEK encrypted by the KEK. 
 
-However, the COSE\_recipient structure can contain the same CEK encrypted
-with many different KEKs if needed to reach all of the authorized recipients.
+When the 
+firmware image is encrypted for use by multiple recipients, there are three 
+options: 
+
+- If all of authorized recipients have access to the KEK, a single 
+COSE\_recipient structure contains the encrypted CEK. 
+
+- If recipients have different KEKs, then the COSE\_recipient structure 
+may contain the same CEK encrypted with many different KEKs. The benefit 
+of this approach is that the firmware image is encrypted only once with 
+the CEK while the authorized recipients still need to use their 
+individual KEKs to obtain the plaintext.
+
+- The last option is to use different CEKs encrypted with KEKs of the 
+authorized recipients. This is appropriate when no benefits can be gained
+from encrypting and transmitting firmware images only once. For example, 
+firmware images may contain information unique to a device instance.  
 
 Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}}, 
 does not have public parameters that vary on a per-invocation basis. Hence, 
@@ -241,8 +256,8 @@ recipient_header_map =
 {: #cddl-aeskw title="CDDL for AES Key Wrap-based Firmware Encryption"}
 
 The COSE specification requires a consistent byte stream for the
-authenticated data structure to be created, which is defined as 
-shown in {{cddl-enc-aeskw}}.
+authenticated data structure to be created, which is shown in
+{{cddl-enc-aeskw}}.
 
 ~~~    
        Enc_structure = [
@@ -253,10 +268,12 @@ shown in {{cddl-enc-aeskw}}.
 ~~~
 {: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
 
-As it can be seen in the CDDL in {{cddl-aeskw}}, there are two protected fields 
-and the 'protected' field in the Enc_structure, see {{cddl-enc-aeskw}}, 
-refers to the outer protected field, not the protected field of the 
-COSE_recipient structure. 
+As shown in {{cddl-aeskw}}, there are two protected fields: one 
+protected field in the COSE_Encrypt structure and a second one in
+the COSE_recipient structure. The 'protected' field in the Enc_structure, 
+see {{cddl-enc-aeskw}}, refers to the content of the protected 
+field from the COSE_Encrypt structure, not to the protected 
+field of the COSE_recipient structure. 
 
 The value of the external_aad is set to null.
 
@@ -313,22 +330,25 @@ F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 
 # Hybrid Public-Key Encryption (HPKE)
 
-Hybrid public-key encryption (HPKE) {{I-D.irtf-cfrg-hpke}} is a scheme that provides 
-public key encryption of arbitrary-sized plaintexts given a recipient's public key.
+Hybrid public-key encryption (HPKE) {{I-D.irtf-cfrg-hpke}} is a scheme that 
+provides public key encryption of arbitrary-sized plaintexts given a 
+recipient's public key.
 
-For use with firmware encryption the firmware author, or the distribution system, uses 
-HPKE, which internally utilizes a non-interactive ephemeral-static Diffie-Hellman exchange to 
-derive a shared secret. This key is then used to encrypt plaintext. In the firmware 
-encryption scenario, the plaintext passed to HPKE for encryption is a randomly 
-generated CEK. The output of the HPKE operation is therefore the encrypted CEK along 
-with HPKE encapsulated key (i.e. the ephemeral ECDH public key of the author). 
-The CEK is then used to encrypt the firmware.
+For use with firmware encryption the scheme works as follows: The firmware
+author uses HPKE, which internally utilizes a non-interactive ephemeral-static
+Diffie-Hellman exchange to derive a shared secret, which is then used to 
+encrypt plaintext. 
+
+In the firmware encryption scenario, the plaintext passed to HPKE for encryption 
+is the randomly generated CEK. The output of the HPKE operation is therefore 
+the encrypted CEK along with HPKE encapsulated key (i.e. the ephemeral ECDH 
+public key of the author). The CEK is then used to encrypt the firmware.
 
 Only the holder of recipient's private key can decapsulate the CEK to decrypt the 
 firmware. Key generation is influced by additional parameters, such as 
 identity information.
 
-This approach allows us to have all recipients to use the same CEK to encrypt the 
+This approach allows all recipients to use the same CEK to encrypt the 
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol. 
 
@@ -388,23 +408,26 @@ shown in {{hpke-encryption}}.
 ~~~
 {: #hpke-encryption title=HPKE-based Encryption"}
 
-
 Legend: 
 
-- The functions DeserializePublicKey(), SetupBaseS() and Seal() are defined in 
-HPKE {{I-D.irtf-cfrg-hpke}}. 
+- The functions DeserializePublicKey(), SetupBaseS() and Seal() are 
+defined in HPKE {{I-D.irtf-cfrg-hpke}}. 
 
-- CEK is a random byte sequence of keysize length whereby keysize corresponds to the size 
-of the indicated symmetric encryption algorithm used for firmware encryption. For example, 
-AES-128-GCM requires a 16 byte key. The CEK would therefore be 16 bytes long. 
+- CEK is a random byte sequence of keysize length whereby keysize 
+corresponds to the size of the indicated symmetric encryption algorithm 
+used for firmware encryption. For example, AES-128-GCM requires a 16 byte 
+key. The CEK would therefore be 16 bytes long. 
 
 - 'recipient_public_key' represents the public key of the recipient. 
 
-- 'info' is a data structure described below used as input to the key derivation internal to the HPKE 
-  algorithm. In addition to the constant prefix, the COSE_KDF_Context structure is used. The COSE_KDF_Context is shown in {{cddl-cose-kdf}}. 
+- 'info' is a data structure described below used as input to the key 
+derivation internal to the HPKE algorithm. In addition to the constant 
+prefix, the COSE_KDF_Context structure is used. The COSE_KDF_Context is 
+shown in {{cddl-cose-kdf}}. 
 
-The result of the above-described operation is the encrypted CEK (denoted as ciphertext) and 
-the enc - the HPKE encapsulated key (i.e. the ephemeral ECDH public key of the author).
+The result of the above-described operation is the encrypted CEK (denoted 
+as ciphertext) and the enc - the HPKE encapsulated key (i.e. the ephemeral 
+ECDH public key of the author).
 
 ~~~
 PartyInfo = (
@@ -427,15 +450,16 @@ COSE_KDF_Context = [
 
 Notes: 
 
-- PartyUInfo.identity corresponds to the kid found in the COSE_Sign_Tagged or 
-COSE_Sign1_Tagged structure (when a digital signature is used. When utilizing a MAC, 
-then the kid is found in the COSE_Mac_Tagged or COSE_Mac0_Tagged structure.
+- PartyUInfo.identity corresponds to the kid found in the 
+COSE_Sign_Tagged or COSE_Sign1_Tagged structure (when a digital 
+signature is used). When utilizing a MAC, then the kid is found in 
+the COSE_Mac_Tagged or COSE_Mac0_Tagged structure.
 
-- PartyVInfo.identity corresponds to the kid used for the respective recipient from the 
-inner-most recipients array.
+- PartyVInfo.identity corresponds to the kid used for the respective 
+recipient from the inner-most recipients array.
 
-- The value in the AlgorithmID field corresponds to the alg parameter in the protected 
-structure in the inner-most recipients array. 
+- The value in the AlgorithmID field corresponds to the alg parameter 
+in the protected structure in the inner-most recipients array. 
 
 - keyDataLength is set to the number of bits of the desired output value.
 
@@ -443,12 +467,12 @@ structure in the inner-most recipients array.
 
 The author encrypts the firmware using the CEK with the selected algorithm. 
 
-The recipient decrypts the received ciphertext, i.e. the encrypted CEK, using two 
-input parameters: 
+The recipient decrypts the encrypted CEK, using two input parameters: 
 
-- the private key skR corresponding to the public key pkR used by the author when creating 
-the manifest. 
-- the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the author. 
+- the private key skR corresponding to the public key pkR used by the author 
+when creating the manifest. 
+- the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the 
+author. 
 
 If the HPKE operation is successful, the recipient obtains the CEK and can decrypt the 
 firmware.
@@ -463,8 +487,14 @@ firmware.
 {: #hpke-decryption title=HPKE-based Decryption"}
 
 An example of the COSE_Encrypt structure using the HPKE scheme is 
-shown in {{hpke-example}}. 
+shown in {{hpke-example}}. It uses the following algorithm 
+combination: 
 
+- AES-GCM-128 for encryption of the firmware image. 
+- AES-GCM-128 for encrytion of the CEK.
+- Key Encapsulation Mechanism (KEM): NIST P-256
+- Key Derivation Function (KDF): HKDF-SHA256
+  
 ~~~
 96( 
     [
@@ -502,9 +532,9 @@ shown in {{hpke-example}}.
 
 # Complete Examples 
 
-TBD: Add example for complete manifest here (which also includes the digital signature).
-TBD: Add multiple recipient example as well. 
-TBD: Add encryption of manifest (in addition of firmware encryption).
+TBD: Example for complete manifest here (which also includes the digital signature).
+TBD: Multiple recipient example as well. 
+TBD: Encryption of manifest (in addition of firmware encryption).
 
 # Security Considerations {#sec-cons}
 
@@ -561,8 +591,6 @@ registry established with {{I-D.ietf-cose-rfc8152bis-algs}}.
 
 
 --- back
-
-
 
 # Acknowledgements
 
