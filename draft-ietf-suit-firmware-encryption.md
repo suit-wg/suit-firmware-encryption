@@ -123,6 +123,58 @@ Additionally, the following abbreviations are used in this document:
 * Content-encryption key (CEK), a term defined in RFC 2630 {{RFC2630}}.
 * Hybrid Public Key Encryption (HPKE), defined in {{I-D.irtf-cfrg-hpke}}.
 
+# Architecture
+
+Figure 1 in {{RFC9019}} shows the architecture for distributing firmware 
+images and manifests from the author to the firmware consumer. It does, however,
+not detail the use of encrypted firmware images. {{architecture}} therefore 
+focuses on those aspects. The firmware server and the device management 
+infrastructure is represented by the distribution system, which is aware 
+of the individual devices a firmware update has to be delivered to. 
+
+Firmware encryption requires the party doing the encryption to know either 
+the KEK (in case of AES-KW) or the public key of the recipient (in case of
+HPKE). The firmware author may have knowledge about all the devices but in 
+most cases this will not be likely. Hence, it is the responsibility of the 
+distribution system to perform the firmware encryption. 
+
+Since including the COSE_Encrypt structure in the manifest invalidates a
+a digital signature or a MAC added by the author, this structure needs to 
+be added to the envelope by the distribution system. This approach offers
+flexiblity when the number of devices that need to receive encrypted 
+firmware images changes dynamically or when the updates to KEKs or 
+recipient public keys are necessary. As a downside, the author needs 
+to trust the distribution system with performing the encryption of the 
+plaintext firmware image. 
+
+~~~
+                                           +----------+
+                                           |          |
+                                           |  Author  |
+                                           |          |
+ +----------+                              +----------+
+ |          |                                   |
+ |  Device  |---+                               | Firmware +
+ |          |   |                               | Manifest
+ +----------+   |                               |
+                |                               |
+                |                        +--------------+
+ +----------+   |                        |              |
+ |          |   |  Firmware + Manifest   | Distribution |
+ |  Device  |---+------------------------|    System    |
+ |          |   |                        |              |
+ +----------+   |                        +--------------+
+                |
+                |
+ +----------+   |
+ |          |   |
+ |  Device  +---+
+ |          |
+ +----------+
+~~~
+{: #architecture title="Firmware Encryption Architecture."}
+
+
 # AES Key Wrap
 
 The AES Key Wrap (AES-KW) algorithm is described in RFC 3394 {{RFC3394}}, and
@@ -264,9 +316,9 @@ F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 Hybrid public-key encryption (HPKE) {{I-D.irtf-cfrg-hpke}} is a scheme that provides 
 public key encryption of arbitrary-sized plaintexts given a recipient's public key.
 
-For use with firmware encryption the scheme works as follows: The firmware author uses 
+For use with firmware encryption the firmware author, or the distribution system, uses 
 HPKE, which internally utilizes a non-interactive ephemeral-static Diffie-Hellman exchange to 
-derive a shared secret, which is then used to encrypt plaintext. In the firmware 
+derive a shared secret. This key is then used to encrypt plaintext. In the firmware 
 encryption scenario, the plaintext passed to HPKE for encryption is a randomly 
 generated CEK. The output of the HPKE operation is therefore the encrypted CEK along 
 with HPKE encapsulated key (i.e. the ephemeral ECDH public key of the author). 
