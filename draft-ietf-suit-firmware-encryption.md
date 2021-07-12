@@ -125,6 +125,58 @@ Additionally, the following abbreviations are used in this document:
 * Content-encryption key (CEK), a term defined in RFC 2630 {{RFC2630}}.
 * Hybrid Public Key Encryption (HPKE), defined in {{I-D.irtf-cfrg-hpke}}.
 
+# Architecture
+
+Figure 1 in {{RFC9019}} shows the architecture for distributing firmware 
+images and manifests from the author to the firmware consumer. It does, however,
+not detail the use of encrypted firmware images. {{architecture}} therefore 
+focuses on those aspects. The firmware server and the device management 
+infrastructure is represented by the distribution system, which is aware 
+of the individual devices a firmware update has to be delivered to. 
+
+Firmware encryption requires the party doing the encryption to know either 
+the KEK (in case of AES-KW) or the public key of the recipient (in case of
+HPKE). The firmware author may have knowledge about all the devices but in 
+most cases this will not be likely. Hence, it is the responsibility of the 
+distribution system to perform the firmware encryption. 
+
+Since including the COSE_Encrypt structure in the manifest invalidates a
+a digital signature or a MAC added by the author, this structure needs to 
+be added to the envelope by the distribution system. This approach offers
+flexiblity when the number of devices that need to receive encrypted 
+firmware images changes dynamically or when the updates to KEKs or 
+recipient public keys are necessary. As a downside, the author needs 
+to trust the distribution system with performing the encryption of the 
+plaintext firmware image. 
+
+~~~
+                                           +----------+
+                                           |          |
+                                           |  Author  |
+                                           |          |
+ +----------+                              +----------+
+ |          |                                   |
+ |  Device  |---+                               | Firmware +
+ |          |   |                               | Manifest
+ +----------+   |                               |
+                |                               |
+                |                        +--------------+
+ +----------+   |                        |              |
+ |          |   |  Firmware + Manifest   | Distribution |
+ |  Device  |---+------------------------|    System    |
+ |          |   |                        |              |
+ +----------+   |                        +--------------+
+                |
+                |
+ +----------+   |
+ |          |   |
+ |  Device  +---+
+ |          |
+ +----------+
+~~~
+{: #architecture title="Firmware Encryption Architecture."}
+
+
 # AES Key Wrap
 
 The AES Key Wrap (AES-KW) algorithm is described in RFC 3394 {{RFC3394}}, and
@@ -492,11 +544,13 @@ The algorithms described in this document assume that the firmware author
 - is in possession of the public key of the firmware consumer (for use with HPKE).  
 
 Both cases require some upfront communication interaction, which is not part of the SUIT manifest. 
-This interaction is likely provided by a IoT device management solution, as described in {{RFC9019}}.
+This interaction is likely provided by an IoT device management solution, as described in {{RFC9019}}.
 
 For AES-Key Wrap to provide high security it is important that the KEK is of high entropy, and that implementations protect the KEK from disclosure. Compromise of the KEK may result in the disclosure of all key data protected with that KEK.
 
 Since the CEK is randomly generated, it must be ensured that the guidelines for random number generations are followed, see {{RFC8937}}.
+
+In some cases third party companies analyse binaries for known security vulnerabilities. With encrypted firmware images this type of analysis is prevented. Consequently, these third party companies either need to be given access to the plaintext binary before encryption or they need to become authorized recipients of the encrypted firmware images. In either case, it is necessary to explicitly consider those third parties in the software supply chain when such a binary analysis is desired.
 
 #  IANA Considerations
 
@@ -538,11 +592,10 @@ registry established with {{I-D.ietf-cose-rfc8152bis-algs}}.
 
 --- back
 
-
-
 # Acknowledgements
 
-We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson and Carsten Bormann for their review feedback. 
+We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for making us aware of the challenges firmware encryption imposes on binary analysis.
+
 
  
 
