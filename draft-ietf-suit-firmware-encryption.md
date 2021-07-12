@@ -129,7 +129,7 @@ Additionally, the following abbreviations are used in this document:
 
 Figure 1 in {{RFC9019}} shows the architecture for distributing firmware 
 images and manifests from the author to the firmware consumer. It does, however,
-not detail the use of encrypted firmware images. {{architecture}} therefore 
+not detail the use of encrypted firmware images. {{arch-fig}} therefore 
 focuses on those aspects. The firmware server and the device management 
 infrastructure is represented by the distribution system, which is aware 
 of the individual devices a firmware update has to be delivered to. 
@@ -174,7 +174,7 @@ plaintext firmware image.
  |          |
  +----------+
 ~~~
-{: #architecture title="Firmware Encryption Architecture."}
+{: #arch-fig title="Firmware Encryption Architecture."}
 
 
 # AES Key Wrap
