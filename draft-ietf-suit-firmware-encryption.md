@@ -201,7 +201,7 @@ the CEK while the authorized recipients still need to use their
 individual KEKs to obtain the plaintext.
 
 - The last option is to use different CEKs encrypted with KEKs of the 
-authorized recipients. This is appropriated when no benefits can be gained
+authorized recipients. This is appropriate when no benefits can be gained
 from encrypting and transmitting firmware images only once. For example, 
 firmware images may contain information unique to a device instance.  
 
