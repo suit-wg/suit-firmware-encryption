@@ -462,11 +462,13 @@ The algorithms described in this document assume that the firmware author
 - is in possession of the public key of the firmware consumer (for use with HPKE).  
 
 Both cases require some upfront communication interaction, which is not part of the SUIT manifest. 
-This interaction is likely provided by a IoT device management solution, as described in {{RFC9019}}.
+This interaction is likely provided by an IoT device management solution, as described in {{RFC9019}}.
 
 For AES-Key Wrap to provide high security it is important that the KEK is of high entropy, and that implementations protect the KEK from disclosure. Compromise of the KEK may result in the disclosure of all key data protected with that KEK.
 
 Since the CEK is randomly generated, it must be ensured that the guidelines for random number generations are followed, see {{RFC8937}}.
+
+In some cases third party companies analyse binaries for known security vulnerabilities. With encrypted firmware images this type of analysis is prevented. Consequently, these third party companies either need to be given access to the plaintext binary before encryption or they need to become authorized recipients of the encrypted firmware images. In either case, it is necessary to explicitly consider those third parties in the software supply chain when such a binary analysis is desired.
 
 #  IANA Considerations
 
@@ -512,7 +514,8 @@ registry established with {{I-D.ietf-cose-rfc8152bis-algs}}.
 
 # Acknowledgements
 
-We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson and Carsten Bormann for their review feedback. 
+We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for making us aware of the challenges firmware encryption imposes on binary analysis.
+
 
  
 
