@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-01
+docname: draft-ietf-suit-firmware-encryption-02
 category: std
 
 ipr: pre5378Trust200902
@@ -45,15 +45,31 @@ author:
 
 
 normative:
-  I-D.ietf-suit-manifest:
   RFC2119:
   RFC3394:
   RFC8152:
   RFC8174:
   RFC3394:
+  I-D.ietf-suit-manifest:
   I-D.irtf-cfrg-hpke:
-  I-D.ietf-cose-rfc8152bis-algs:
-  
+  cose-hpke:
+    target: https://datatracker.ietf.org/doc/html/draft-tschofenig-cose-hpke-00
+    title: Use of Hybrid Public-Key Encryption (HPKE) with CBOR Object Signing and Encryption (COSE)
+    date: 2021-10-18
+    author:
+      -
+        ins: H. Tschofenig
+        organization: Arm Limited
+        name: Hannes Tschofenig
+      -
+        ins: R. Housley
+        organization: Vigil Security
+        name: Russ Housley
+      -
+        ins: B. Moran
+        organization: Arm Limited
+        name: Brendan Moran
+
 informative:
   RFC9019:
   I-D.ietf-suit-information-model:
@@ -64,11 +80,11 @@ informative:
 --- abstract
 
 This document specifies a firmware update mechanism where the
-firmware image is encrypted.  This mechanism uses the IETF 
+firmware image is encrypted.  Firmware encryption uses the IETF 
 SUIT manifest with key establishment provided by the hybrid
-public-key encryption (HPKE) scheme or AES Key Wrap (AES-KW) with
-a pre-shared key-encryption key.  In either case, AES-GCM or 
-AES-CCM is used for firmware encryption.
+public-key encryption (HPKE) scheme and the AES Key Wrap (AES-KW) 
+with a pre-shared key-encryption key. Encryption of the firmware
+image is encrypted using AES-GCM or AES-CCM.
 
 --- middle
 
@@ -88,22 +104,27 @@ signature or a message authentication code, the firmware image may also
 be afforded confidentiality using encryption.
 
 Encryption prevents third parties, including attackers, from gaining access to
-the firmware image. For example, return-oriented programming (ROP) requires 
-intimate knowledge of the target firmware and encryption makes this 
-approach much more difficult to exploit. The SUIT manifest provides the 
-data needed for authorized recipients of the firmware image to decrypt it.
+the firmware binary. Hackers typically need intimate knowledge of the target 
+firmware to mount their attacks. For example, return-oriented programming (ROP)
+requires access to the binary and encryption makes it much more difficult to write 
+exploits. 
 
-A symmetric cryptographic key is established for encryption and decryption, and 
-that key can be applied to a SUIT manifest, firmware images, or personalization
-data, depending on the encryption choices of the firmware author. This symmetric key
-can be established using a variety of mechanisms; this document defines two 
-approaches for use with the IETF SUIT manifest.  Key establishment can be
-provided by the hybrid public-key encryption (HPKE) scheme or AES Key Wrap
-(AES-KW) with a pre-shared key-encryption key.  These choices reduce the
-number of possible key establishment options and thereby help increase 
-interoperability between different SUIT manifest parser implementations. 
+The SUIT manifest provides the data needed for authorized recipients 
+of the firmware image to decrypt it. The firmware image is encrypted using a 
+symmetric key. This symmetric cryptographic key is established for encryption 
+and decryption, and that key can be applied to a SUIT manifest, firmware images, 
+or personalization data, depending on the encryption choices of the firmware author. 
 
-The document also contains a number of examples for developers.
+A symmetric key can be established using a variety of mechanisms; this document 
+defines two approaches for use with the IETF SUIT manifest, namely: 
+
+- hybrid public-key encryption (HPKE), and 
+- AES Key Wrap (AES-KW) using a pre-shared key-encryption key (KEK). 
+
+These choices reduce the number of possible key establishment options and thereby 
+help increase interoperability between different SUIT manifest parser implementations. 
+
+The document also contains a number of examples.
 
 # Conventions and Terminology
 
@@ -112,8 +133,8 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 document are to be interpreted as described in BCP&nbsp;14 {{RFC2119}} {{RFC8174}}
 when, and only when, they appear in all capitals, as shown here.
 
-This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}}
-and the SUIT architecture {{RFC9019}}.
+This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}}, 
+the SUIT information model {{I-D.ietf-suit-information-model}} and the SUIT architecture {{RFC9019}}.
 
 In context of encryption, the terms "recipient" and "firmware consumer" 
 are used interchangeably.
@@ -121,7 +142,7 @@ are used interchangeably.
 Additionally, the following abbreviations are used in this document: 
 
 * Key Wrap (KW), defined in RFC 3394 {{RFC3394}} for use with AES.
-* Key-encryption key / key-encrypting key (KEK), a term defined in RFC 4949 {{RFC4949}}. 
+* Key-encryption key (KEK), a term defined in RFC 4949 {{RFC4949}}. 
 * Content-encryption key (CEK), a term defined in RFC 2630 {{RFC2630}}.
 * Hybrid Public Key Encryption (HPKE), defined in {{I-D.irtf-cfrg-hpke}}.
 
@@ -131,20 +152,24 @@ Figure 1 in {{RFC9019}} shows the architecture for distributing firmware
 images and manifests from the author to the firmware consumer. It does, however,
 not detail the use of encrypted firmware images. {{arch-fig}} therefore 
 focuses on those aspects. The firmware server and the device management 
-infrastructure is represented by the distribution system, which is aware 
-of the individual devices a firmware update has to be delivered to. 
+infrastructure is represented by the distribution system. The distribution
+system is aware of the individual devices to which a firmware update has 
+to be delivered to. 
 
 Firmware encryption requires the party doing the encryption to know either 
 the KEK (in case of AES-KW) or the public key of the recipient (in case of
-HPKE). The firmware author may have knowledge about all the devices but in 
-most cases this will not be likely. Hence, it is the responsibility of the 
-distribution system to perform the firmware encryption. 
+HPKE). The firmware author may have knowledge about all devices that need 
+to receive an encrypted firmware image but in most cases this will not be 
+likely. Hence, it is the responsibility of the distribution system to 
+perform the firmware encryption.
 
-Since including the COSE_Encrypt structure in the manifest invalidates a
-a digital signature or a MAC added by the author, this structure needs to 
-be added to the envelope by the distribution system. This approach offers
-flexiblity when the number of devices that need to receive encrypted 
-firmware images changes dynamically or when the updates to KEKs or 
+The distribution system needs to include the COSE_Encrypt structure into
+the SUIT envelope rather than the manifest since any modification to the 
+manifest invalidates the digital signature or the MAC added by the author. 
+
+Delegating the task of encrypting the firmware image to the distribution 
+system offers flexiblity when the number of devices that need to receive 
+encrypted  firmware images changes dynamically or when the updates to KEKs or 
 recipient public keys are necessary. As a downside, the author needs 
 to trust the distribution system with performing the encryption of the 
 plaintext firmware image. 
@@ -187,11 +212,10 @@ carried in the COSE\_recipient structure alongside the information needed for
 AES-KW. The COSE\_recipient structure, which is a substructure of the 
 COSE\_Encrypt structure, contains the CEK encrypted by the KEK. 
 
-When the 
-firmware image is encrypted for use by multiple recipients, there are three 
-options: 
+When the firmware image is encrypted for use by multiple recipients, there 
+are three options: 
 
-- If all of authorized recipients have access to the KEK, a single 
+- If all authorized recipients have access to the KEK, a single 
 COSE\_recipient structure contains the encrypted CEK. 
 
 - If recipients have different KEKs, then the COSE\_recipient structure 
@@ -272,8 +296,7 @@ As shown in {{cddl-aeskw}}, there are two protected fields: one
 protected field in the COSE_Encrypt structure and a second one in
 the COSE_recipient structure. The 'protected' field in the Enc_structure, 
 see {{cddl-enc-aeskw}}, refers to the content of the protected 
-field from the COSE_Encrypt structure, not to the protected 
-field of the COSE_recipient structure. 
+field from the COSE_Encrypt structure. 
 
 The value of the external_aad is set to null.
 
@@ -321,7 +344,8 @@ The resulting COSE_Encrypt structure in a dignostic format is shown in {{aeskw-e
 ~~~
 {: #aeskw-example title="COSE_Encrypt Example for AES Key Wrap"}
 
-The CEK was "4C805F1587D624ED5E0DBB7A7F7FA7EB" and the encrypted firmware was:
+The CEK, in hex format, was "4C805F1587D624ED5E0DBB7A7F7FA7EB" and 
+the encrypted firmware (with a line feed added) was:
 
 ~~~ 
 A8B6E61EF17FBAD1F1BF3235B3C64C06098EA512223260
@@ -334,50 +358,52 @@ Hybrid public-key encryption (HPKE) {{I-D.irtf-cfrg-hpke}} is a scheme that
 provides public key encryption of arbitrary-sized plaintexts given a 
 recipient's public key.
 
-For use with firmware encryption the scheme works as follows: The firmware
-author uses HPKE, which internally utilizes a non-interactive ephemeral-static
-Diffie-Hellman exchange to derive a shared secret, which is then used to 
-encrypt plaintext. 
-
-In the firmware encryption scenario, the plaintext passed to HPKE for encryption 
-is the randomly generated CEK. The output of the HPKE operation is therefore 
+For use with firmware encryption the scheme works as follows: HPKE, 
+which internally utilizes a non-interactive ephemeral-static
+Diffie-Hellman exchange to derive a shared secret, is used to 
+encrypt a CEK. This CEK is subsequently used to encrypt the firmware image. 
+Hence, the plaintext passed to HPKE is the randomly generated CEK. 
+The output of the HPKE encrypt operation is therefore 
 the encrypted CEK along with HPKE encapsulated key (i.e. the ephemeral ECDH 
-public key of the author). The CEK is then used to encrypt the firmware.
+public key of the author).
 
 Only the holder of recipient's private key can decapsulate the CEK to decrypt the 
-firmware. Key generation is influced by additional parameters, such as 
+firmware. Key generation in HPKE is influced by additional parameters, such as 
 identity information.
 
 This approach allows all recipients to use the same CEK to encrypt the 
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol. 
 
-The CDDL for the COSE_Encrypt structure as used with HPKE is shown in {{cddl-hpke}}.
+{{cose-hpke}} defines the use of HPKE with COSE. This specification profiles it. 
 
 ~~~
 COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
  
 SUIT_Encryption_Info = COSE_Encrypt_Tagged
 
+; Layer 0
 COSE_Encrypt = [
   protected   : bstr .cbor header_map, ; must contain alg
   unprotected : header_map,            ; must contain iv
   ciphertext  : null,                  ; because of detached ciphertext
-  recipients  : [ + COSE_recipient_outer ]
+  recipients  : [+COSE_recipient_outer]
 ]
 
+; Layer 1   
 COSE_recipient_outer = [
   protected   : bstr .size 0,
   unprotected : header_map, ; must contain alg
-  ciphertext  : bstr        ; CEK encrypted based on HPKE algo
+  encCEK      : bstr,       ; CEK encrypted based on HPKE algo
   recipients  : [ + COSE_recipient_inner ]  
 ]
 
+; Layer 2
 COSE_recipient_inner = [
-  protected   : bstr .cbor header_map, ; must contain alg
-  unprotected : header_map, ; must contain kid, 
-  ciphertext  : bstr        ; CEK encrypted based on HPKE algo
-  recipients  : null
+  protected   : bstr .cbor header_map, ; must contain HPKE alg
+  unprotected : header_map, ; must contain kid and ephemeral public key
+  empty       : null,
+  empty       : null
 ]
 
 header_map = {
@@ -394,97 +420,32 @@ Generic_Headers = (
 ~~~
 {: #cddl-hpke title="CDDL for HPKE-based COSE_Encrypt Structure"}
 
-The COSE_Encrypt structure in {{cddl-hpke}} requires the 
-encrypted CEK and the ephemeral public key of the firmare author to be
-generated. This is accomplished with the HPKE encryption function as 
-shown in {{hpke-encryption}}.
+The COSE_Encrypt structure (layer 0) contains algorithm parameters for 
+encryption of the firmware image. The protected field MUST contain the 'alg' parameter 
+and the unprotected field MUST contain the 'iv' parameter. The ciphertext is always 
+detached.
 
-~~~
-    CEK = random()
-    pkR = DeserializePublicKey(recipient_public_key)
-    info = "cose hpke" || 0x00 || COSE_KDF_Context
-    enc, context = SetupBaseS(pkR, info)
-    ciphertext = context.Seal(null, CEK)
-~~~
-{: #hpke-encryption title=HPKE-based Encryption"}
+The COSE_recipient_outer structure (layer 1) contains the encrypted CEK. The
+protected structure MUST be empty and the unprotected structure MUST contain the 
+'alg' parameter, which carries the algorithm information for protecting the CEK.
 
-Legend: 
+The COSE_recipient_inner structure (layer 2) contains the HPKE-related information. 
+The protected structure MUST contain the 'alg' parameter set to the algorithm values in 
+Section 6 of {{cose-hpke}} and the unprotected structure MUST contain the 'kid' and 
+the 'ephemeral' parameter. 
 
-- The functions DeserializePublicKey(), SetupBaseS() and Seal() are 
-defined in HPKE {{I-D.irtf-cfrg-hpke}}. 
+The encrypted CEK and the ephemeral public key of the sender are generated as part 
+of the HPKE algorithm, as described in Figure 2 of {{cose-hpke}} .
 
-- CEK is a random byte sequence of keysize length whereby keysize 
-corresponds to the size of the indicated symmetric encryption algorithm 
-used for firmware encryption. For example, AES-128-GCM requires a 16 byte 
-key. The CEK would therefore be 16 bytes long. 
-
-- 'recipient_public_key' represents the public key of the recipient. 
-
-- 'info' is a data structure described below used as input to the key 
-derivation internal to the HPKE algorithm. In addition to the constant 
-prefix, the COSE_KDF_Context structure is used. The COSE_KDF_Context is 
-shown in {{cddl-cose-kdf}}. 
-
-The result of the above-described operation is the encrypted CEK (denoted 
-as ciphertext) and the enc - the HPKE encapsulated key (i.e. the ephemeral 
-ECDH public key of the author).
-
-~~~
-PartyInfo = (
-   identity : bstr,
-   nonce : nil,
-   other : nil
-)
-
-COSE_KDF_Context = [
-   AlgorithmID : int,
-   PartyUInfo : [ PartyInfo ],
-   PartyVInfo : [ PartyInfo ],
-   SuppPubInfo : [
-       keyDataLength : uint,
-       protected : empty_or_serialized_map
-   ],
-]
-~~~
-{: #cddl-cose-kdf title="COSE_KDF_Context Data Structure"}
-
-Notes: 
-
-- PartyUInfo.identity corresponds to the kid found in the 
-COSE_Sign_Tagged or COSE_Sign1_Tagged structure (when a digital 
-signature is used). When utilizing a MAC, then the kid is found in 
-the COSE_Mac_Tagged or COSE_Mac0_Tagged structure.
-
-- PartyVInfo.identity corresponds to the kid used for the respective 
-recipient from the inner-most recipients array.
-
-- The value in the AlgorithmID field corresponds to the alg parameter 
-in the protected structure in the inner-most recipients array. 
-
-- keyDataLength is set to the number of bits of the desired output value.
-
-- protected refers to the protected structure of the inner-most array. 
-
-The author encrypts the firmware using the CEK with the selected algorithm. 
+Finally, the firmware image is encrypted using the CEK with the selected algorithm. 
 
 The recipient decrypts the encrypted CEK, using two input parameters: 
 
-- the private key skR corresponding to the public key pkR used by the author 
-when creating the manifest. 
-- the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the 
-author. 
+- the private key skR corresponding to the public key pkR used by the sender. 
+- the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the sender. 
 
 If the HPKE operation is successful, the recipient obtains the CEK and can decrypt the 
-firmware.
-
-{{hpke-decryption}} shows the HPKE computations performed by the recipient for decryption.
-
-~~~
-    info = "cose hpke" || 0x00 || COSE_KDF_Context
-    context = SetupBaseR(ciphertext, skR, info)
-    CEK = context.Open(null, ciphertext)
-~~~
-{: #hpke-decryption title=HPKE-based Decryption"}
+firmware. The decryption operation is shown in Figure 4 of {{cose-hpke}}.
 
 An example of the COSE_Encrypt structure using the HPKE scheme is 
 shown in {{hpke-example}}. It uses the following algorithm 
@@ -538,9 +499,9 @@ TBD: Encryption of manifest (in addition of firmware encryption).
 
 # Security Considerations {#sec-cons}
 
-The algorithms described in this document assume that the firmware author 
+The algorithms described in this document assume that the party performing the firmware encryption  
 
-- has either shared a key-encryption key (KEK) with the firmware consumer (for use with the AES-Key Wrap scheme), or 
+- shares a key-encryption key (KEK) with the firmware consumer (for use with the AES-Key Wrap scheme), or 
 - is in possession of the public key of the firmware consumer (for use with HPKE).  
 
 Both cases require some upfront communication interaction, which is not part of the SUIT manifest. 
@@ -554,41 +515,7 @@ In some cases third party companies analyse binaries for known security vulnerab
 
 #  IANA Considerations
 
-This document requests IANA to create new entries in the COSE Algorithms
-registry established with {{I-D.ietf-cose-rfc8152bis-algs}}.
-
-~~~
-+-------------+-------+---------+------------+--------+---------------+  
-| Name        | Value | KDF     | Ephemeral- | Key    | Description   |
-|             |       |         | Static     | Wrap   |               |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE/P-256+ | TBD1  | HKDF -  | yes        | none   | HPKE with     |
-| HKDF-256    |       | SHA-256 |            |        | ECDH-ES       |
-|             |       |         |            |        | (P-256) +     |
-|             |       |         |            |        | HKDF-256      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE/P-384+ | TBD2  | HKDF -  | yes        | none   | HPKE with     |
-| HKDF-SHA384 |       | SHA-384 |            |        | ECDH-ES       |
-|             |       |         |            |        | (P-384) +     |
-|             |       |         |            |        | HKDF-384      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE/P-521+ | TBD3  | HKDF -  | yes        | none   | HPKE with     |
-| HKDF-SHA521 |       | SHA-521 |            |        | ECDH-ES       |
-|             |       |         |            |        | (P-521) +     |
-|             |       |         |            |        | HKDF-521      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE        | TBD4  | HKDF -  | yes        | none   | HPKE with     |
-| X25519 +    |       | SHA-256 |            |        | ECDH-ES       |
-| HKDF-SHA256 |       |         |            |        | (X25519) +    |
-|             |       |         |            |        | HKDF-256      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE        | TBD4  | HKDF -  | yes        | none   | HPKE with     |
-| X448 +      |       | SHA-512 |            |        | ECDH-ES       |
-| HKDF-SHA512 |       |         |            |        | (X448) +      |
-|             |       |         |            |        | HKDF-512      |
-+-------------+-------+---------+------------+--------+---------------+
-~~~ 
-
+This document does not require any actions by IANA.
 
 --- back
 

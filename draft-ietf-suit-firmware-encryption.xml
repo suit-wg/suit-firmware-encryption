@@ -17,7 +17,7 @@
 <?rfc docmapping="yes"?>
 <?rfc toc_levels="4"?>
 
-<rfc ipr="pre5378Trust200902" docName="draft-ietf-suit-firmware-encryption-01" category="std">
+<rfc ipr="pre5378Trust200902" docName="draft-ietf-suit-firmware-encryption-02" category="std">
 
   <front>
     <title abbrev="Firmware Encryption">Firmware Encryption with SUIT Manifests</title>
@@ -41,7 +41,7 @@
       </address>
     </author>
 
-    <date year="2021" month="July" day="12"/>
+    <date year="2021" month="October" day="18"/>
 
     <area>Security</area>
     <workgroup>SUIT</workgroup>
@@ -51,11 +51,11 @@
 
 
 <t>This document specifies a firmware update mechanism where the
-firmware image is encrypted.  This mechanism uses the IETF 
+firmware image is encrypted.  Firmware encryption uses the IETF 
 SUIT manifest with key establishment provided by the hybrid
-public-key encryption (HPKE) scheme or AES Key Wrap (AES-KW) with
-a pre-shared key-encryption key.  In either case, AES-GCM or 
-AES-CCM is used for firmware encryption.</t>
+public-key encryption (HPKE) scheme and the AES Key Wrap (AES-KW) 
+with a pre-shared key-encryption key. Encryption of the firmware
+image is encrypted using AES-GCM or AES-CCM.</t>
 
 
 
@@ -83,22 +83,29 @@ signature or a message authentication code, the firmware image may also
 be afforded confidentiality using encryption.</t>
 
 <t>Encryption prevents third parties, including attackers, from gaining access to
-the firmware image. For example, return-oriented programming (ROP) requires 
-intimate knowledge of the target firmware and encryption makes this 
-approach much more difficult to exploit. The SUIT manifest provides the 
-data needed for authorized recipients of the firmware image to decrypt it.</t>
+the firmware binary. Hackers typically need intimate knowledge of the target 
+firmware to mount their attacks. For example, return-oriented programming (ROP)
+requires access to the binary and encryption makes it much more difficult to write 
+exploits.</t>
 
-<t>A symmetric cryptographic key is established for encryption and decryption, and 
-that key can be applied to a SUIT manifest, firmware images, or personalization
-data, depending on the encryption choices of the firmware author. This symmetric key
-can be established using a variety of mechanisms; this document defines two 
-approaches for use with the IETF SUIT manifest.  Key establishment can be
-provided by the hybrid public-key encryption (HPKE) scheme or AES Key Wrap
-(AES-KW) with a pre-shared key-encryption key.  These choices reduce the
-number of possible key establishment options and thereby help increase 
-interoperability between different SUIT manifest parser implementations.</t>
+<t>The SUIT manifest provides the data needed for authorized recipients 
+of the firmware image to decrypt it. The firmware image is encrypted using a 
+symmetric key. This symmetric cryptographic key is established for encryption 
+and decryption, and that key can be applied to a SUIT manifest, firmware images, 
+or personalization data, depending on the encryption choices of the firmware author.</t>
 
-<t>The document also contains a number of examples for developers.</t>
+<t>A symmetric key can be established using a variety of mechanisms; this document 
+defines two approaches for use with the IETF SUIT manifest, namely:</t>
+
+<t><list style="symbols">
+  <t>hybrid public-key encryption (HPKE), and</t>
+  <t>AES Key Wrap (AES-KW) using a pre-shared key-encryption key (KEK).</t>
+</list></t>
+
+<t>These choices reduce the number of possible key establishment options and thereby 
+help increase interoperability between different SUIT manifest parser implementations.</t>
+
+<t>The document also contains a number of examples.</t>
 
 </section>
 <section anchor="conventions-and-terminology" title="Conventions and Terminology">
@@ -108,8 +115,8 @@ interoperability between different SUIT manifest parser implementations.</t>
 document are to be interpreted as described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/>
 when, and only when, they appear in all capitals, as shown here.</t>
 
-<t>This document assumes familiarity with the IETF SUIT manifest <xref target="I-D.ietf-suit-manifest"/>
-and the SUIT architecture <xref target="RFC9019"/>.</t>
+<t>This document assumes familiarity with the IETF SUIT manifest <xref target="I-D.ietf-suit-manifest"/>, 
+the SUIT information model <xref target="I-D.ietf-suit-information-model"/> and the SUIT architecture <xref target="RFC9019"/>.</t>
 
 <t>In context of encryption, the terms “recipient” and “firmware consumer” 
 are used interchangeably.</t>
@@ -118,7 +125,7 @@ are used interchangeably.</t>
 
 <t><list style="symbols">
   <t>Key Wrap (KW), defined in RFC 3394 <xref target="RFC3394"/> for use with AES.</t>
-  <t>Key-encryption key / key-encrypting key (KEK), a term defined in RFC 4949 <xref target="RFC4949"/>.</t>
+  <t>Key-encryption key (KEK), a term defined in RFC 4949 <xref target="RFC4949"/>.</t>
   <t>Content-encryption key (CEK), a term defined in RFC 2630 <xref target="RFC2630"/>.</t>
   <t>Hybrid Public Key Encryption (HPKE), defined in <xref target="I-D.irtf-cfrg-hpke"/>.</t>
 </list></t>
@@ -130,20 +137,24 @@ are used interchangeably.</t>
 images and manifests from the author to the firmware consumer. It does, however,
 not detail the use of encrypted firmware images. <xref target="arch-fig"/> therefore 
 focuses on those aspects. The firmware server and the device management 
-infrastructure is represented by the distribution system, which is aware 
-of the individual devices a firmware update has to be delivered to.</t>
+infrastructure is represented by the distribution system. The distribution
+system is aware of the individual devices to which a firmware update has 
+to be delivered to.</t>
 
 <t>Firmware encryption requires the party doing the encryption to know either 
 the KEK (in case of AES-KW) or the public key of the recipient (in case of
-HPKE). The firmware author may have knowledge about all the devices but in 
-most cases this will not be likely. Hence, it is the responsibility of the 
-distribution system to perform the firmware encryption.</t>
+HPKE). The firmware author may have knowledge about all devices that need 
+to receive an encrypted firmware image but in most cases this will not be 
+likely. Hence, it is the responsibility of the distribution system to 
+perform the firmware encryption.</t>
 
-<t>Since including the COSE_Encrypt structure in the manifest invalidates a
-a digital signature or a MAC added by the author, this structure needs to 
-be added to the envelope by the distribution system. This approach offers
-flexiblity when the number of devices that need to receive encrypted 
-firmware images changes dynamically or when the updates to KEKs or 
+<t>The distribution system needs to include the COSE_Encrypt structure into
+the SUIT envelope rather than the manifest since any modification to the 
+manifest invalidates the digital signature or the MAC added by the author.</t>
+
+<t>Delegating the task of encrypting the firmware image to the distribution 
+system offers flexiblity when the number of devices that need to receive 
+encrypted  firmware images changes dynamically or when the updates to KEKs or 
 recipient public keys are necessary. As a downside, the author needs 
 to trust the distribution system with performing the encryption of the 
 plaintext firmware image.</t>
@@ -185,12 +196,11 @@ carried in the COSE_recipient structure alongside the information needed for
 AES-KW. The COSE_recipient structure, which is a substructure of the 
 COSE_Encrypt structure, contains the CEK encrypted by the KEK.</t>
 
-<t>When the 
-firmware image is encrypted for use by multiple recipients, there are three 
-options:</t>
+<t>When the firmware image is encrypted for use by multiple recipients, there 
+are three options:</t>
 
 <t><list style="symbols">
-  <t>If all of authorized recipients have access to the KEK, a single 
+  <t>If all authorized recipients have access to the KEK, a single 
 COSE_recipient structure contains the encrypted CEK.</t>
   <t>If recipients have different KEKs, then the COSE_recipient structure 
 may contain the same CEK encrypted with many different KEKs. The benefit 
@@ -268,8 +278,7 @@ authenticated data structure to be created, which is shown in
 protected field in the COSE_Encrypt structure and a second one in
 the COSE_recipient structure. The ‘protected’ field in the Enc_structure, 
 see <xref target="cddl-enc-aeskw"/>, refers to the content of the protected 
-field from the COSE_Encrypt structure, not to the protected 
-field of the COSE_recipient structure.</t>
+field from the COSE_Encrypt structure.</t>
 
 <t>The value of the external_aad is set to null.</t>
 
@@ -318,7 +327,8 @@ D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
 )
 ]]></artwork></figure>
 
-<t>The CEK was “4C805F1587D624ED5E0DBB7A7F7FA7EB” and the encrypted firmware was:</t>
+<t>The CEK, in hex format, was “4C805F1587D624ED5E0DBB7A7F7FA7EB” and 
+the encrypted firmware (with a line feed added) was:</t>
 
 <figure><artwork><![CDATA[
 A8B6E61EF17FBAD1F1BF3235B3C64C06098EA512223260
@@ -332,50 +342,52 @@ F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 provides public key encryption of arbitrary-sized plaintexts given a 
 recipient’s public key.</t>
 
-<t>For use with firmware encryption the scheme works as follows: The firmware
-author uses HPKE, which internally utilizes a non-interactive ephemeral-static
-Diffie-Hellman exchange to derive a shared secret, which is then used to 
-encrypt plaintext.</t>
-
-<t>In the firmware encryption scenario, the plaintext passed to HPKE for encryption 
-is the randomly generated CEK. The output of the HPKE operation is therefore 
+<t>For use with firmware encryption the scheme works as follows: HPKE, 
+which internally utilizes a non-interactive ephemeral-static
+Diffie-Hellman exchange to derive a shared secret, is used to 
+encrypt a CEK. This CEK is subsequently used to encrypt the firmware image. 
+Hence, the plaintext passed to HPKE is the randomly generated CEK. 
+The output of the HPKE encrypt operation is therefore 
 the encrypted CEK along with HPKE encapsulated key (i.e. the ephemeral ECDH 
-public key of the author). The CEK is then used to encrypt the firmware.</t>
+public key of the author).</t>
 
 <t>Only the holder of recipient’s private key can decapsulate the CEK to decrypt the 
-firmware. Key generation is influced by additional parameters, such as 
+firmware. Key generation in HPKE is influced by additional parameters, such as 
 identity information.</t>
 
 <t>This approach allows all recipients to use the same CEK to encrypt the 
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol.</t>
 
-<t>The CDDL for the COSE_Encrypt structure as used with HPKE is shown in <xref target="cddl-hpke"/>.</t>
+<t><xref target="cose-hpke"/> defines the use of HPKE with COSE. This specification profiles it.</t>
 
 <figure title="CDDL for HPKE-based COSE_Encrypt Structure" anchor="cddl-hpke"><artwork><![CDATA[
 COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
  
 SUIT_Encryption_Info = COSE_Encrypt_Tagged
 
+; Layer 0
 COSE_Encrypt = [
   protected   : bstr .cbor header_map, ; must contain alg
   unprotected : header_map,            ; must contain iv
   ciphertext  : null,                  ; because of detached ciphertext
-  recipients  : [ + COSE_recipient_outer ]
+  recipients  : [+COSE_recipient_outer]
 ]
 
+; Layer 1   
 COSE_recipient_outer = [
   protected   : bstr .size 0,
   unprotected : header_map, ; must contain alg
-  ciphertext  : bstr        ; CEK encrypted based on HPKE algo
+  encCEK      : bstr,       ; CEK encrypted based on HPKE algo
   recipients  : [ + COSE_recipient_inner ]  
 ]
 
+; Layer 2
 COSE_recipient_inner = [
-  protected   : bstr .cbor header_map, ; must contain alg
-  unprotected : header_map, ; must contain kid, 
-  ciphertext  : bstr        ; CEK encrypted based on HPKE algo
-  recipients  : null
+  protected   : bstr .cbor header_map, ; must contain HPKE alg
+  unprotected : header_map, ; must contain kid and ephemeral public key
+  empty       : null,
+  empty       : null
 ]
 
 header_map = {
@@ -391,93 +403,34 @@ Generic_Headers = (
 )
 ]]></artwork></figure>
 
-<t>The COSE_Encrypt structure in <xref target="cddl-hpke"/> requires the 
-encrypted CEK and the ephemeral public key of the firmare author to be
-generated. This is accomplished with the HPKE encryption function as 
-shown in <xref target="hpke-encryption"/>.</t>
+<t>The COSE_Encrypt structure (layer 0) contains algorithm parameters for 
+encryption of the firmware image. The protected field MUST contain the ‘alg’ parameter 
+and the unprotected field MUST contain the ‘iv’ parameter. The ciphertext is always 
+detached.</t>
 
-<figure anchor="hpke-encryption"><artwork><![CDATA[
-    CEK = random()
-    pkR = DeserializePublicKey(recipient_public_key)
-    info = "cose hpke" || 0x00 || COSE_KDF_Context
-    enc, context = SetupBaseS(pkR, info)
-    ciphertext = context.Seal(null, CEK)
-]]></artwork></figure>
+<t>The COSE_recipient_outer structure (layer 1) contains the encrypted CEK. The
+protected structure MUST be empty and the unprotected structure MUST contain the 
+‘alg’ parameter, which carries the algorithm information for protecting the CEK.</t>
 
-<t>Legend:</t>
+<t>The COSE_recipient_inner structure (layer 2) contains the HPKE-related information. 
+The protected structure MUST contain the ‘alg’ parameter set to the algorithm values in 
+Section 6 of <xref target="cose-hpke"/> and the unprotected structure MUST contain the ‘kid’ and 
+the ‘ephemeral’ parameter.</t>
 
-<t><list style="symbols">
-  <t>The functions DeserializePublicKey(), SetupBaseS() and Seal() are 
-defined in HPKE <xref target="I-D.irtf-cfrg-hpke"/>.</t>
-  <t>CEK is a random byte sequence of keysize length whereby keysize 
-corresponds to the size of the indicated symmetric encryption algorithm 
-used for firmware encryption. For example, AES-128-GCM requires a 16 byte 
-key. The CEK would therefore be 16 bytes long.</t>
-  <t>‘recipient_public_key’ represents the public key of the recipient.</t>
-  <t>‘info’ is a data structure described below used as input to the key 
-derivation internal to the HPKE algorithm. In addition to the constant 
-prefix, the COSE_KDF_Context structure is used. The COSE_KDF_Context is 
-shown in <xref target="cddl-cose-kdf"/>.</t>
-</list></t>
+<t>The encrypted CEK and the ephemeral public key of the sender are generated as part 
+of the HPKE algorithm, as described in Figure 2 of <xref target="cose-hpke"/> .</t>
 
-<t>The result of the above-described operation is the encrypted CEK (denoted 
-as ciphertext) and the enc - the HPKE encapsulated key (i.e. the ephemeral 
-ECDH public key of the author).</t>
-
-<figure title="COSE_KDF_Context Data Structure" anchor="cddl-cose-kdf"><artwork><![CDATA[
-PartyInfo = (
-   identity : bstr,
-   nonce : nil,
-   other : nil
-)
-
-COSE_KDF_Context = [
-   AlgorithmID : int,
-   PartyUInfo : [ PartyInfo ],
-   PartyVInfo : [ PartyInfo ],
-   SuppPubInfo : [
-       keyDataLength : uint,
-       protected : empty_or_serialized_map
-   ],
-]
-]]></artwork></figure>
-
-<t>Notes:</t>
-
-<t><list style="symbols">
-  <t>PartyUInfo.identity corresponds to the kid found in the 
-COSE_Sign_Tagged or COSE_Sign1_Tagged structure (when a digital 
-signature is used). When utilizing a MAC, then the kid is found in 
-the COSE_Mac_Tagged or COSE_Mac0_Tagged structure.</t>
-  <t>PartyVInfo.identity corresponds to the kid used for the respective 
-recipient from the inner-most recipients array.</t>
-  <t>The value in the AlgorithmID field corresponds to the alg parameter 
-in the protected structure in the inner-most recipients array.</t>
-  <t>keyDataLength is set to the number of bits of the desired output value.</t>
-  <t>protected refers to the protected structure of the inner-most array.</t>
-</list></t>
-
-<t>The author encrypts the firmware using the CEK with the selected algorithm.</t>
+<t>Finally, the firmware image is encrypted using the CEK with the selected algorithm.</t>
 
 <t>The recipient decrypts the encrypted CEK, using two input parameters:</t>
 
 <t><list style="symbols">
-  <t>the private key skR corresponding to the public key pkR used by the author 
-when creating the manifest.</t>
-  <t>the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the 
-author.</t>
+  <t>the private key skR corresponding to the public key pkR used by the sender.</t>
+  <t>the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the sender.</t>
 </list></t>
 
 <t>If the HPKE operation is successful, the recipient obtains the CEK and can decrypt the 
-firmware.</t>
-
-<t><xref target="hpke-decryption"/> shows the HPKE computations performed by the recipient for decryption.</t>
-
-<figure anchor="hpke-decryption"><artwork><![CDATA[
-    info = "cose hpke" || 0x00 || COSE_KDF_Context
-    context = SetupBaseR(ciphertext, skR, info)
-    CEK = context.Open(null, ciphertext)
-]]></artwork></figure>
+firmware. The decryption operation is shown in Figure 4 of <xref target="cose-hpke"/>.</t>
 
 <t>An example of the COSE_Encrypt structure using the HPKE scheme is 
 shown in <xref target="hpke-example"/>. It uses the following algorithm 
@@ -534,10 +487,10 @@ TBD: Encryption of manifest (in addition of firmware encryption).</t>
 </section>
 <section anchor="sec-cons" title="Security Considerations">
 
-<t>The algorithms described in this document assume that the firmware author</t>
+<t>The algorithms described in this document assume that the party performing the firmware encryption</t>
 
 <t><list style="symbols">
-  <t>has either shared a key-encryption key (KEK) with the firmware consumer (for use with the AES-Key Wrap scheme), or</t>
+  <t>shares a key-encryption key (KEK) with the firmware consumer (for use with the AES-Key Wrap scheme), or</t>
   <t>is in possession of the public key of the firmware consumer (for use with HPKE).</t>
 </list></t>
 
@@ -553,40 +506,7 @@ This interaction is likely provided by an IoT device management solution, as des
 </section>
 <section anchor="iana-considerations" title="IANA Considerations">
 
-<t>This document requests IANA to create new entries in the COSE Algorithms
-registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
-
-<figure><artwork><![CDATA[
-+-------------+-------+---------+------------+--------+---------------+  
-| Name        | Value | KDF     | Ephemeral- | Key    | Description   |
-|             |       |         | Static     | Wrap   |               |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE/P-256+ | TBD1  | HKDF -  | yes        | none   | HPKE with     |
-| HKDF-256    |       | SHA-256 |            |        | ECDH-ES       |
-|             |       |         |            |        | (P-256) +     |
-|             |       |         |            |        | HKDF-256      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE/P-384+ | TBD2  | HKDF -  | yes        | none   | HPKE with     |
-| HKDF-SHA384 |       | SHA-384 |            |        | ECDH-ES       |
-|             |       |         |            |        | (P-384) +     |
-|             |       |         |            |        | HKDF-384      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE/P-521+ | TBD3  | HKDF -  | yes        | none   | HPKE with     |
-| HKDF-SHA521 |       | SHA-521 |            |        | ECDH-ES       |
-|             |       |         |            |        | (P-521) +     |
-|             |       |         |            |        | HKDF-521      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE        | TBD4  | HKDF -  | yes        | none   | HPKE with     |
-| X25519 +    |       | SHA-256 |            |        | ECDH-ES       |
-| HKDF-SHA256 |       |         |            |        | (X25519) +    |
-|             |       |         |            |        | HKDF-256      |
-+-------------+-------+---------+------------+--------+---------------+
-| HPKE        | TBD4  | HKDF -  | yes        | none   | HPKE with     |
-| X448 +      |       | SHA-512 |            |        | ECDH-ES       |
-| HKDF-SHA512 |       |         |            |        | (X448) +      |
-|             |       |         |            |        | HKDF-512      |
-+-------------+-------+---------+------------+--------+---------------+
-]]></artwork></figure>
+<t>This document does not require any actions by IANA.</t>
 
 </section>
 
@@ -598,40 +518,6 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
     <references title='Normative References'>
 
 
-
-
-<reference anchor="I-D.ietf-suit-manifest">
-   <front>
-      <title>A Concise Binary Object Representation (CBOR)-based Serialization Format for the Software Updates for Internet of Things (SUIT) Manifest</title>
-      <author fullname="Brendan Moran">
-	 <organization>Arm Limited</organization>
-      </author>
-      <author fullname="Hannes Tschofenig">
-	 <organization>Arm Limited</organization>
-      </author>
-      <author fullname="Henk Birkholz">
-	 <organization>Fraunhofer SIT</organization>
-      </author>
-      <author fullname="Koen Zandberg">
-	 <organization>Inria</organization>
-      </author>
-      <date month="February" day="22" year="2021" />
-      <abstract>
-	 <t>   This specification describes the format of a manifest.  A manifest is
-   a bundle of metadata about code/data obtained by a recipient (chiefly
-   the firmware for an IoT device), where to find the that code/data,
-   the devices to which it applies, and cryptographic information
-   protecting the manifest.  Software updates and Trusted Invocation
-   both tend to use sequences of common operations, so the manifest
-   encodes those sequences of operations, rather than declaring the
-   metadata.
-
-	 </t>
-      </abstract>
-   </front>
-   <seriesInfo name="Internet-Draft" value="draft-ietf-suit-manifest-12" />
-   <format type="TXT" target="https://www.ietf.org/archive/id/draft-ietf-suit-manifest-12.txt" />
-</reference>
 
 
 
@@ -688,6 +574,40 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
 </reference>
 
 
+<reference anchor="I-D.ietf-suit-manifest">
+   <front>
+      <title>A Concise Binary Object Representation (CBOR)-based Serialization Format for the Software Updates for Internet of Things (SUIT) Manifest</title>
+      <author fullname="Brendan Moran">
+	 <organization>Arm Limited</organization>
+      </author>
+      <author fullname="Hannes Tschofenig">
+	 <organization>Arm Limited</organization>
+      </author>
+      <author fullname="Henk Birkholz">
+	 <organization>Fraunhofer SIT</organization>
+      </author>
+      <author fullname="Koen Zandberg">
+	 <organization>Inria</organization>
+      </author>
+      <date month="July" day="12" year="2021" />
+      <abstract>
+	 <t>   This specification describes the format of a manifest.  A manifest is
+   a bundle of metadata about code/data obtained by a recipient (chiefly
+   the firmware for an IoT device), where to find the that code/data,
+   the devices to which it applies, and cryptographic information
+   protecting the manifest.  Software updates and Trusted Invocation
+   both tend to use sequences of common operations, so the manifest
+   encodes those sequences of operations, rather than declaring the
+   metadata.
+
+	 </t>
+      </abstract>
+   </front>
+   <seriesInfo name="Internet-Draft" value="draft-ietf-suit-manifest-14" />
+   <format type="TXT" target="https://www.ietf.org/archive/id/draft-ietf-suit-manifest-14.txt" />
+</reference>
+
+
 <reference anchor="I-D.irtf-cfrg-hpke">
    <front>
       <title>Hybrid Public Key Encryption</title>
@@ -703,17 +623,20 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
       <author fullname="Christopher A. Wood">
 	 <organization>Cloudflare</organization>
       </author>
-      <date month="February" day="15" year="2021" />
+      <date month="September" day="2" year="2021" />
       <abstract>
 	 <t>   This document describes a scheme for hybrid public-key encryption
-   (HPKE).  This scheme provides authenticated public key encryption of
-   arbitrary-sized plaintexts for a recipient public key.  HPKE works
-   for any combination of an asymmetric key encapsulation mechanism
-   (KEM), key derivation function (KDF), and authenticated encryption
-   with additional data (AEAD) encryption function.  We provide
-   instantiations of the scheme using widely used and efficient
-   primitives, such as Elliptic Curve Diffie-Hellman key agreement,
-   HKDF, and SHA2.
+   (HPKE).  This scheme provides a variant of public-key encryption of
+   arbitrary-sized plaintexts for a recipient public key.  It also
+   includes three authenticated variants, including one which
+   authenticates possession of a pre-shared key, and two optional ones
+   which authenticate possession of a KEM private key.  HPKE works for
+   any combination of an asymmetric key encapsulation mechanism (KEM),
+   key derivation function (KDF), and authenticated encryption with
+   additional data (AEAD) encryption function.  Some authenticated
+   variants may not be supported by all KEMs.  We provide instantiations
+   of the scheme using widely used and efficient primitives, such as
+   Elliptic Curve Diffie-Hellman key agreement, HKDF, and SHA2.
 
    This document is a product of the Crypto Forum Research Group (CFRG)
    in the IRTF.
@@ -721,33 +644,26 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
 	 </t>
       </abstract>
    </front>
-   <seriesInfo name="Internet-Draft" value="draft-irtf-cfrg-hpke-08" />
-   <format type="TXT" target="https://www.ietf.org/archive/id/draft-irtf-cfrg-hpke-08.txt" />
+   <seriesInfo name="Internet-Draft" value="draft-irtf-cfrg-hpke-12" />
+   <format type="TXT" target="https://www.ietf.org/archive/id/draft-irtf-cfrg-hpke-12.txt" />
 </reference>
 
 
-<reference anchor="I-D.ietf-cose-rfc8152bis-algs">
-   <front>
-      <title>CBOR Object Signing and Encryption (COSE): Initial Algorithms</title>
-      <author fullname="Jim Schaad">
-	 <organization>August Cellars</organization>
-      </author>
-      <date month="September" day="24" year="2020" />
-      <abstract>
-	 <t>   Concise Binary Object Representation (CBOR) is a data format designed
-   for small code size and small message size.  There is a need for the
-   ability to have basic security services defined for this data format.
-   THis document defines a set of algorithms that can be used with the
-   CBOR Object Signing and Encryption (COSE) protocol RFC XXXX.
-
-	 </t>
-      </abstract>
-   </front>
-   <seriesInfo name="Internet-Draft" value="draft-ietf-cose-rfc8152bis-algs-12" />
-   <format type="TXT" target="https://www.ietf.org/archive/id/draft-ietf-cose-rfc8152bis-algs-12.txt" />
+<reference anchor="cose-hpke" target="https://datatracker.ietf.org/doc/html/draft-tschofenig-cose-hpke-00">
+  <front>
+    <title>Use of Hybrid Public-Key Encryption (HPKE) with CBOR Object Signing and Encryption (COSE)</title>
+    <author initials="H." surname="Tschofenig" fullname="Hannes Tschofenig">
+      <organization>Arm Limited</organization>
+    </author>
+    <author initials="R." surname="Housley" fullname="Russ Housley">
+      <organization>Vigil Security</organization>
+    </author>
+    <author initials="B." surname="Moran" fullname="Brendan Moran">
+      <organization>Arm Limited</organization>
+    </author>
+    <date year="2021" month="October" day="18"/>
+  </front>
 </reference>
-
-
 
 
     </references>
@@ -785,7 +701,7 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
       <author fullname="Henk Birkholz">
 	 <organization>Fraunhofer SIT</organization>
       </author>
-      <date month="April" day="6" year="2021" />
+      <date month="July" day="8" year="2021" />
       <abstract>
 	 <t>   Vulnerabilities with Internet of Things (IoT) devices have raised the
    need for a reliable and secure firmware update mechanism that is also
@@ -802,8 +718,8 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
 	 </t>
       </abstract>
    </front>
-   <seriesInfo name="Internet-Draft" value="draft-ietf-suit-information-model-11" />
-   <format type="TXT" target="https://www.ietf.org/archive/id/draft-ietf-suit-information-model-11.txt" />
+   <seriesInfo name="Internet-Draft" value="draft-ietf-suit-information-model-13" />
+   <format type="TXT" target="https://www.ietf.org/archive/id/draft-ietf-suit-information-model-13.txt" />
 </reference>
 
 
@@ -866,172 +782,158 @@ registry established with <xref target="I-D.ietf-cose-rfc8152bis-algs"/>.</t>
   </back>
 
 <!-- ##markdown-source:
-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
-wT/G/5ZcAAA=
+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
+umg1GyWqmFqeOnROS+cd5eMUc39HH6cgoE8grUxCBel+CWkSrUSo8MeNCXTQ
+9VVIlRmtS0ZFVHRFVmIjmTkCG6vDL9f/fiM9D8EIHTqZz6E1RgXpMUQqxYJ6
+rzoDZiQ/FREGcyj7eVQKoRS2beZXX6xhd0/8nKYK3eXbr+Krsgbptl5/8ZKM
+PQU2DeypCBSlLAg5ynk9UoeWNdLeMgs/YssjRtm5TTDVNlVjzGPY9P4DcCJR
+XZl040Wz3KHhFsZQlqDbEBQxO8ys91wEXoq+81WPTRm8umqzceXwo5AVQAiM
+HQcQY7ZKXbHq+DtvnkCp0AF6bSSORM2vE5V2McUnzfBhheGq3z6yhVMtQE/Y
+7ZzfhJFOHCVaPafORTe/nTLXVZZfsnUa+a0qNhteHOI9MnVHWfHXKXGVr1A9
+4QSenOVOUiaqbdrmNadxwLW9bXr0+uL6+Iy9vQLlft/uj8ZmwlyQwOHoxS5S
+NuPo9XwBgy/hv/bN5ZRGY4hk6nrsn1rYc05Oni501Vb0/qU1vUJRjwpgNS6w
+CB6V9pizrfJnz9bwPhXwe5oUnU6nUs1jVADsmZn4MrU/YEBx9OdW8TOMv3Dt
+VRmTxXQ0mo66s0Wv1z3tTubT8XA46A1PF32so/e7vd70ZD4ZDAbTk/5Jvzc9
+LK3/i96kzofW4PGMQJGeviQh/p5EFN6wo0g8Hteso+RsMOlNygAZaj9L4vq+
+XEXbWstaP6HdQzmdDkHi+/1ut9fvjSb97mgBO5yenM5HvfHkpDc5GfW6s+Fw
+9L///T91sNqNMSlAQ+Aeg2FZqmzFn2gqLtd8a4aVy712dyXAdUpiXyrbcL/5
+tVLULVd1Xev6xaIu0l1F43itD78Gd6kHpMonn8/PClM8M8w2/lOl5EjfN8FL
+hLY9Jqu7BoDlJ1r1ulJYsW4GApJHEVDFQwFQsO52Z7whYm+Ou4WV3Bsc64tM
+5lcz8J4V9kAm+obYpxep8Np42G2TEut5SlFRVnNFL++jUhdjSr32dSVV7cCo
+pIkV0qf6SPN4qXL7iR1V7sPSsaXpm1WO97ilLhu0VdmNbp5CTOF4u2r8+KWt
+9DUcwuE8zjb6YoyugLE0DvHGwyqBmJd+yGgXmZqTLQIX7u1jxxPFpnr/wrVG
+FdUT8HYuTlJ3bop3/t1fSnBvYKVxsNP3qEvsLF9eXOhfvbBUzGKzBdvI9Ub9
+DAUVIymhk+E2TjJON+e1DLxWZWfAhSYI/JmM7d65wl26hWt/hcJMpjNwX6Ze
+EKd05o1KCd/J/Hwah2HvnzpyNIfy+Rw6FgCPjEylrozcHmth4dT2STjfUPeY
+CSXxclqlpt1S1/RTuu8kItzCzzFe7yReIov0FW013dyryQvA6m6LCu5wSdUy
+oH8BJr88SuJjr1rpn0rYk8kBkaDLgjzYp/pXBaTeFK99RTl3Hoo/RtJhPyPa
+T94CVGqd7beKcrSBOhrXP9uAvwyDRsMcJFBAThXiOgj15TfTy4q9oOogptBB
+nB8t6N9HWKojADeKpT6bvbOSh9Spb6A1zRBPX3UE6mrQkL7mopq9bUSF8Y9b
+sAYSz0o8bSSZuv1Y+N0KI3JpvMrULcjddotzNpjlUkesKuDnv/2Q0xQ0EOyE
+3zE/JDN9Oy1Z5OplaNtfaqwMtjAra5Ci7uMi9ndqlty717cLPHsfkH5PTbdu
+PMY7CEpUsyYyg0f32Hx6z85lcr+Jg99IphAAPHbE5cxvI1CBS5mQrTnVKPiE
+DiveTH6s3+0abB8XAfuA/yd+il2xYCBmPMF2K3aORY0oMp1WEoOTBykeLTwd
+ZhPwJ3aYS4D6PInje6UhIb9Hj7QrXRyF7QPsk0U9qnFUaOD0JdgSJzvqBgd5
+gf8DBPGrlhJQAAA=
 
 -->
 
