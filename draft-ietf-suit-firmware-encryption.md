@@ -136,8 +136,11 @@ when, and only when, they appear in all capitals, as shown here.
 This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}}, 
 the SUIT information model {{I-D.ietf-suit-information-model}} and the SUIT architecture {{RFC9019}}.
 
-In context of encryption, the terms "recipient" and "firmware consumer" 
-are used interchangeably.
+The terms sender and recipient are defined in {{I-D.irtf-cfrg-hpke}} and have 
+the following meaning: 
+
+* Sender: Role of entity which sends an encrypted message.
+* Recipient: Role of entity which receives an encrypted message.
 
 Additionally, the following abbreviations are used in this document: 
 
@@ -146,33 +149,16 @@ Additionally, the following abbreviations are used in this document:
 * Content-encryption key (CEK), a term defined in RFC 2630 {{RFC2630}}.
 * Hybrid Public Key Encryption (HPKE), defined in {{I-D.irtf-cfrg-hpke}}.
 
-# Architecture
+# Architecture {#arch}
 
 Figure 1 in {{RFC9019}} shows the architecture for distributing firmware 
 images and manifests from the author to the firmware consumer. It does, however,
-not detail the use of encrypted firmware images. {{arch-fig}} therefore 
-focuses on those aspects. The firmware server and the device management 
-infrastructure is represented by the distribution system. The distribution
-system is aware of the individual devices to which a firmware update has 
-to be delivered to. 
+not detail the use of encrypted firmware images. 
 
-Firmware encryption requires the party doing the encryption to know either 
-the KEK (in case of AES-KW) or the public key of the recipient (in case of
-HPKE). The firmware author may have knowledge about all devices that need 
-to receive an encrypted firmware image but in most cases this will not be 
-likely. Hence, it is the responsibility of the distribution system to 
-perform the firmware encryption.
-
-The distribution system needs to include the COSE_Encrypt structure into
-the SUIT envelope rather than the manifest since any modification to the 
-manifest invalidates the digital signature or the MAC added by the author. 
-
-Delegating the task of encrypting the firmware image to the distribution 
-system offers flexiblity when the number of devices that need to receive 
-encrypted  firmware images changes dynamically or when the updates to KEKs or 
-recipient public keys are necessary. As a downside, the author needs 
-to trust the distribution system with performing the encryption of the 
-plaintext firmware image. 
+{{arch-fig}} is extended to include firmware encryption. The firmware server 
+and the device management infrastructure are represented by the distribution 
+system. The distribution system is aware of the individual devices to which 
+a firmware update has to be delivered.
 
 ~~~
                                            +----------+
@@ -180,29 +166,118 @@ plaintext firmware image.
                                            |  Author  |
                                            |          |
  +----------+                              +----------+
- |          |                                   |
- |  Device  |---+                               | Firmware +
- |          |   |                               | Manifest
+ |  Device  |---+                               | 
+ |(Firmware |   |                               | Firmware +
+ | Consumer)|   |                               | Manifest
  +----------+   |                               |
                 |                               |
                 |                        +--------------+
- +----------+   |                        |              |
- |          |   |  Firmware + Manifest   | Distribution |
+                |                        |              |
+ +----------+   |  Firmware + Manifest   | Distribution |
  |  Device  |---+------------------------|    System    |
- |          |   |                        |              |
+ |(Firmware |   |                        |              |
+ | Consumer)|   | 
  +----------+   |                        +--------------+
                 |
                 |
  +----------+   |
- |          |   |
  |  Device  +---+
- |          |
+ |(Firmware |
+ | Consumer)|
  +----------+
 ~~~
 {: #arch-fig title="Firmware Encryption Architecture."}
 
+Firmware encryption requires the sender to know the firmware consumers and the 
+respective credentials used by the key distribution mechanism. For AES-KW the 
+KEK needs to be known and, in case of HPKE, the sender needs to be in possession 
+of the public key of the recipient.
 
-# AES Key Wrap
+The firmware author may have knowledge about all devices that need 
+to receive an encrypted firmware image but in most cases this will not be 
+likely. The distribution system certainly has the knowledge about the 
+recipients to perform firmware encryption.
+
+To offer confidentiality protection for firmware images two deployment variants need to be 
+supported:
+
+* The firmware author acts as the sender and the recipient is the firmware consumer
+  (or the firmware consumers). 
+  
+* The firmware author encrypts the firmware image with the distribution system as 
+  the initial recipient. Then, the distribution system decrypts and re-encrypts the 
+  firmware image towards the firmware consumer(s). Delegating the task of re-encrypting 
+  the firmware image to the distribution system offers flexiblity when the number 
+  of devices that need to receive encrypted  firmware images changes dynamically 
+  or when updates to KEKs or recipient public keys are necessary. As a downside, 
+  the author needs to trust the distribution system with performing the re-encryption 
+  of the firmware image. 
+
+Irrespectively of the two variants, the key distribution data (in form of the 
+COSE_Encrypt structure) is included in the SUIT envelope rather than in the SUIT 
+manifest since the manifest will be digitally signed (or MACed) by the firmware author.  
+
+Since the SUIT envelope is not protected cryptographically an adversary could modify  
+the COSE_Encrypt structure. For example, if the attacker alters the key distribution 
+data then a recipient will decrypt the firmware image with an incorrect key. This 
+will lead to expending energy and flash cycles until the failure is detected. To 
+mitigate this attack, the optional suit-cek-verification parameter is added to the 
+manifest. Since the manifest is protected by a digital signature (or a MAC), an 
+adversary cannot successfully modify this value. This parameter allows the recipient 
+to verify whether the CEK has successfully been derived. 
+
+Details about the changes to the envelope and the manifest can be found in the next 
+section. 
+
+# SUIT Envelope and SUIT Manifest 
+
+This specification introduces two extensions to the SUIT envelope and the manifest 
+structure, as motivated in {{arch}}.
+ 
+First, the envelope is enhanced with the suit-protection-wrappers parameter to carry 
+one or multiple SUIT_Encryption_Info payloads. The content of the SUIT_Encryption_Info 
+payloads is explained in {{AES-KW}} and in {{HPKE}}. When an encrypted firmware image 
+is conveyed, then the suit-protection-wrappers parameter MUST be included in the 
+envelope. 
+
+Second, the manifest is extended with the suit-cek-verification parameter. This parameter
+is optional and is utilized in environments where a battery exhaustion attack is deemed 
+worthwhile protecting against. Details about the CEK verification can be found 
+in {{cek-verification}}.
+
+~~~
+SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
+SUIT_Envelope = {
+  suit-authentication-wrapper => bstr .cbor SUIT_Authentication,
+  suit-manifest  => bstr .cbor SUIT_Manifest,
+  SUIT_Severable_Manifest_Members,
+  suit-protection-wrappers => bstr .cbor {
+      *(int/str) => [+ SUIT_Encryption_Info]
+  }
+  * SUIT_Integrated_Payload,
+  * SUIT_Integrated_Dependency,
+  * $$SUIT_Envelope_Extensions,
+  * (int => bstr)
+}
+~~~
+{: #envelope-fig title="SUIT Envelope CDDL."}
+
+~~~
+SUIT_Manifest = {
+    suit-manifest-version         => 1,
+    suit-manifest-sequence-number => uint,
+    suit-common                   => bstr .cbor SUIT_Common,
+    ? suit-reference-uri          => tstr,
+    ? suit-cek-verification       => bstr,
+    SUIT_Severable_Members_Choice,
+    SUIT_Unseverable_Members,
+    * $$SUIT_Manifest_Extensions,
+}
+~~~
+{: #manifest-fig title="SUIT Manifest CDDL."}
+
+
+# AES Key Wrap {#AES-KW}
 
 The AES Key Wrap (AES-KW) algorithm is described in RFC 3394 {{RFC3394}}, and
 it can be used to encrypt a randomly generated content-encryption key (CEK)
@@ -218,13 +293,15 @@ are three options:
 - If all authorized recipients have access to the KEK, a single 
 COSE\_recipient structure contains the encrypted CEK. 
 
-- If recipients have different KEKs, then the COSE\_recipient structure 
-may contain the same CEK encrypted with many different KEKs. The benefit 
+- If recipients have different KEKs, then multiple COSE\_recipient structures 
+are included but only a single CEK is used. Each COSE\_recipient structure 
+contains the CEK encrypted with the KEKs appropriate for the recipient. The benefit 
 of this approach is that the firmware image is encrypted only once with 
-the CEK while the authorized recipients still need to use their 
-individual KEKs to obtain the plaintext.
+the CEK while there is no sharing of the KEK. Hence, authorized recipients still 
+use their individual KEKs to decrypt the CEK and to subsequently obtain the 
+plaintext firmware.
 
-- The last option is to use different CEKs encrypted with KEKs of the 
+- The third option is to use different CEKs encrypted with KEKs of the 
 authorized recipients. This is appropriate when no benefits can be gained
 from encrypting and transmitting firmware images only once. For example, 
 firmware images may contain information unique to a device instance.  
@@ -352,7 +429,7 @@ A8B6E61EF17FBAD1F1BF3235B3C64C06098EA512223260
 F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 ~~~
 
-# Hybrid Public-Key Encryption (HPKE)
+# Hybrid Public-Key Encryption (HPKE) {#HPKE}
 
 Hybrid public-key encryption (HPKE) {{I-D.irtf-cfrg-hpke}} is a scheme that 
 provides public key encryption of arbitrary-sized plaintexts given a 
@@ -363,9 +440,9 @@ which internally utilizes a non-interactive ephemeral-static
 Diffie-Hellman exchange to derive a shared secret, is used to 
 encrypt a CEK. This CEK is subsequently used to encrypt the firmware image. 
 Hence, the plaintext passed to HPKE is the randomly generated CEK. 
-The output of the HPKE encrypt operation is therefore 
+The output of the HPKE seal operation is therefore 
 the encrypted CEK along with HPKE encapsulated key (i.e. the ephemeral ECDH 
-public key of the author).
+public key).
 
 Only the holder of recipient's private key can decapsulate the CEK to decrypt the 
 firmware. Key generation in HPKE is influced by additional parameters, such as 
@@ -375,7 +452,7 @@ This approach allows all recipients to use the same CEK to encrypt the
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol. 
 
-{{cose-hpke}} defines the use of HPKE with COSE. This specification profiles it. 
+{{cose-hpke}} defines the use of HPKE with COSE and this specification profiles it. 
 
 ~~~
 COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
@@ -490,6 +567,14 @@ combination:
 )
 ~~~
 {: #hpke-example title="COSE_Encrypt Example for HPKE"}
+
+# CEK Verification {#cek-verification}
+
+The suit-cek-verification parameter contains a byte string resulting from the 
+encryption of 8 bytes of 0xA5 using the CEK. 
+
+TBD: Decide what IV to use. 
+
 
 # Complete Examples 
 
