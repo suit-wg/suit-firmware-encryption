@@ -440,7 +440,7 @@ which internally utilizes a non-interactive ephemeral-static
 Diffie-Hellman exchange to derive a shared secret, is used to 
 encrypt a CEK. This CEK is subsequently used to encrypt the firmware image. 
 Hence, the plaintext passed to HPKE is the randomly generated CEK. 
-The output of the HPKE seal operation is therefore 
+The output of the HPKE SealBase function is therefore 
 the encrypted CEK along with HPKE encapsulated key (i.e. the ephemeral ECDH 
 public key).
 
@@ -511,17 +511,19 @@ The protected structure MUST contain the 'alg' parameter set to the algorithm va
 Section 6 of {{cose-hpke}} and the unprotected structure MUST contain the 'kid' and 
 the 'ephemeral' parameter. 
 
-The encrypted CEK and the ephemeral public key of the sender are generated as part 
-of the HPKE algorithm, as described in Figure 2 of {{cose-hpke}} .
+To populate the SUIT_Encryption_Info structure the sender creates a CEK randomly.
+The CEK is used to encrypt the firmware image with the selected algorithm. 
 
-Finally, the firmware image is encrypted using the CEK with the selected algorithm. 
+The HPKE SealBase function takes various input parameters, as explained in {{cose-hpke}}.
+The most important input parameters are the plaintext (CEK in our case) and the public key of 
+the recipient. If successful, SealBase will return the encrypted CEK and the 
+ephemeral public key.
 
-The recipient decrypts the encrypted CEK, using two input parameters: 
+The recipient receives the ephemeral public key and the encrypted CEK from the sender. 
+It then uses the HPKE OpenBase function to decrypt the ciphertext (which contains 
+the CEK).
 
-- the private key skR corresponding to the public key pkR used by the sender. 
-- the HPKE encapsulated key (i.e. ephemeral ECDH public key) created by the sender. 
-
-If the HPKE operation is successful, the recipient obtains the CEK and can decrypt the 
+If the HPKE OpenBase function is successful, the recipient obtains the CEK and can decrypt the 
 firmware. The decryption operation is shown in Figure 4 of {{cose-hpke}}.
 
 An example of the COSE_Encrypt structure using the HPKE scheme is 
@@ -571,10 +573,9 @@ combination:
 # CEK Verification {#cek-verification}
 
 The suit-cek-verification parameter contains a byte string resulting from the 
-encryption of 8 bytes of 0xA5 using the CEK. 
+encryption of 8 bytes of 0xA5 using the CEK.
 
 TBD: Decide what IV to use. 
-
 
 # Complete Examples 
 
