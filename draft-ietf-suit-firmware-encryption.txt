@@ -5,10 +5,10 @@
 SUIT                                                       H. Tschofenig
 Internet-Draft                                               Arm Limited
 Intended status: Standards Track                              R. Housley
-Expires: April 24, 2022                                   Vigil Security
+Expires: April 25, 2022                                   Vigil Security
                                                                 B. Moran
                                                              Arm Limited
-                                                        October 21, 2021
+                                                        October 22, 2021
 
 
                 Firmware Encryption with SUIT Manifests
@@ -38,7 +38,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 24, 2022.
+   This Internet-Draft will expire on April 25, 2022.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 1]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 1]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 2]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 2]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -165,7 +165,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 3]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 3]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -186,17 +186,15 @@ Internet-Draft             Firmware Encryption              October 2021
 
 3.  Architecture
 
-   Figure 1 in [RFC9019] shows the architecture for distributing
-   firmware images and manifests from the author to the firmware
-   consumer.  It does, however, not detail the use of encrypted firmware
-   images.
+   [RFC9019] describes the architecture for distributing firmware images
+   and manifests from the author to the firmware consumer.  It does,
+   however, not detail the use of encrypted firmware images.
 
-   Figure 1 is extended to include firmware encryption.  The firmware
-   server and the device management infrastructure are represented by
-   the distribution system.  The distribution system is aware of the
-   individual devices to which a firmware update has to be delivered.
-
-
+   This document enhances the SUIT architecutre to include firmware
+   encryption.  Figure 1 shows the distribution system, which represents
+   the firmware server and the device management infrastructure.  The
+   distribution system is aware of the individual devices to which a
+   firmware update has to be delivered.
 
 
 
@@ -221,7 +219,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 4]
+
+
+Tschofenig, et al.       Expires April 25, 2022                 [Page 4]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -241,7 +241,7 @@ Internet-Draft             Firmware Encryption              October 2021
     +----------+   |  Firmware + Manifest   | Distribution |
     |  Device  |---+------------------------|    System    |
     |(Firmware |   |                        |              |
-    | Consumer)|   |
+    | Consumer)|   |                        |              |
     +----------+   |                        +--------------+
                    |
                    |
@@ -277,7 +277,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 5]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 5]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -295,16 +295,15 @@ Internet-Draft             Firmware Encryption              October 2021
    signed (or MACed) by the firmware author.
 
    Since the SUIT envelope is not protected cryptographically an
-   adversary could modify
-   the COSE_Encrypt structure.  For example, if the attacker alters the
-   key distribution data then a recipient will decrypt the firmware
-   image with an incorrect key.  This will lead to expending energy and
-   flash cycles until the failure is detected.  To mitigate this attack,
-   the optional suit-cek-verification parameter is added to the
-   manifest.  Since the manifest is protected by a digital signature (or
-   a MAC), an adversary cannot successfully modify this value.  This
-   parameter allows the recipient to verify whether the CEK has
-   successfully been derived.
+   adversary could modify the COSE_Encrypt structure.  For example, if
+   the attacker alters the key distribution data then a recipient will
+   decrypt the firmware image with an incorrect key.  This will lead to
+   expending energy and flash cycles until the failure is detected.  To
+   mitigate this attack, the optional suit-cek-verification parameter is
+   added to the manifest.  Since the manifest is protected by a digital
+   signature (or a MAC), an adversary cannot successfully modify this
+   value.  This parameter allows the recipient to verify whether the CEK
+   has successfully been derived.
 
    Details about the changes to the envelope and the manifest can be
    found in the next section.
@@ -314,18 +313,14 @@ Internet-Draft             Firmware Encryption              October 2021
    This specification introduces two extensions to the SUIT envelope and
    the manifest structure, as motivated in Section 3.
 
-   First, the envelope is enhanced with the suit-protection-wrappers
-   parameter to carry one or multiple SUIT_Encryption_Info payloads.
-   The content of the SUIT_Encryption_Info payloads is explained in
-   Section 5 and in Section 6.  When an encrypted firmware image is
-   conveyed, then the suit-protection-wrappers parameter MUST be
-   included in the envelope.
-
-   Second, the manifest is extended with the suit-cek-verification
-   parameter.  This parameter is optional and is utilized in
-   environments where a battery exhaustion attack is deemed worthwhile
-   protecting against.  Details about the CEK verification can be found
-   in Section 7.
+   The SUIT envelope is enhanced with a key exchange payload, which is
+   carried inside the suit-protection-wrappers parameter, see Figure 2.
+   One or multiple SUIT_Encryption_Info payload(s) are carried within
+   the suit-protection-wrappers parameter.  The content of the
+   SUIT_Encryption_Info payload is explained in Section 5 (for AES-KW)
+   and in Section 6 (for HPKE).  When the encryption capability is used,
+   the suit-protection-wrappers parameter MUST be included in the
+   envelope.
 
 
 
@@ -333,7 +328,12 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 6]
+
+
+
+
+
+Tschofenig, et al.       Expires April 25, 2022                 [Page 6]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -353,6 +353,12 @@ Internet-Draft             Firmware Encryption              October 2021
    }
 
                        Figure 2: SUIT Envelope CDDL.
+
+   The manifest is extended with a CEK verification parameter (called
+   suit-cek-verification), see Figure 3.  This parameter is optional and
+   is utilized in environments where battery exhaustion attacks are a
+   concern.  Details about the CEK verification can be found in
+   Section 7.
 
    SUIT_Manifest = {
        suit-manifest-version         => 1,
@@ -379,33 +385,45 @@ Internet-Draft             Firmware Encryption              October 2021
    COSE_Encrypt structure, contains the CEK encrypted by the KEK.
 
    When the firmware image is encrypted for use by multiple recipients,
-   there are three options:
-
-   -  If all authorized recipients have access to the KEK, a single
-      COSE_recipient structure contains the encrypted CEK.
-
-   -  If recipients have different KEKs, then multiple COSE_recipient
-      structures are included but only a single CEK is used.  Each
+   there are three options.  We use the following notation KEK(R1,S) is
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 7]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 7]
 
 Internet-Draft             Firmware Encryption              October 2021
 
 
+   the KEK shared between recipient R1 and the sender S.  Likewise,
+   CEK(R1,S) is shared between R1 and S.  If a single CEK or a single
+   KEK is shared with all authorized recipients R by a given sender S in
+   a certain context then we use CEK(_,S) or KEK(_,S), respectively.
+   The notation ENC(plaintext, key) refers to the encryption of
+   plaintext with a given key.
+
+   -  If all authorized recipients have access to the KEK, a single
+      COSE_recipient structure contains the encrypted CEK.  This means
+      KEK(*,S) ENC(CEK,KEK), and ENC(firmware,CEK).
+
+   -  If recipients have different KEKs, then multiple COSE_recipient
+      structures are included but only a single CEK is used.  Each
       COSE_recipient structure contains the CEK encrypted with the KEKs
-      appropriate for the recipient.  The benefit of this approach is
-      that the firmware image is encrypted only once with the CEK while
-      there is no sharing of the KEK.  Hence, authorized recipients
-      still use their individual KEKs to decrypt the CEK and to
-      subsequently obtain the plaintext firmware.
+      appropriate for the recipient.  In short, KEK_1(R1, S),...,
+      KEK_n(Rn, S), ENC(CEK, KEK_i) for all i=1 to n, and
+      ENC(firmware,CEK).  The benefit of this approach is that the
+      firmware image is encrypted only once with a CEK while there is no
+      sharing of the KEK accross recipients.  Hence, authorized
+      recipients still use their individual KEKs to decrypt the CEK and
+      to subsequently obtain the plaintext firmware.
 
    -  The third option is to use different CEKs encrypted with KEKs of
-      the authorized recipients.  This is appropriate when no benefits
-      can be gained from encrypting and transmitting firmware images
-      only once.  For example, firmware images may contain information
-      unique to a device instance.
+      the authorized recipients.  Assume there are KEK_1(R1, S),...,
+      KEK_n(Rn, S), and for all i=1 to n the following computations need
+      to be made: ENC(CEK_i, KEK_i) and ENC(firmware,CEK_i).  This
+      approach is appropriate when no benefits can be gained from
+      encrypting and transmitting firmware images only once.  For
+      example, firmware images may contain information unique to a
+      device instance.
 
    Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of
    [RFC3394], does not have public parameters that vary on a per-
@@ -427,25 +445,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires April 24, 2022                 [Page 8]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 8]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -486,7 +486,7 @@ Internet-Draft             Firmware Encryption              October 2021
    * label =values     ; extension point
  }
 
-         Figure 4: CDDL for AES Key Wrap-based Firmware Encryption
+                Figure 4: CDDL for AES Key Wrap Encryption
 
    The COSE specification requires a consistent byte stream for the
    authenticated data structure to be created, which is shown in
@@ -501,7 +501,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                 [Page 9]
+Tschofenig, et al.       Expires April 25, 2022                 [Page 9]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -520,7 +520,7 @@ Internet-Draft             Firmware Encryption              October 2021
    Enc_structure, see Figure 5, refers to the content of the protected
    field from the COSE_Encrypt structure.
 
-   The value of the external_aad is set to null.
+   The value of the external_aad MUST be set to null.
 
    The following example illustrates the use of the AES-KW algorithm
    with AES-128.
@@ -539,7 +539,7 @@ Internet-Draft             Firmware Encryption              October 2021
    -  Firmware (hex):
       546869732069732061207265616C206669726D7761726520696D6167652E
 
-   The COSE_Encrypt structure in hex format is (with a line break
+   The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
 
    D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
@@ -557,7 +557,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 10]
+Tschofenig, et al.       Expires April 25, 2022                [Page 10]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -613,7 +613,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 11]
+Tschofenig, et al.       Expires April 25, 2022                [Page 11]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -669,7 +669,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 12]
+Tschofenig, et al.       Expires April 25, 2022                [Page 12]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -725,7 +725,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 13]
+Tschofenig, et al.       Expires April 25, 2022                [Page 13]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -781,7 +781,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 14]
+Tschofenig, et al.       Expires April 25, 2022                [Page 14]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -825,19 +825,19 @@ Internet-Draft             Firmware Encryption              October 2021
    The suit-cek-verification parameter contains a byte string resulting
    from the encryption of 8 bytes of 0xA5 using the CEK.
 
-   TBD: Decide what IV to use.
+   [[Editor's Note: Guidance about the selection of an IV needs to be
+   added here.]]
 
 8.  Complete Examples
 
-   TBD: Example for complete manifest here (which also includes the
-   digital signature).  TBD: Multiple recipient example as well.  TBD:
-   Encryption of manifest (in addition of firmware encryption).
+   [[Editor's Note: Add examples for a complete manifest here (including
+   a digital signature), multiple recipients, encryption of manifests
+   (in comparison to firmware images).]]
 
 
 
 
-
-Tschofenig, et al.       Expires April 24, 2022                [Page 15]
+Tschofenig, et al.       Expires April 25, 2022                [Page 15]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -893,7 +893,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 16]
+Tschofenig, et al.       Expires April 25, 2022                [Page 16]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -949,7 +949,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 17]
+Tschofenig, et al.       Expires April 25, 2022                [Page 17]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -1005,7 +1005,7 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 18]
+Tschofenig, et al.       Expires April 25, 2022                [Page 18]
 
 Internet-Draft             Firmware Encryption              October 2021
 
@@ -1061,4 +1061,4 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.       Expires April 24, 2022                [Page 19]
+Tschofenig, et al.       Expires April 25, 2022                [Page 19]

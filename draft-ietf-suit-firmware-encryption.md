@@ -151,14 +151,14 @@ Additionally, the following abbreviations are used in this document:
 
 # Architecture {#arch}
 
-Figure 1 in {{RFC9019}} shows the architecture for distributing firmware 
-images and manifests from the author to the firmware consumer. It does, however,
+{{RFC9019}} describes the architecture for distributing firmware images 
+and manifests from the author to the firmware consumer. It does, however,
 not detail the use of encrypted firmware images. 
 
-{{arch-fig}} is extended to include firmware encryption. The firmware server 
-and the device management infrastructure are represented by the distribution 
-system. The distribution system is aware of the individual devices to which 
-a firmware update has to be delivered.
+This document enhances the SUIT architecutre to include firmware encryption.
+{{arch-fig}} shows the distribution system, which represents the firmware server 
+and the device management infrastructure. The distribution system is aware 
+of the individual devices to which a firmware update has to be delivered.
 
 ~~~
                                            +----------+
@@ -176,7 +176,7 @@ a firmware update has to be delivered.
  +----------+   |  Firmware + Manifest   | Distribution |
  |  Device  |---+------------------------|    System    |
  |(Firmware |   |                        |              |
- | Consumer)|   | 
+ | Consumer)|   |                        |              |
  +----------+   |                        +--------------+
                 |
                 |
@@ -215,16 +215,16 @@ supported:
 
 Irrespectively of the two variants, the key distribution data (in form of the 
 COSE_Encrypt structure) is included in the SUIT envelope rather than in the SUIT 
-manifest since the manifest will be digitally signed (or MACed) by the firmware author.  
+manifest since the manifest will be digitally signed (or MACed) by the firmware author.
 
-Since the SUIT envelope is not protected cryptographically an adversary could modify  
-the COSE_Encrypt structure. For example, if the attacker alters the key distribution 
-data then a recipient will decrypt the firmware image with an incorrect key. This 
-will lead to expending energy and flash cycles until the failure is detected. To 
-mitigate this attack, the optional suit-cek-verification parameter is added to the 
-manifest. Since the manifest is protected by a digital signature (or a MAC), an 
-adversary cannot successfully modify this value. This parameter allows the recipient 
-to verify whether the CEK has successfully been derived. 
+Since the SUIT envelope is not protected cryptographically an adversary could modify
+the COSE_Encrypt structure. For example, if the attacker alters the key distribution
+data then a recipient will decrypt the firmware image with an incorrect key. This
+will lead to expending energy and flash cycles until the failure is detected. To
+mitigate this attack, the optional suit-cek-verification parameter is added to the
+manifest. Since the manifest is protected by a digital signature (or a MAC), an
+adversary cannot successfully modify this value. This parameter allows the recipient
+to verify whether the CEK has successfully been derived.
 
 Details about the changes to the envelope and the manifest can be found in the next 
 section. 
@@ -234,16 +234,12 @@ section.
 This specification introduces two extensions to the SUIT envelope and the manifest 
 structure, as motivated in {{arch}}.
  
-First, the envelope is enhanced with the suit-protection-wrappers parameter to carry 
-one or multiple SUIT_Encryption_Info payloads. The content of the SUIT_Encryption_Info 
-payloads is explained in {{AES-KW}} and in {{HPKE}}. When an encrypted firmware image 
-is conveyed, then the suit-protection-wrappers parameter MUST be included in the 
-envelope. 
-
-Second, the manifest is extended with the suit-cek-verification parameter. This parameter
-is optional and is utilized in environments where a battery exhaustion attack is deemed 
-worthwhile protecting against. Details about the CEK verification can be found 
-in {{cek-verification}}.
+The SUIT envelope is enhanced with a key exchange payload, which is carried inside
+the suit-protection-wrappers parameter, see {{envelope-fig}}. One or multiple 
+SUIT_Encryption_Info payload(s) are carried within the suit-protection-wrappers 
+parameter. The content of the SUIT_Encryption_Info payload is explained in 
+{{AES-KW}} (for AES-KW) and in {{HPKE}} (for HPKE). When the encryption capability 
+is used, the suit-protection-wrappers parameter MUST be included in the envelope. 
 
 ~~~
 SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
@@ -261,6 +257,12 @@ SUIT_Envelope = {
 }
 ~~~
 {: #envelope-fig title="SUIT Envelope CDDL."}
+
+The manifest is extended with a CEK verification parameter (called 
+suit-cek-verification), see {{manifest-fig}}. This parameter is optional 
+and is utilized in environments where battery exhaustion attacks are a 
+concern. Details about the CEK verification can be found in 
+{{cek-verification}}.
 
 ~~~
 SUIT_Manifest = {
@@ -288,21 +290,29 @@ AES-KW. The COSE\_recipient structure, which is a substructure of the
 COSE\_Encrypt structure, contains the CEK encrypted by the KEK. 
 
 When the firmware image is encrypted for use by multiple recipients, there 
-are three options: 
+are three options. We use the following notation KEK(R1,S) is the KEK shared between 
+recipient R1 and the sender S. Likewise, CEK(R1,S) is shared between R1 and S. 
+If a single CEK or a single KEK is shared with all authorized recipients R by a given sender S 
+in a certain context then we use CEK(*,S) or KEK(*,S), respectively. The notation 
+ENC(plaintext, key) refers to the encryption of plaintext with a given key. 
 
 - If all authorized recipients have access to the KEK, a single 
-COSE\_recipient structure contains the encrypted CEK. 
+COSE\_recipient structure contains the encrypted CEK. This means KEK(*,S) ENC(CEK,KEK), and 
+ENC(firmware,CEK).
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures 
 are included but only a single CEK is used. Each COSE\_recipient structure 
-contains the CEK encrypted with the KEKs appropriate for the recipient. The benefit 
-of this approach is that the firmware image is encrypted only once with 
-the CEK while there is no sharing of the KEK. Hence, authorized recipients still 
-use their individual KEKs to decrypt the CEK and to subsequently obtain the 
+contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
+KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for all i=1 to n, and ENC(firmware,CEK). 
+The benefit of this approach is that the firmware image is encrypted only once with 
+a CEK while there is no sharing of the KEK accross recipients. Hence, authorized recipients 
+still use their individual KEKs to decrypt the CEK and to subsequently obtain the 
 plaintext firmware.
 
 - The third option is to use different CEKs encrypted with KEKs of the 
-authorized recipients. This is appropriate when no benefits can be gained
+authorized recipients. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S), and 
+for all i=1 to n the following computations need to be made: ENC(CEK_i, KEK_i) and 
+ENC(firmware,CEK_i). This approach is appropriate when no benefits can be gained
 from encrypting and transmitting firmware images only once. For example, 
 firmware images may contain information unique to a device instance.  
 
@@ -354,7 +364,7 @@ recipient_header_map =
   * label =values     ; extension point
 }
 ~~~
-{: #cddl-aeskw title="CDDL for AES Key Wrap-based Firmware Encryption"}
+{: #cddl-aeskw title="CDDL for AES Key Wrap Encryption"}
 
 The COSE specification requires a consistent byte stream for the
 authenticated data structure to be created, which is shown in
@@ -375,7 +385,7 @@ the COSE_recipient structure. The 'protected' field in the Enc_structure,
 see {{cddl-enc-aeskw}}, refers to the content of the protected 
 field from the COSE_Encrypt structure. 
 
-The value of the external_aad is set to null.
+The value of the external_aad MUST be set to null.
 
 The following example illustrates the use of the AES-KW algorithm with AES-128.
 
@@ -387,7 +397,7 @@ We use the following parameters in this example:
 - Plaintext Firmware: "This is a real firmware image."
 - Firmware (hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
-The COSE_Encrypt structure in hex format is (with a line break inserted):
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
 ~~~
 D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
@@ -575,13 +585,12 @@ combination:
 The suit-cek-verification parameter contains a byte string resulting from the 
 encryption of 8 bytes of 0xA5 using the CEK.
 
-TBD: Decide what IV to use. 
+[[Editor's Note: Guidance about the selection of an IV needs to be added here.]]
 
 # Complete Examples 
 
-TBD: Example for complete manifest here (which also includes the digital signature).
-TBD: Multiple recipient example as well. 
-TBD: Encryption of manifest (in addition of firmware encryption).
+[[Editor's Note: Add examples for a complete manifest here (including a digital signature), 
+multiple recipients, encryption of manifests (in comparison to firmware images).]]
 
 # Security Considerations {#sec-cons}
 
