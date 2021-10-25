@@ -303,7 +303,7 @@ ENC(firmware,CEK).
 - If recipients have different KEKs, then multiple COSE\_recipient structures 
 are included but only a single CEK is used. Each COSE\_recipient structure 
 contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
-KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for all i=1 to n, and ENC(firmware,CEK). 
+KEK_1(R1, S), ..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
 The benefit of this approach is that the firmware image is encrypted only once with 
 a CEK while there is no sharing of the KEK accross recipients. Hence, authorized recipients 
 still use their individual KEKs to decrypt the CEK and to subsequently obtain the 
@@ -311,7 +311,7 @@ plaintext firmware.
 
 - The third option is to use different CEKs encrypted with KEKs of the 
 authorized recipients. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S), and 
-for all i=1 to n the following computations need to be made: ENC(CEK_i, KEK_i) and 
+for i=1 to n the following computations need to be made: ENC(CEK_i, KEK_i) and 
 ENC(firmware,CEK_i). This approach is appropriate when no benefits can be gained
 from encrypting and transmitting firmware images only once. For example, 
 firmware images may contain information unique to a device instance.  
