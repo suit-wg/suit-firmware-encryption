@@ -5,14 +5,14 @@
 SUIT                                                       H. Tschofenig
 Internet-Draft                                               Arm Limited
 Intended status: Standards Track                              R. Housley
-Expires: April 25, 2022                                   Vigil Security
+Expires: September 8, 2022                                Vigil Security
                                                                 B. Moran
                                                              Arm Limited
-                                                        October 22, 2021
+                                                          March 07, 2022
 
 
                 Firmware Encryption with SUIT Manifests
-                 draft-ietf-suit-firmware-encryption-02
+                 draft-ietf-suit-firmware-encryption-03
 
 Abstract
 
@@ -38,11 +38,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 25, 2022.
+   This Internet-Draft will expire on September 8, 2022.
 
 Copyright Notice
 
-   Copyright (c) 2021 IETF Trust and the persons identified as the
+   Copyright (c) 2022 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 1]
+Tschofenig, et al.      Expires September 8, 2022               [Page 1]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
    to this document.  Code Components extracted from this document must
@@ -83,15 +83,15 @@ Table of Contents
    4.  SUIT Envelope and SUIT Manifest . . . . . . . . . . . . . . .   6
    5.  AES Key Wrap  . . . . . . . . . . . . . . . . . . . . . . . .   7
    6.  Hybrid Public-Key Encryption (HPKE) . . . . . . . . . . . . .  11
-   7.  CEK Verification  . . . . . . . . . . . . . . . . . . . . . .  15
-   8.  Complete Examples . . . . . . . . . . . . . . . . . . . . . .  15
-   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  16
-   10. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  16
-   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  16
-     11.1.  Normative References . . . . . . . . . . . . . . . . . .  16
-     11.2.  Informative References . . . . . . . . . . . . . . . . .  17
-   Appendix A.  Acknowledgements . . . . . . . . . . . . . . . . . .  19
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  19
+   7.  CEK Verification  . . . . . . . . . . . . . . . . . . . . . .  13
+   8.  Complete Examples . . . . . . . . . . . . . . . . . . . . . .  13
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
+   10. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     11.1.  Normative References . . . . . . . . . . . . . . . . . .  14
+     11.2.  Informative References . . . . . . . . . . . . . . . . .  14
+   Appendix A.  Acknowledgements . . . . . . . . . . . . . . . . . .  16
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
 
 1.  Introduction
 
@@ -103,19 +103,19 @@ Table of Contents
    IoT device, where to find the firmware image, and the devices to
    which it applies.
 
-   The SUIT information model [I-D.ietf-suit-information-model] details
-   the information that has to be offered by the SUIT manifest format.
-   In addition to offering protection against modification, which is
+   The SUIT information model [RFC9124] details the information that has
+   to be offered by the SUIT manifest format.  In addition to offering
+   protection against modification, which is provided by a digital
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 2]
+Tschofenig, et al.      Expires September 8, 2022               [Page 2]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
-   provided by a digital signature or a message authentication code, the
-   firmware image may also be afforded confidentiality using encryption.
+   signature or a message authentication code, the firmware image may
+   also be afforded confidentiality using encryption.
 
    Encryption prevents third parties, including attackers, from gaining
    access to the firmware binary.  Hackers typically need intimate
@@ -153,24 +153,22 @@ Internet-Draft             Firmware Encryption              October 2021
    capitals, as shown here.
 
    This document assumes familiarity with the IETF SUIT manifest
-   [I-D.ietf-suit-manifest], the SUIT information model
-   [I-D.ietf-suit-information-model] and the SUIT architecture
-   [RFC9019].
+   [I-D.ietf-suit-manifest], the SUIT information model [RFC9124] and
+   the SUIT architecture [RFC9019].
 
    The terms sender and recipient are defined in [I-D.irtf-cfrg-hpke]
    and have the following meaning:
 
    -  Sender: Role of entity which sends an encrypted message.
 
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                 [Page 3]
-
-Internet-Draft             Firmware Encryption              October 2021
-
-
    -  Recipient: Role of entity which receives an encrypted message.
+
+
+
+Tschofenig, et al.      Expires September 8, 2022               [Page 3]
+
+Internet-Draft             Firmware Encryption                March 2022
+
 
    Additionally, the following abbreviations are used in this document:
 
@@ -221,9 +219,11 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 4]
+
+
+Tschofenig, et al.      Expires September 8, 2022               [Page 4]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
                                               +----------+
@@ -277,9 +277,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 5]
+Tschofenig, et al.      Expires September 8, 2022               [Page 5]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
       encrypting the firmware image to the distribution system offers
@@ -333,9 +333,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 6]
+Tschofenig, et al.      Expires September 8, 2022               [Page 6]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
    SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
@@ -389,9 +389,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 7]
+Tschofenig, et al.      Expires September 8, 2022               [Page 7]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
    the KEK shared between recipient R1 and the sender S.  Likewise,
@@ -409,21 +409,20 @@ Internet-Draft             Firmware Encryption              October 2021
       structures are included but only a single CEK is used.  Each
       COSE_recipient structure contains the CEK encrypted with the KEKs
       appropriate for the recipient.  In short, KEK_1(R1, S),...,
-      KEK_n(Rn, S), ENC(CEK, KEK_i) for all i=1 to n, and
-      ENC(firmware,CEK).  The benefit of this approach is that the
-      firmware image is encrypted only once with a CEK while there is no
-      sharing of the KEK accross recipients.  Hence, authorized
-      recipients still use their individual KEKs to decrypt the CEK and
-      to subsequently obtain the plaintext firmware.
+      KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK).
+      The benefit of this approach is that the firmware image is
+      encrypted only once with a CEK while there is no sharing of the
+      KEK accross recipients.  Hence, authorized recipients still use
+      their individual KEKs to decrypt the CEK and to subsequently
+      obtain the plaintext firmware.
 
    -  The third option is to use different CEKs encrypted with KEKs of
       the authorized recipients.  Assume there are KEK_1(R1, S),...,
-      KEK_n(Rn, S), and for all i=1 to n the following computations need
-      to be made: ENC(CEK_i, KEK_i) and ENC(firmware,CEK_i).  This
-      approach is appropriate when no benefits can be gained from
-      encrypting and transmitting firmware images only once.  For
-      example, firmware images may contain information unique to a
-      device instance.
+      KEK_n(Rn, S), and for i=1 to n the following computations need to
+      be made: ENC(CEK_i, KEK_i) and ENC(firmware,CEK_i).  This approach
+      is appropriate when no benefits can be gained from encrypting and
+      transmitting firmware images only once.  For example, firmware
+      images may contain information unique to a device instance.
 
    Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of
    [RFC3394], does not have public parameters that vary on a per-
@@ -445,9 +444,10 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 8]
+
+Tschofenig, et al.      Expires September 8, 2022               [Page 8]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
  COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
@@ -501,9 +501,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                 [Page 9]
+Tschofenig, et al.      Expires September 8, 2022               [Page 9]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
           Enc_structure = [
@@ -557,28 +557,28 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                [Page 10]
+Tschofenig, et al.      Expires September 8, 2022              [Page 10]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
    96(
        [
-           // protected field with alg=AES-GCM-128
+           / protected field with alg=AES-GCM-128 /
            h'A10101',
            {
-              // unprotected field with iv
+              / unprotected field with iv /
               5: h'26682306D4FB28CA01B43B80'
            },
-           // null because of detached ciphertext
+           / null because of detached ciphertext /
            null,
-           [ // recipients array
-              h'', // protected field
-              {    // unprotected field
-                 1: -3,            // alg=A128KW
-                 4: h'6B69642D31'  // key id
+           [ / recipients array /
+              h'', / protected field /
+              {    / unprotected field /
+                 1: -3,            / alg=A128KW /
+                 4: h'6B69642D31'  / key id /
               },
-              // CEK encrypted with KEK
+              / CEK encrypted with KEK /
               h'AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D'
            ]
        ]
@@ -613,9 +613,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                [Page 11]
+Tschofenig, et al.      Expires September 8, 2022              [Page 11]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
    This approach allows all recipients to use the same CEK to encrypt
@@ -623,202 +623,56 @@ Internet-Draft             Firmware Encryption              October 2021
    a requirement for the efficient distribution of firmware images using
    a multicast or broadcast protocol.
 
-   [cose-hpke] defines the use of HPKE with COSE and this specification
-   profiles it.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 12]
-
-Internet-Draft             Firmware Encryption              October 2021
-
-
- COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
-
- SUIT_Encryption_Info = COSE_Encrypt_Tagged
-
- ; Layer 0
- COSE_Encrypt = [
-   protected   : bstr .cbor header_map, ; must contain alg
-   unprotected : header_map,            ; must contain iv
-   ciphertext  : null,                  ; because of detached ciphertext
-   recipients  : [+COSE_recipient_outer]
- ]
-
- ; Layer 1
- COSE_recipient_outer = [
-   protected   : bstr .size 0,
-   unprotected : header_map, ; must contain alg
-   encCEK      : bstr,       ; CEK encrypted based on HPKE algo
-   recipients  : [ + COSE_recipient_inner ]
- ]
-
- ; Layer 2
- COSE_recipient_inner = [
-   protected   : bstr .cbor header_map, ; must contain HPKE alg
-   unprotected : header_map, ; must contain kid and ephemeral public key
-   empty       : null,
-   empty       : null
- ]
-
- header_map = {
-   Generic_Headers,
-   * label =values,
- }
-
- Generic_Headers = (
-     ? 1 => int,         ; algorithm identifier
-     ? 2 => crv,         ; EC identifier
-     ? 4 => bstr,        ; key identifier
-     ? 5 => bstr         ; IV
- )
-
-           Figure 7: CDDL for HPKE-based COSE_Encrypt Structure
-
-   The COSE_Encrypt structure (layer 0) contains algorithm parameters
-   for encryption of the firmware image.  The protected field MUST
-   contain the 'alg' parameter and the unprotected field MUST contain
-   the 'iv' parameter.  The ciphertext is always detached.
-
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 13]
-
-Internet-Draft             Firmware Encryption              October 2021
-
-
-   The COSE_recipient_outer structure (layer 1) contains the encrypted
-   CEK.  The protected structure MUST be empty and the unprotected
-   structure MUST contain the 'alg' parameter, which carries the
-   algorithm information for protecting the CEK.
-
-   The COSE_recipient_inner structure (layer 2) contains the HPKE-
-   related information.  The protected structure MUST contain the 'alg'
-   parameter set to the algorithm values in Section 6 of [cose-hpke] and
-   the unprotected structure MUST contain the 'kid' and the 'ephemeral'
-   parameter.
-
-   To populate the SUIT_Encryption_Info structure the sender creates a
-   CEK randomly.  The CEK is used to encrypt the firmware image with the
-   selected algorithm.
-
-   The HPKE SealBase function takes various input parameters, as
-   explained in [cose-hpke].  The most important input parameters are
-   the plaintext (CEK in our case) and the public key of the recipient.
-   If successful, SealBase will return the encrypted CEK and the
-   ephemeral public key.
-
-   The recipient receives the ephemeral public key and the encrypted CEK
-   from the sender.  It then uses the HPKE OpenBase function to decrypt
-   the ciphertext (which contains the CEK).
-
-   If the HPKE OpenBase function is successful, the recipient obtains
-   the CEK and can decrypt the firmware.  The decryption operation is
-   shown in Figure 4 of [cose-hpke].
+   [I-D.ietf-cose-hpke] defines the use of HPKE with COSE.
 
    An example of the COSE_Encrypt structure using the HPKE scheme is
-   shown in Figure 8.  It uses the following algorithm combination:
+   shown in Figure 7.  It uses the following algorithm combination:
 
-   -  AES-GCM-128 for encryption of the firmware image.
+   -  AES-GCM-128 for encryption of the (detached) firmware image (at
+      layer 0).
 
-   -  AES-GCM-128 for encrytion of the CEK.
+   -  AES-GCM-128 for encryption of the CEK in layer 1 as well as ECDH
+      with NIST P-256 and HKDF-SHA256 as a Key Encapsulation Mechanism
+      (KEM).
 
-   -  Key Encapsulation Mechanism (KEM): NIST P-256
+   96_0([
+       / protected header with alg=AES-GCM-128 /
+       h'a10101',
+       / unprotected header with nonce /
+       {5: h'938b528516193cc7123ff037809f4c2a'},
+       / detached ciphertext /
+       null,
+       / recipient structure /
+       [
+           / protected field with alg for HPKE /
+           h'a1013863',
+           / unprotected header /
+           {
+               / ephemeral public key with x / y coodinate /
+               -1: h'a401022001215820a596f2ca8d159c04942308ca90
+                     cfbfca65b108ca127df8fe191a063d00d7c5172258
+                     20aef47a45d6d6c572e7bd1b9f3e69b50ad3875c68
+                     f6da0caaa90c675df4162c39',
+                /  kid for recipient static ECDH public key /
+                4: h'6b69642d32',
+           },
+           / encrypted CEK /
+           h'9aba6fa44e9b2cef9d646614dcda670dbdb31a3b9d37c7a
+             65b099a8152533062',
+       ],
+   ])
 
-   -  Key Derivation Function (KDF): HKDF-SHA256
+                  Figure 7: COSE_Encrypt Example for HPKE
 
 
 
 
 
 
-
-
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 14]
+Tschofenig, et al.      Expires September 8, 2022              [Page 12]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
-
-  96(
-      [
-          // protected field with alg=AES-GCM-128
-          h'A10101',
-          {    // unprotected field with iv
-               5: h'26682306D4FB28CA01B43B80'
-          },
-          // null because of detached ciphertext
-          null,
-          [  // COSE_recipient_outer
-              h'',          // empty protected field
-              {             // unprotected field with ...
-                   1: 1     //     alg=A128GCM
-              },
-              // Encrypted CEK
-              h'FA55A50CF110908DA6443149F2C2062011A7D8333A72721A',
-              [    // COSE_recipient_inner
-                   // protected field with alg HPKE/P-256+HKDF-256 (new)
-                   h'A1013818',
-                   {  // unprotected field with ...
-                      //    HPKE encapsulated key
-                      -1: h'A4010220012158205F...979D51687187510C445',
-                      //    kid for recipient static ECDH public key
-                       4: h'6B69642D31'
-                   },
-                   // empty ciphertext
-                   null
-              ]
-          ]
-       ]
-  )
-
-                  Figure 8: COSE_Encrypt Example for HPKE
 
 7.  CEK Verification
 
@@ -833,14 +687,6 @@ Internet-Draft             Firmware Encryption              October 2021
    [[Editor's Note: Add examples for a complete manifest here (including
    a digital signature), multiple recipients, encryption of manifests
    (in comparison to firmware images).]]
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 15]
-
-Internet-Draft             Firmware Encryption              October 2021
-
 
 9.  Security Considerations
 
@@ -874,6 +720,16 @@ Internet-Draft             Firmware Encryption              October 2021
    explicitly consider those third parties in the software supply chain
    when such a binary analysis is desired.
 
+
+
+
+
+
+Tschofenig, et al.      Expires September 8, 2022              [Page 13]
+
+Internet-Draft             Firmware Encryption                March 2022
+
+
 10.  IANA Considerations
 
    This document does not require any actions by IANA.
@@ -882,28 +738,18 @@ Internet-Draft             Firmware Encryption              October 2021
 
 11.1.  Normative References
 
-   [cose-hpke]
-              Tschofenig, H., Housley, R., and B. Moran, "Use of Hybrid
-              Public-Key Encryption (HPKE) with CBOR Object Signing and
-              Encryption (COSE)", October 2021,
-              <https://datatracker.ietf.org/doc/html/
-              draft-tschofenig-cose-hpke-00>.
-
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 16]
-
-Internet-Draft             Firmware Encryption              October 2021
-
+   [I-D.ietf-cose-hpke]
+              Arm Limited, Vigil Security, LLC, and Arm Limited, "Use of
+              Hybrid Public-Key Encryption (HPKE) with CBOR Object
+              Signing and Encryption (COSE)", draft-ietf-cose-hpke-00
+              (work in progress), January 2022.
 
    [I-D.ietf-suit-manifest]
               Arm Limited, Arm Limited, Fraunhofer SIT, and Inria, "A
               Concise Binary Object Representation (CBOR)-based
               Serialization Format for the Software Updates for Internet
-              of Things (SUIT) Manifest", draft-ietf-suit-manifest-14
-              (work in progress), July 2021.
+              of Things (SUIT) Manifest", draft-ietf-suit-manifest-16
+              (work in progress), October 2021.
 
    [I-D.irtf-cfrg-hpke]
               Cisco, Inria, Inria, and Cloudflare, "Hybrid Public Key
@@ -929,30 +775,20 @@ Internet-Draft             Firmware Encryption              October 2021
 
 11.2.  Informative References
 
-   [I-D.ietf-suit-information-model]
-              Arm Limited, Arm Limited, and Fraunhofer SIT, "A Manifest
-              Information Model for Firmware Updates in IoT Devices",
-              draft-ietf-suit-information-model-13 (work in progress),
-              July 2021.
-
    [RFC2630]  Housley, R., "Cryptographic Message Syntax", RFC 2630,
               DOI 10.17487/RFC2630, June 1999,
               <https://www.rfc-editor.org/info/rfc2630>.
 
+
+
+Tschofenig, et al.      Expires September 8, 2022              [Page 14]
+
+Internet-Draft             Firmware Encryption                March 2022
+
+
    [RFC4949]  Shirey, R., "Internet Security Glossary, Version 2",
               FYI 36, RFC 4949, DOI 10.17487/RFC4949, August 2007,
               <https://www.rfc-editor.org/info/rfc4949>.
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 17]
-
-Internet-Draft             Firmware Encryption              October 2021
-
 
    [RFC8937]  Cremers, C., Garratt, L., Smyshlyaev, S., Sullivan, N.,
               and C. Wood, "Randomness Improvements for Security
@@ -964,6 +800,10 @@ Internet-Draft             Firmware Encryption              October 2021
               RFC 9019, DOI 10.17487/RFC9019, April 2021,
               <https://www.rfc-editor.org/info/rfc9019>.
 
+   [RFC9124]  Moran, B., Tschofenig, H., and H. Birkholz, "A Manifest
+              Information Model for Firmware Updates in Internet of
+              Things (IoT) Devices", RFC 9124, DOI 10.17487/RFC9124,
+              January 2022, <https://www.rfc-editor.org/info/rfc9124>.
 
 
 
@@ -997,17 +837,9 @@ Internet-Draft             Firmware Encryption              October 2021
 
 
 
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires April 25, 2022                [Page 18]
+Tschofenig, et al.      Expires September 8, 2022              [Page 15]
 
-Internet-Draft             Firmware Encryption              October 2021
+Internet-Draft             Firmware Encryption                March 2022
 
 
 Appendix A.  Acknowledgements
@@ -1061,4 +893,4 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.       Expires April 25, 2022                [Page 19]
+Tschofenig, et al.      Expires September 8, 2022              [Page 16]

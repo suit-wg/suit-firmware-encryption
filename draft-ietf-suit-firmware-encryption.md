@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-02
+docname: draft-ietf-suit-firmware-encryption-03
 category: std
 
 ipr: pre5378Trust200902
@@ -52,27 +52,11 @@ normative:
   RFC3394:
   I-D.ietf-suit-manifest:
   I-D.irtf-cfrg-hpke:
-  cose-hpke:
-    target: https://datatracker.ietf.org/doc/html/draft-tschofenig-cose-hpke-00
-    title: Use of Hybrid Public-Key Encryption (HPKE) with CBOR Object Signing and Encryption (COSE)
-    date: 2021-10-18
-    author:
-      -
-        ins: H. Tschofenig
-        organization: Arm Limited
-        name: Hannes Tschofenig
-      -
-        ins: R. Housley
-        organization: Vigil Security
-        name: Russ Housley
-      -
-        ins: B. Moran
-        organization: Arm Limited
-        name: Brendan Moran
+  I-D.ietf-cose-hpke:
 
 informative:
   RFC9019:
-  I-D.ietf-suit-information-model:
+  RFC9124:
   RFC8937:
   RFC2630:
   RFC4949:
@@ -97,7 +81,7 @@ format was developed {{I-D.ietf-suit-manifest}}. The SUIT manifest provides a
 bundle of metadata about the firmware for an IoT device, where to find 
 the firmware image, and the devices to which it applies.
 
-The SUIT information model {{I-D.ietf-suit-information-model}} details the
+The SUIT information model {{RFC9124}} details the
 information that has to be offered by the SUIT manifest format. In addition to
 offering protection against modification, which is provided by a digital
 signature or a message authentication code, the firmware image may also 
@@ -134,7 +118,7 @@ document are to be interpreted as described in BCP&nbsp;14 {{RFC2119}} {{RFC8174
 when, and only when, they appear in all capitals, as shown here.
 
 This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}}, 
-the SUIT information model {{I-D.ietf-suit-information-model}} and the SUIT architecture {{RFC9019}}.
+the SUIT information model {{RFC9124}} and the SUIT architecture {{RFC9019}}.
 
 The terms sender and recipient are defined in {{I-D.irtf-cfrg-hpke}} and have 
 the following meaning: 
@@ -303,7 +287,7 @@ ENC(firmware,CEK).
 - If recipients have different KEKs, then multiple COSE\_recipient structures 
 are included but only a single CEK is used. Each COSE\_recipient structure 
 contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
-KEK_1(R1, S), ..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
+KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
 The benefit of this approach is that the firmware image is encrypted only once with 
 a CEK while there is no sharing of the KEK accross recipients. Hence, authorized recipients 
 still use their individual KEKs to decrypt the CEK and to subsequently obtain the 
@@ -409,21 +393,21 @@ The resulting COSE_Encrypt structure in a dignostic format is shown in {{aeskw-e
 ~~~
 96(
     [
-        // protected field with alg=AES-GCM-128
+        / protected field with alg=AES-GCM-128 /
         h'A10101', 
         {
-           // unprotected field with iv
+           / unprotected field with iv /
            5: h'26682306D4FB28CA01B43B80'
         }, 
-        // null because of detached ciphertext
+        / null because of detached ciphertext /
         null, 
-        [ // recipients array
-           h'', // protected field
-           {    // unprotected field
-              1: -3,            // alg=A128KW 
-              4: h'6B69642D31'  // key id
+        [ / recipients array /
+           h'', / protected field /
+           {    / unprotected field /
+              1: -3,            / alg=A128KW /
+              4: h'6B69642D31'  / key id /
            }, 
-           // CEK encrypted with KEK
+           / CEK encrypted with KEK /
            h'AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D'
         ]
     ]
@@ -462,121 +446,43 @@ This approach allows all recipients to use the same CEK to encrypt the
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol. 
 
-{{cose-hpke}} defines the use of HPKE with COSE and this specification profiles it. 
-
-~~~
-COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
- 
-SUIT_Encryption_Info = COSE_Encrypt_Tagged
-
-; Layer 0
-COSE_Encrypt = [
-  protected   : bstr .cbor header_map, ; must contain alg
-  unprotected : header_map,            ; must contain iv
-  ciphertext  : null,                  ; because of detached ciphertext
-  recipients  : [+COSE_recipient_outer]
-]
-
-; Layer 1   
-COSE_recipient_outer = [
-  protected   : bstr .size 0,
-  unprotected : header_map, ; must contain alg
-  encCEK      : bstr,       ; CEK encrypted based on HPKE algo
-  recipients  : [ + COSE_recipient_inner ]  
-]
-
-; Layer 2
-COSE_recipient_inner = [
-  protected   : bstr .cbor header_map, ; must contain HPKE alg
-  unprotected : header_map, ; must contain kid and ephemeral public key
-  empty       : null,
-  empty       : null
-]
-
-header_map = {
-  Generic_Headers,
-  * label =values,
-}
-
-Generic_Headers = (
-    ? 1 => int,         ; algorithm identifier
-    ? 2 => crv,         ; EC identifier
-    ? 4 => bstr,        ; key identifier
-    ? 5 => bstr         ; IV
-)
-~~~
-{: #cddl-hpke title="CDDL for HPKE-based COSE_Encrypt Structure"}
-
-The COSE_Encrypt structure (layer 0) contains algorithm parameters for 
-encryption of the firmware image. The protected field MUST contain the 'alg' parameter 
-and the unprotected field MUST contain the 'iv' parameter. The ciphertext is always 
-detached.
-
-The COSE_recipient_outer structure (layer 1) contains the encrypted CEK. The
-protected structure MUST be empty and the unprotected structure MUST contain the 
-'alg' parameter, which carries the algorithm information for protecting the CEK.
-
-The COSE_recipient_inner structure (layer 2) contains the HPKE-related information. 
-The protected structure MUST contain the 'alg' parameter set to the algorithm values in 
-Section 6 of {{cose-hpke}} and the unprotected structure MUST contain the 'kid' and 
-the 'ephemeral' parameter. 
-
-To populate the SUIT_Encryption_Info structure the sender creates a CEK randomly.
-The CEK is used to encrypt the firmware image with the selected algorithm. 
-
-The HPKE SealBase function takes various input parameters, as explained in {{cose-hpke}}.
-The most important input parameters are the plaintext (CEK in our case) and the public key of 
-the recipient. If successful, SealBase will return the encrypted CEK and the 
-ephemeral public key.
-
-The recipient receives the ephemeral public key and the encrypted CEK from the sender. 
-It then uses the HPKE OpenBase function to decrypt the ciphertext (which contains 
-the CEK).
-
-If the HPKE OpenBase function is successful, the recipient obtains the CEK and can decrypt the 
-firmware. The decryption operation is shown in Figure 4 of {{cose-hpke}}.
+{{I-D.ietf-cose-hpke}} defines the use of HPKE with COSE.
 
 An example of the COSE_Encrypt structure using the HPKE scheme is 
 shown in {{hpke-example}}. It uses the following algorithm 
 combination: 
 
-- AES-GCM-128 for encryption of the firmware image. 
-- AES-GCM-128 for encrytion of the CEK.
-- Key Encapsulation Mechanism (KEM): NIST P-256
-- Key Derivation Function (KDF): HKDF-SHA256
+- AES-GCM-128 for encryption of the (detached) firmware image (at layer 0).
+- AES-GCM-128 for encryption of the CEK in layer 1 as well as ECDH
+  with NIST P-256 and HKDF-SHA256 as a Key Encapsulation Mechanism (KEM).
   
 ~~~
-96( 
+96_0([
+    / protected header with alg=AES-GCM-128 /
+    h'a10101',
+    / unprotected header with nonce /
+    {5: h'938b528516193cc7123ff037809f4c2a'},
+    / detached ciphertext /
+    null,
+    / recipient structure /
     [
-        // protected field with alg=AES-GCM-128
-        h'A10101',   
-        {    // unprotected field with iv
-             5: h'26682306D4FB28CA01B43B80'
-        }, 
-        // null because of detached ciphertext
-        null,  
-        [  // COSE_recipient_outer
-            h'',          // empty protected field
-            {             // unprotected field with ... 
-                 1: 1     //     alg=A128GCM
-            },
-            // Encrypted CEK
-            h'FA55A50CF110908DA6443149F2C2062011A7D8333A72721A',
-            [    // COSE_recipient_inner
-                 // protected field with alg HPKE/P-256+HKDF-256 (new)
-                 h'A1013818',
-                 {  // unprotected field with ...
-                    //    HPKE encapsulated key
-                    -1: h'A4010220012158205F...979D51687187510C445’,
-                    //    kid for recipient static ECDH public key
-                     4: h'6B69642D31'
-                 }, 
-                 // empty ciphertext
-                 null
-            ]
-        ]
-     ]
-)
+        / protected field with alg for HPKE /
+        h'a1013863',
+        / unprotected header /
+        {
+            / ephemeral public key with x / y coodinate /
+            -1: h'a401022001215820a596f2ca8d159c04942308ca90
+                  cfbfca65b108ca127df8fe191a063d00d7c5172258
+                  20aef47a45d6d6c572e7bd1b9f3e69b50ad3875c68
+                  f6da0caaa90c675df4162c39',
+             /  kid for recipient static ECDH public key /
+             4: h'6b69642d32',
+        },
+        / encrypted CEK /
+        h'9aba6fa44e9b2cef9d646614dcda670dbdb31a3b9d37c7a
+          65b099a8152533062',
+    ],
+])
 ~~~
 {: #hpke-example title="COSE_Encrypt Example for HPKE"}
 
