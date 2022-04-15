@@ -5,14 +5,14 @@
 SUIT                                                       H. Tschofenig
 Internet-Draft                                               Arm Limited
 Intended status: Standards Track                              R. Housley
-Expires: September 8, 2022                                Vigil Security
+Expires: October 17, 2022                                 Vigil Security
                                                                 B. Moran
                                                              Arm Limited
-                                                          March 07, 2022
+                                                          April 15, 2022
 
 
                 Firmware Encryption with SUIT Manifests
-                 draft-ietf-suit-firmware-encryption-03
+                 draft-ietf-suit-firmware-encryption-04
 
 Abstract
 
@@ -21,7 +21,9 @@ Abstract
    manifest with key establishment provided by the hybrid public-key
    encryption (HPKE) scheme and the AES Key Wrap (AES-KW) with a pre-
    shared key-encryption key.  Encryption of the firmware image is
-   encrypted using AES-GCM or AES-CCM.
+   accomplished using the established content encryption key and a
+   mutually agreed symmetric encryption algorithm, such as AES-GCM or
+   AES-CCM.
 
 Status of This Memo
 
@@ -38,7 +40,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 8, 2022.
+   This Internet-Draft will expire on October 17, 2022.
 
 Copyright Notice
 
@@ -48,16 +50,16 @@ Copyright Notice
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
    (https://trustee.ietf.org/license-info) in effect on the date of
+
+
+
+Tschofenig, et al.      Expires October 17, 2022                [Page 1]
+
+Internet-Draft             Firmware Encryption                April 2022
+
+
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
-
-
-
-Tschofenig, et al.      Expires September 8, 2022               [Page 1]
-
-Internet-Draft             Firmware Encryption                March 2022
-
-
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
@@ -103,17 +105,18 @@ Table of Contents
    IoT device, where to find the firmware image, and the devices to
    which it applies.
 
+
+
+
+
+Tschofenig, et al.      Expires October 17, 2022                [Page 2]
+
+Internet-Draft             Firmware Encryption                April 2022
+
+
    The SUIT information model [RFC9124] details the information that has
    to be offered by the SUIT manifest format.  In addition to offering
    protection against modification, which is provided by a digital
-
-
-
-Tschofenig, et al.      Expires September 8, 2022               [Page 2]
-
-Internet-Draft             Firmware Encryption                March 2022
-
-
    signature or a message authentication code, the firmware image may
    also be afforded confidentiality using encryption.
 
@@ -156,19 +159,20 @@ Internet-Draft             Firmware Encryption                March 2022
    [I-D.ietf-suit-manifest], the SUIT information model [RFC9124] and
    the SUIT architecture [RFC9019].
 
-   The terms sender and recipient are defined in [I-D.irtf-cfrg-hpke]
-   and have the following meaning:
+   The terms sender and recipient are defined in [RFC9180] and have the
+   following meaning:
+
+
+
+
+Tschofenig, et al.      Expires October 17, 2022                [Page 3]
+
+Internet-Draft             Firmware Encryption                April 2022
+
 
    -  Sender: Role of entity which sends an encrypted message.
 
    -  Recipient: Role of entity which receives an encrypted message.
-
-
-
-Tschofenig, et al.      Expires September 8, 2022               [Page 3]
-
-Internet-Draft             Firmware Encryption                March 2022
-
 
    Additionally, the following abbreviations are used in this document:
 
@@ -179,8 +183,15 @@ Internet-Draft             Firmware Encryption                March 2022
    -  Content-encryption key (CEK), a term defined in RFC 2630
       [RFC2630].
 
-   -  Hybrid Public Key Encryption (HPKE), defined in
-      [I-D.irtf-cfrg-hpke].
+   -  Hybrid Public Key Encryption (HPKE), defined in [RFC9180].
+
+   The main use case of this document is to encrypt firmware.  However,
+   SUIT manifests may require other payloads than firmware images to
+   experience confidentiality protection using encryption.  While the
+   term firmware is used throughout the document, plaintext other than
+   firmware images may get encrypted using the described mechanism.
+   Hence, the terms firmware (image) and plaintext are used
+   interchangably.
 
 3.  Architecture
 
@@ -210,20 +221,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.      Expires September 8, 2022               [Page 4]
+Tschofenig, et al.      Expires October 17, 2022                [Page 4]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
                                               +----------+
@@ -277,9 +277,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022               [Page 5]
+Tschofenig, et al.      Expires October 17, 2022                [Page 5]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
       encrypting the firmware image to the distribution system offers
@@ -333,9 +333,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022               [Page 6]
+Tschofenig, et al.      Expires October 17, 2022                [Page 6]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
    SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
@@ -389,9 +389,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022               [Page 7]
+Tschofenig, et al.      Expires October 17, 2022                [Page 7]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
    the KEK shared between recipient R1 and the sender S.  Likewise,
@@ -445,9 +445,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022               [Page 8]
+Tschofenig, et al.      Expires October 17, 2022                [Page 8]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
  COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
@@ -501,9 +501,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022               [Page 9]
+Tschofenig, et al.      Expires October 17, 2022                [Page 9]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
           Enc_structure = [
@@ -557,9 +557,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022              [Page 10]
+Tschofenig, et al.      Expires October 17, 2022               [Page 10]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
    96(
@@ -594,9 +594,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 6.  Hybrid Public-Key Encryption (HPKE)
 
-   Hybrid public-key encryption (HPKE) [I-D.irtf-cfrg-hpke] is a scheme
-   that provides public key encryption of arbitrary-sized plaintexts
-   given a recipient's public key.
+   Hybrid public-key encryption (HPKE) [RFC9180] is a scheme that
+   provides public key encryption of arbitrary-sized plaintexts given a
+   recipient's public key.
 
    For use with firmware encryption the scheme works as follows: HPKE,
    which internally utilizes a non-interactive ephemeral-static Diffie-
@@ -613,9 +613,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022              [Page 11]
+Tschofenig, et al.      Expires October 17, 2022               [Page 11]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
    This approach allows all recipients to use the same CEK to encrypt
@@ -628,12 +628,10 @@ Internet-Draft             Firmware Encryption                March 2022
    An example of the COSE_Encrypt structure using the HPKE scheme is
    shown in Figure 7.  It uses the following algorithm combination:
 
-   -  AES-GCM-128 for encryption of the (detached) firmware image (at
-      layer 0).
+   -  AES-GCM-128 for encryption of the (detached) firmware image.
 
-   -  AES-GCM-128 for encryption of the CEK in layer 1 as well as ECDH
-      with NIST P-256 and HKDF-SHA256 as a Key Encapsulation Mechanism
-      (KEM).
+   -  AES-GCM-128 for encryption of the CEK as well as ECDH with NIST
+      P-256 and HKDF-SHA256 as a Key Encapsulation Mechanism (KEM).
 
    96_0([
        / protected header with alg=AES-GCM-128 /
@@ -669,18 +667,23 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022              [Page 12]
+
+
+Tschofenig, et al.      Expires October 17, 2022               [Page 12]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
 7.  CEK Verification
 
    The suit-cek-verification parameter contains a byte string resulting
-   from the encryption of 8 bytes of 0xA5 using the CEK.
+   from the encryption of 8 bytes of 0xA5 using the CEK with a nonce of
+   all zeros and empty additional data using the cipher algorithm and
+   mode also used to encrypt the plaintext.
 
-   [[Editor's Note: Guidance about the selection of an IV needs to be
-   added here.]]
+   As explained in Section 3, the suit-cek-verification parameter is
+   optional to implement and optional to use.  When used, it reduces the
+   risk of an battery exhaustion attack against the IoT device.
 
 8.  Complete Examples
 
@@ -722,12 +725,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-
-
-
-Tschofenig, et al.      Expires September 8, 2022              [Page 13]
+Tschofenig, et al.      Expires October 17, 2022               [Page 13]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
 10.  IANA Considerations
@@ -741,8 +741,8 @@ Internet-Draft             Firmware Encryption                March 2022
    [I-D.ietf-cose-hpke]
               Arm Limited, Vigil Security, LLC, and Arm Limited, "Use of
               Hybrid Public-Key Encryption (HPKE) with CBOR Object
-              Signing and Encryption (COSE)", draft-ietf-cose-hpke-00
-              (work in progress), January 2022.
+              Signing and Encryption (COSE)", draft-ietf-cose-hpke-01
+              (work in progress), March 2022.
 
    [I-D.ietf-suit-manifest]
               Arm Limited, Arm Limited, Fraunhofer SIT, and Inria, "A
@@ -750,11 +750,6 @@ Internet-Draft             Firmware Encryption                March 2022
               Serialization Format for the Software Updates for Internet
               of Things (SUIT) Manifest", draft-ietf-suit-manifest-16
               (work in progress), October 2021.
-
-   [I-D.irtf-cfrg-hpke]
-              Cisco, Inria, Inria, and Cloudflare, "Hybrid Public Key
-              Encryption", draft-irtf-cfrg-hpke-12 (work in progress),
-              September 2021.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -773,6 +768,10 @@ Internet-Draft             Firmware Encryption                March 2022
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
+   [RFC9180]  Barnes, R., Bhargavan, K., Lipp, B., and C. Wood, "Hybrid
+              Public Key Encryption", RFC 9180, DOI 10.17487/RFC9180,
+              February 2022, <https://www.rfc-editor.org/info/rfc9180>.
+
 11.2.  Informative References
 
    [RFC2630]  Housley, R., "Cryptographic Message Syntax", RFC 2630,
@@ -781,9 +780,10 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022              [Page 14]
+
+Tschofenig, et al.      Expires October 17, 2022               [Page 14]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
    [RFC4949]  Shirey, R., "Internet Security Glossary, Version 2",
@@ -837,9 +837,9 @@ Internet-Draft             Firmware Encryption                March 2022
 
 
 
-Tschofenig, et al.      Expires September 8, 2022              [Page 15]
+Tschofenig, et al.      Expires October 17, 2022               [Page 15]
 
-Internet-Draft             Firmware Encryption                March 2022
+Internet-Draft             Firmware Encryption                April 2022
 
 
 Appendix A.  Acknowledgements
@@ -893,4 +893,4 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.      Expires September 8, 2022              [Page 16]
+Tschofenig, et al.      Expires October 17, 2022               [Page 16]
