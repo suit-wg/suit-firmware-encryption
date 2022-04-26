@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-03
+docname: draft-ietf-suit-firmware-encryption-04
 category: std
 
 ipr: pre5378Trust200902
@@ -50,8 +50,8 @@ normative:
   RFC8152:
   RFC8174:
   RFC3394:
+  RFC9180:
   I-D.ietf-suit-manifest:
-  I-D.irtf-cfrg-hpke:
   I-D.ietf-cose-hpke:
 
 informative:
@@ -64,11 +64,13 @@ informative:
 --- abstract
 
 This document specifies a firmware update mechanism where the
-firmware image is encrypted.  Firmware encryption uses the IETF 
+firmware image is encrypted.  Firmware encryption uses the IETF
 SUIT manifest with key establishment provided by the hybrid
-public-key encryption (HPKE) scheme and the AES Key Wrap (AES-KW) 
+public-key encryption (HPKE) scheme and the AES Key Wrap (AES-KW)
 with a pre-shared key-encryption key. Encryption of the firmware
-image is encrypted using AES-GCM or AES-CCM.
+image is accomplished using the established content encryption
+key and a mutually agreed symmetric encryption algorithm, such
+as AES-GCM or AES-CCM.
 
 --- middle
 
@@ -120,7 +122,7 @@ when, and only when, they appear in all capitals, as shown here.
 This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}}, 
 the SUIT information model {{RFC9124}} and the SUIT architecture {{RFC9019}}.
 
-The terms sender and recipient are defined in {{I-D.irtf-cfrg-hpke}} and have 
+The terms sender and recipient are defined in {{RFC9180}} and have 
 the following meaning: 
 
 * Sender: Role of entity which sends an encrypted message.
@@ -131,7 +133,14 @@ Additionally, the following abbreviations are used in this document:
 * Key Wrap (KW), defined in RFC 3394 {{RFC3394}} for use with AES.
 * Key-encryption key (KEK), a term defined in RFC 4949 {{RFC4949}}. 
 * Content-encryption key (CEK), a term defined in RFC 2630 {{RFC2630}}.
-* Hybrid Public Key Encryption (HPKE), defined in {{I-D.irtf-cfrg-hpke}}.
+* Hybrid Public Key Encryption (HPKE), defined in {{RFC9180}}.
+
+The main use case of this document is to encrypt firmware. However, SUIT manifests
+may require other payloads than firmware images to experience confidentiality
+protection using encryption. While the term firmware is used throughout
+the document, plaintext other than firmware images may get encrypted using
+the described mechanism. Hence, the terms firmware (image) and plaintext are 
+used interchangably.
 
 # Architecture {#arch}
 
@@ -261,7 +270,6 @@ SUIT_Manifest = {
 }
 ~~~
 {: #manifest-fig title="SUIT Manifest CDDL."}
-
 
 # AES Key Wrap {#AES-KW}
 
@@ -425,7 +433,7 @@ F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 
 # Hybrid Public-Key Encryption (HPKE) {#HPKE}
 
-Hybrid public-key encryption (HPKE) {{I-D.irtf-cfrg-hpke}} is a scheme that 
+Hybrid public-key encryption (HPKE) {{RFC9180}} is a scheme that 
 provides public key encryption of arbitrary-sized plaintexts given a 
 recipient's public key.
 
@@ -452,8 +460,8 @@ An example of the COSE_Encrypt structure using the HPKE scheme is
 shown in {{hpke-example}}. It uses the following algorithm 
 combination: 
 
-- AES-GCM-128 for encryption of the (detached) firmware image (at layer 0).
-- AES-GCM-128 for encryption of the CEK in layer 1 as well as ECDH
+- AES-GCM-128 for encryption of the (detached) firmware image.
+- AES-GCM-128 for encryption of the CEK as well as ECDH
   with NIST P-256 and HKDF-SHA256 as a Key Encapsulation Mechanism (KEM).
   
 ~~~
@@ -489,9 +497,13 @@ combination:
 # CEK Verification {#cek-verification}
 
 The suit-cek-verification parameter contains a byte string resulting from the 
-encryption of 8 bytes of 0xA5 using the CEK.
+encryption of 8 bytes of 0xA5 using the CEK with a nonce of all zeros and empty 
+additional data using the cipher algorithm and mode also used to encrypt the
+plaintext.
 
-[[Editor's Note: Guidance about the selection of an IV needs to be added here.]]
+As explained in {{arch}}, the suit-cek-verification parameter is optional to
+implement and optional to use. When used, it reduces the risk of an battery
+exhaustion attack against the IoT device.
 
 # Complete Examples 
 
