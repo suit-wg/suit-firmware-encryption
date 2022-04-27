@@ -64,13 +64,12 @@ informative:
 --- abstract
 
 This document specifies a firmware update mechanism where the
-firmware image is encrypted.  Firmware encryption uses the IETF
-SUIT manifest with key establishment provided by the hybrid
-public-key encryption (HPKE) scheme and the AES Key Wrap (AES-KW)
-with a pre-shared key-encryption key. Encryption of the firmware
-image is accomplished using the established content encryption
-key and a mutually agreed symmetric encryption algorithm, such
-as AES-GCM or AES-CCM.
+firmware image is encrypted.  Firmware encryption uses the IETF 
+SUIT manifest with key establishment provided by hybrid
+public-key encryption (HPKE) and AES Key Wrap (AES-KW). HPKE
+uses public key cryptography while AES-KW uses a pre-shared 
+key-encryption key. Encryption of the firmware image is 
+accomplished with convential symmetric key cryptography.
 
 --- middle
 
@@ -238,7 +237,7 @@ is used, the suit-protection-wrappers parameter MUST be included in the envelope
 SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
 SUIT_Envelope = {
   suit-authentication-wrapper => bstr .cbor SUIT_Authentication,
-  suit-manifest  => bstr .cbor SUIT_Manifest,
+  suit-manifest => bstr .cbor SUIT_Manifest,
   SUIT_Severable_Manifest_Members,
   suit-protection-wrappers => bstr .cbor {
       *(int/str) => [+ SUIT_Encryption_Info]
@@ -505,6 +504,65 @@ As explained in {{arch}}, the suit-cek-verification parameter is optional to
 implement and optional to use. When used, it reduces the risk of an battery
 exhaustion attack against the IoT device.
 
+# Ciphers without Integrity Protection
+
+The ability to restart an interrupted firmware update is often a requirement
+for low-end IoT devices. To fulfill this requirement it is necessary to chunk
+a larger firmware image into blocks and to encrypt each block individually
+using a cipher that does not increase the size of the resulting ciphertext 
+(i.e. by not adding an authentication tag after each encrypted block).
+
+When the encrypted firmware image has been transferred to the device, it will
+typically be stored in a staging area. Then, the bootloader starts decrypting 
+the downloaded image block-by-block and swaps it with the currently valid 
+image. Note that the currently valid image is available in cleartext and hence
+it has to be re-encrypted before copying it to the staging area.
+
+This approach of swapping the newly downloaded image with the previously valid 
+image is often referred as A/B approach.  A/B refers to the two storage areas,
+sometimes called slots, involved. Two slots are used to allow the update to be
+reversed in case the newly obtained firmware image fails to boot. This approach
+adds robustness to the firmware update procedure.
+
+When an update gets aborted while the bootloader is decrypting the newly obtained
+image and swapping the blocks, the bootloader can restart where it left off. This
+technique again offers robustness.
+
+To accomplish this functionality, ciphers without integrity protection are used
+to encrypt the firmware image. Integrity protection for the firmware image is,
+however, important and therefore the image digest defined in 
+{{I-D.ietf-suit-manifest}} MUST be used. 
+
+This document registers several cipher algorithms for use with firmware encryption
+that do not offer integrity protection. These ciphers are registered within
+the COSE algorithm registry but are dedicated for this specific applications only. 
+Hence, all algorithms listed in {{iana-algo}} are not recommended for general
+use.
+
+~~~
+   +===========+=====+===========+==============+=========+============+
+   | Name      |Value|Description| Capabilities |Reference|Recommended |
+   +===========+=====+===========+==============+=========+============+
+   |AES-128-CBC|  35 | AES 128   | []           | [This   |No          |
+   |           |     | CBC Mode  |              |Document]|            |
+   |           |     |           |              |         |            |
+   +-----------+-----+-----------+--------------+---------+------------+
+   |AES-256-CBC|  36 | AES 256   | []           | [This   |No          |
+   |           |     | CBC Mode  |              |Document]|            |
+   |           |     |           |              |         |            |
+   +-----------+-----+-----------+--------------+---------+------------+
+   |AES-128-CTR|  37 | AES 128   | []           | [This   |No          |
+   |           |     | Counter   |              |Document]|            |
+   |           |     | Mode (CTR)|              |         |            |
+   +-----------+-----+-----------+--------------+---------+------------+
+   |AES-256-CTR|  38 | AES 256   | []           | [This   |No          |
+   |           |     | Counter   |              |Document]|            |
+   |           |     | Mode (CTR)|              |         |            |
+   +-----------+-----+-----------+--------------+---------+------------+
+~~~
+{: #iana-algo title="Algorithms for the COSE Algorithm Registry"}
+
+
 # Complete Examples 
 
 [[Editor's Note: Add examples for a complete manifest here (including a digital signature), 
@@ -528,7 +586,8 @@ In some cases third party companies analyse binaries for known security vulnerab
 
 #  IANA Considerations
 
-This document does not require any actions by IANA.
+This document asks IANA to register new values into the COSE algorithm
+registry. The values are listed in {{iana-algo}}.
 
 --- back
 
