@@ -5,10 +5,10 @@
 SUIT                                                       H. Tschofenig
 Internet-Draft                                               Arm Limited
 Intended status: Standards Track                              R. Housley
-Expires: October 29, 2022                                 Vigil Security
+Expires: January 9, 2023                                  Vigil Security
                                                                 B. Moran
                                                              Arm Limited
-                                                          April 27, 2022
+                                                           July 08, 2022
 
 
                 Firmware Encryption with SUIT Manifests
@@ -39,7 +39,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on October 29, 2022.
+   This Internet-Draft will expire on January 9, 2023.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 1]
+Tschofenig, et al.       Expires January 9, 2023                [Page 1]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    carefully, as they describe your rights and restrictions with respect
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 2]
+Tschofenig, et al.       Expires January 9, 2023                [Page 2]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    The SUIT information model [RFC9124] details the information that has
@@ -165,9 +165,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 3]
+Tschofenig, et al.       Expires January 9, 2023                [Page 3]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    -  Sender: Role of entity which sends an encrypted message.
@@ -221,9 +221,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 4]
+Tschofenig, et al.       Expires January 9, 2023                [Page 4]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
                                               +----------+
@@ -277,9 +277,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 5]
+Tschofenig, et al.       Expires January 9, 2023                [Page 5]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
       encrypting the firmware image to the distribution system offers
@@ -333,9 +333,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 6]
+Tschofenig, et al.       Expires January 9, 2023                [Page 6]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
@@ -389,9 +389,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 7]
+Tschofenig, et al.       Expires January 9, 2023                [Page 7]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    the KEK shared between recipient R1 and the sender S.  Likewise,
@@ -445,9 +445,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 8]
+Tschofenig, et al.       Expires January 9, 2023                [Page 8]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
  COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
@@ -501,9 +501,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022                [Page 9]
+Tschofenig, et al.       Expires January 9, 2023                [Page 9]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
           Enc_structure = [
@@ -557,9 +557,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 10]
+Tschofenig, et al.       Expires January 9, 2023               [Page 10]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    96(
@@ -613,9 +613,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 11]
+Tschofenig, et al.       Expires January 9, 2023               [Page 11]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    This approach allows all recipients to use the same CEK to encrypt
@@ -669,9 +669,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 12]
+Tschofenig, et al.       Expires January 9, 2023               [Page 12]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
 7.  CEK Verification
@@ -725,9 +725,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 13]
+Tschofenig, et al.       Expires January 9, 2023               [Page 13]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    dedicated for this specific applications only.  Hence, all algorithms
@@ -781,9 +781,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 14]
+Tschofenig, et al.       Expires January 9, 2023               [Page 14]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    disclosure.  Compromise of the KEK may result in the disclosure of
@@ -820,8 +820,8 @@ Internet-Draft             Firmware Encryption                April 2022
               Arm Limited, Arm Limited, Fraunhofer SIT, and Inria, "A
               Concise Binary Object Representation (CBOR)-based
               Serialization Format for the Software Updates for Internet
-              of Things (SUIT) Manifest", draft-ietf-suit-manifest-16
-              (work in progress), October 2021.
+              of Things (SUIT) Manifest", draft-ietf-suit-manifest-17
+              (work in progress), April 2022.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -837,9 +837,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 15]
+Tschofenig, et al.       Expires January 9, 2023               [Page 15]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
    [RFC8152]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
@@ -893,9 +893,9 @@ Internet-Draft             Firmware Encryption                April 2022
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 16]
+Tschofenig, et al.       Expires January 9, 2023               [Page 16]
 
-Internet-Draft             Firmware Encryption                April 2022
+Internet-Draft             Firmware Encryption                 July 2022
 
 
 Appendix A.  Acknowledgements
@@ -949,4 +949,4 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.      Expires October 29, 2022               [Page 17]
+Tschofenig, et al.       Expires January 9, 2023               [Page 17]

@@ -40,7 +40,7 @@
       </address>
     </author>
 
-    <date year="2022" month="April" day="27"/>
+    <date year="2022" month="July" day="08"/>
 
     <area>Security</area>
     <workgroup>SUIT</workgroup>
@@ -695,7 +695,7 @@ registry. The values are listed in <xref target="iana-algo"/>.</t>
       <author fullname='Koen Zandberg'>
 	 <organization>Inria</organization>
       </author>
-      <date day='25' month='October' year='2021'/>
+      <date day='28' month='April' year='2022'/>
       <abstract>
 	 <t>   This specification describes the format of a manifest.  A manifest is
    a bundle of metadata about code/data obtained by a recipient (chiefly
@@ -709,8 +709,8 @@ registry. The values are listed in <xref target="iana-algo"/>.</t>
 	 </t>
       </abstract>
    </front>
-   <seriesInfo name='Internet-Draft' value='draft-ietf-suit-manifest-16'/>
-   <format target='https://www.ietf.org/archive/id/draft-ietf-suit-manifest-16.txt' type='TXT'/>
+   <seriesInfo name='Internet-Draft' value='draft-ietf-suit-manifest-17'/>
+   <format target='https://www.ietf.org/archive/id/draft-ietf-suit-manifest-17.txt' type='TXT'/>
 </reference>
 
 
@@ -846,7 +846,7 @@ registry. The values are listed in <xref target="iana-algo"/>.</t>
   </back>
 
 <!-- ##markdown-source:
-H4sIAJwHaWIAA+08a2/buJbfA+Q/EO3FNpnart+xc9Hd6zjJNuhzm84MFnOL
+H4sIAJX3x2IAA+08a2/buJbfA+Q/EO3FNpnart+xc9Hd6zjJNuhzm84MFnOL
 gJZom4gseSU5qafN/e17HiRFyXLaLi6wwGJdILUlPg4Pz/scstlsHh7kOo/U
 qbjU6epepkpcxEG6Xec6icW9zpfi+terT+KtjPVcZXl2eCBns1Td1XY4PAiT
 IJYrGC5M5TxvapXPm9lG5825ad1UrnWz3T88CGSuFkm6PRVZHh4eHB7odXoq
