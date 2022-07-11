@@ -12,7 +12,7 @@ Expires: January 9, 2023                                  Vigil Security
 
 
                 Firmware Encryption with SUIT Manifests
-                 draft-ietf-suit-firmware-encryption-04
+                 draft-ietf-suit-firmware-encryption-05
 
 Abstract
 
@@ -662,8 +662,8 @@ Internet-Draft             Firmware Encryption                 July 2022
 
                   Figure 7: COSE_Encrypt Example for HPKE
 
-
-
+   [Editor's Note: The examples need to be in-sync with the content in
+   COSE-HPKE.]
 
 
 

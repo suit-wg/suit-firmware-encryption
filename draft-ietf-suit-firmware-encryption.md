@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-04
+docname: draft-ietf-suit-firmware-encryption-05
 category: std
 
 ipr: pre5378Trust200902
@@ -492,6 +492,9 @@ combination:
 ])
 ~~~
 {: #hpke-example title="COSE_Encrypt Example for HPKE"}
+
+[Editor's Note: The examples need to be in-sync with the
+content in COSE-HPKE.]
 
 # CEK Verification {#cek-verification}
 
