@@ -262,11 +262,12 @@ SUIT_Manifest = {
     suit-manifest-sequence-number => uint,
     suit-common                   => bstr .cbor SUIT_Common,
     ? suit-reference-uri          => tstr,
-    ? suit-cek-verification       => bstr,
     SUIT_Severable_Members_Choice,
     SUIT_Unseverable_Members,
     * $$SUIT_Manifest_Extensions,
 }
+
+SUIT_Parameters //= (suit-parameter-cek-verification => bstr)
 ~~~
 {: #manifest-fig title="SUIT Manifest CDDL."}
 
