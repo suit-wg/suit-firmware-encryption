@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-05
+docname: draft-ietf-suit-firmware-encryption-06
 category: std
 
 ipr: pre5378Trust200902
@@ -111,6 +111,14 @@ help increase interoperability between different SUIT manifest parser implementa
 
 The document also contains a number of examples.
 
+The main use case of this document is to encrypt firmware. However, SUIT manifests
+may require other payloads than firmware images to experience confidentiality
+protection using encryption, for example personalization data, configuration data, 
+or machine learning models. While the term firmware is used throughout
+the document, plaintext other than firmware images may get encrypted using
+the described mechanism. Hence, the terms firmware (image) and plaintext are 
+used interchangably.
+
 # Conventions and Terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
@@ -134,20 +142,13 @@ Additionally, the following abbreviations are used in this document:
 * Content-encryption key (CEK), a term defined in RFC 2630 {{RFC2630}}.
 * Hybrid Public Key Encryption (HPKE), defined in {{RFC9180}}.
 
-The main use case of this document is to encrypt firmware. However, SUIT manifests
-may require other payloads than firmware images to experience confidentiality
-protection using encryption. While the term firmware is used throughout
-the document, plaintext other than firmware images may get encrypted using
-the described mechanism. Hence, the terms firmware (image) and plaintext are 
-used interchangably.
-
 # Architecture {#arch}
 
 {{RFC9019}} describes the architecture for distributing firmware images 
 and manifests from the author to the firmware consumer. It does, however,
 not detail the use of encrypted firmware images. 
 
-This document enhances the SUIT architecutre to include firmware encryption.
+This document enhances the SUIT architecture to include firmware encryption.
 {{arch-fig}} shows the distribution system, which represents the firmware server 
 and the device management infrastructure. The distribution system is aware 
 of the individual devices to which a firmware update has to be delivered.
@@ -186,7 +187,7 @@ KEK needs to be known and, in case of HPKE, the sender needs to be in possession
 of the public key of the recipient.
 
 The firmware author may have knowledge about all devices that need 
-to receive an encrypted firmware image but in most cases this will not be 
+to receive an encrypted firmware image but in most cases this is not  
 likely. The distribution system certainly has the knowledge about the 
 recipients to perform firmware encryption.
 
@@ -200,7 +201,7 @@ supported:
   the initial recipient. Then, the distribution system decrypts and re-encrypts the 
   firmware image towards the firmware consumer(s). Delegating the task of re-encrypting 
   the firmware image to the distribution system offers flexiblity when the number 
-  of devices that need to receive encrypted  firmware images changes dynamically 
+  of devices that need to receive encrypted firmware images changes dynamically 
   or when updates to KEKs or recipient public keys are necessary. As a downside, 
   the author needs to trust the distribution system with performing the re-encryption 
   of the firmware image. 
@@ -454,48 +455,7 @@ This approach allows all recipients to use the same CEK to encrypt the
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol. 
 
-{{I-D.ietf-cose-hpke}} defines the use of HPKE with COSE.
-
-An example of the COSE_Encrypt structure using the HPKE scheme is 
-shown in {{hpke-example}}. It uses the following algorithm 
-combination: 
-
-- AES-GCM-128 for encryption of the (detached) firmware image.
-- AES-GCM-128 for encryption of the CEK as well as ECDH
-  with NIST P-256 and HKDF-SHA256 as a Key Encapsulation Mechanism (KEM).
-  
-~~~
-96_0([
-    / protected header with alg=AES-GCM-128 /
-    h'a10101',
-    / unprotected header with nonce /
-    {5: h'938b528516193cc7123ff037809f4c2a'},
-    / detached ciphertext /
-    null,
-    / recipient structure /
-    [
-        / protected field with alg for HPKE /
-        h'a1013863',
-        / unprotected header /
-        {
-            / ephemeral public key with x / y coodinate /
-            -1: h'a401022001215820a596f2ca8d159c04942308ca90
-                  cfbfca65b108ca127df8fe191a063d00d7c5172258
-                  20aef47a45d6d6c572e7bd1b9f3e69b50ad3875c68
-                  f6da0caaa90c675df4162c39',
-             /  kid for recipient static ECDH public key /
-             4: h'6b69642d32',
-        },
-        / encrypted CEK /
-        h'9aba6fa44e9b2cef9d646614dcda670dbdb31a3b9d37c7a
-          65b099a8152533062',
-    ],
-])
-~~~
-{: #hpke-example title="COSE_Encrypt Example for HPKE"}
-
-[Editor's Note: The examples need to be in-sync with the
-content in COSE-HPKE.]
+{{I-D.ietf-cose-hpke}} defines the use of HPKE with COSE and provides examples.
 
 # CEK Verification {#cek-verification}
 
