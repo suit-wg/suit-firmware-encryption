@@ -224,35 +224,19 @@ section.
 
 # SUIT Envelope and SUIT Manifest 
 
-This specification introduces two extensions to the SUIT envelope and the manifest 
-structure, as motivated in {{arch}}.
+This specification introduces two extensions to the SUIT_Parameters,
+as motivated in {{arch}}.
  
-The SUIT envelope is enhanced with a key exchange payload, which is carried inside
-the suit-protection-wrappers parameter, see {{envelope-fig}}. One or multiple 
-SUIT_Encryption_Info payload(s) are carried within the suit-protection-wrappers 
-parameter. The content of the SUIT_Encryption_Info payload is explained in 
+The SUIT manifest is enhanced with a key exchange payload, which is carried within
+the suit-directive-override-parameters or suit-directive-set-parameters for each
+encrypted payload. One SUIT_Encryption_Info is carried with
+suit-parameter-encryption-info, see {{parameter-fig}}.
+The content of the SUIT_Encryption_Info is explained in 
 {{AES-KW}} (for AES-KW) and in {{HPKE}} (for HPKE). When the encryption capability 
-is used, the suit-protection-wrappers parameter MUST be included in the envelope. 
+is used, the SUIT_Encryption_Info parameter MUST be included in the SUIT_Directive. 
 
-~~~
-SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
-SUIT_Envelope = {
-  suit-authentication-wrapper => bstr .cbor SUIT_Authentication,
-  suit-manifest => bstr .cbor SUIT_Manifest,
-  SUIT_Severable_Manifest_Members,
-  suit-protection-wrappers => bstr .cbor {
-      *(int/str) => [+ SUIT_Encryption_Info]
-  }
-  * SUIT_Integrated_Payload,
-  * SUIT_Integrated_Dependency,
-  * $$SUIT_Envelope_Extensions,
-  * (int => bstr)
-}
-~~~
-{: #envelope-fig title="SUIT Envelope CDDL."}
-
-The manifest is extended with a CEK verification parameter (called 
-suit-cek-verification), see {{manifest-fig}}. This parameter is optional 
+A CEK verification parameter (called suit-parameter-cek-verification),
+see {{parameter-fig}}, also extends the manifest. This parameter is optional 
 and is utilized in environments where battery exhaustion attacks are a 
 concern. Details about the CEK verification can be found in 
 {{cek-verification}}.
@@ -268,9 +252,13 @@ SUIT_Manifest = {
     * $$SUIT_Manifest_Extensions,
 }
 
+SUIT_Parameters //= (suit-parameter-encryption-info
+    => bstr .cbor SUIT_Encryption_Info)
 SUIT_Parameters //= (suit-parameter-cek-verification => bstr)
+
+suit-parameter-encryption-info   = 18
 ~~~
-{: #manifest-fig title="SUIT Manifest CDDL."}
+{: #parameter-fig title="Extended SUIT_Parameters CDDL."}
 
 # AES Key Wrap {#AES-KW}
 
