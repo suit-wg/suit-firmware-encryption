@@ -1,7 +1,7 @@
 ---
 title: Firmware Encryption with SUIT Manifests
 abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-06
+docname: draft-ietf-suit-firmware-encryption-07
 category: std
 
 ipr: pre5378Trust200902
@@ -462,7 +462,8 @@ the efficient distribution of firmware images using a multicast or broadcast pro
 The suit-cek-verification parameter contains a byte string resulting from the 
 encryption of 8 bytes of 0xA5 using the CEK with a nonce of all zeros and empty 
 additional data using the cipher algorithm and mode also used to encrypt the
-plaintext.
+plaintext. The same nonce used for CEK verification MUST NOT be used to
+encrypt plaintext with the same CEK.
 
 As explained in {{arch}}, the suit-cek-verification parameter is optional to
 implement and optional to use. When used, it reduces the risk of an battery
