@@ -1,7 +1,7 @@
 ---
-title: Firmware Encryption with SUIT Manifests
-abbrev: Firmware Encryption
-docname: draft-ietf-suit-firmware-encryption-06
+title: Software Encryption with SUIT Manifests
+abbrev: Software Encryption
+docname: draft-ietf-suit-firmware-encryption-07
 category: std
 
 ipr: pre5378Trust200902
@@ -53,6 +53,7 @@ normative:
   RFC9180:
   I-D.ietf-suit-manifest:
   I-D.ietf-cose-hpke:
+  I-D.housley-cose-aes-ctr-and-cbc:
 
 informative:
   RFC9019:
@@ -63,13 +64,13 @@ informative:
   
 --- abstract
 
-This document specifies a firmware update mechanism where the
-firmware image is encrypted.  Firmware encryption uses the IETF 
-SUIT manifest with key establishment provided by hybrid
+This document specifies techniques for encrypting software, firmware 
+and personalization data by utilizing the IETF 
+SUIT manifest. Key establishment is provided by hybrid
 public-key encryption (HPKE) and AES Key Wrap (AES-KW). HPKE
 uses public key cryptography while AES-KW uses a pre-shared 
-key-encryption key. Encryption of the firmware image is 
-accomplished with convential symmetric key cryptography.
+key-encryption key. Encryption of the plaintext is 
+accomplished with conventional symmetric key cryptography.
 
 --- middle
 
@@ -111,13 +112,13 @@ help increase interoperability between different SUIT manifest parser implementa
 
 The document also contains a number of examples.
 
-The main use case of this document is to encrypt firmware. However, SUIT manifests
+The original motivating use case of this document was to encrypt firmware. However, SUIT manifests
 may require other payloads than firmware images to experience confidentiality
-protection using encryption, for example personalization data, configuration data, 
+protection using encryption, for example software, personalization data, configuration data, 
 or machine learning models. While the term firmware is used throughout
 the document, plaintext other than firmware images may get encrypted using
-the described mechanism. Hence, the terms firmware (image) and plaintext are 
-used interchangably.
+the described mechanism. Hence, the terms firmware (image), software and plaintext are 
+used interchangeably.
 
 # Conventions and Terminology
 
@@ -132,8 +133,9 @@ the SUIT information model {{RFC9124}} and the SUIT architecture {{RFC9019}}.
 The terms sender and recipient are defined in {{RFC9180}} and have 
 the following meaning: 
 
-* Sender: Role of entity which sends an encrypted message.
-* Recipient: Role of entity which receives an encrypted message.
+* Sender: Role of the entity that sends an encrypted message.
+* Recipient: Role of the entity that receives an encrypted message. The terms
+firmware consumer and recipient are used interchangeably in this document.
 
 Additionally, the following abbreviations are used in this document: 
 
@@ -145,8 +147,8 @@ Additionally, the following abbreviations are used in this document:
 # Architecture {#arch}
 
 {{RFC9019}} describes the architecture for distributing firmware images 
-and manifests from the author to the firmware consumer. It does, however,
-not detail the use of encrypted firmware images. 
+and manifests from the author to the firmware consumer. It does not, however,
+detail the use of encrypted firmware images. 
 
 This document enhances the SUIT architecture to include firmware encryption.
 {{arch-fig}} shows the distribution system, which represents the firmware server 
@@ -206,7 +208,7 @@ supported:
   the author needs to trust the distribution system with performing the re-encryption 
   of the firmware image. 
 
-Irrespectively of the two variants, the key distribution data (in form of the 
+Irrespectively of the two variants, the key distribution data (in the form of the 
 COSE_Encrypt structure) is included in the SUIT envelope rather than in the SUIT 
 manifest since the manifest will be digitally signed (or MACed) by the firmware author.
 
@@ -298,7 +300,7 @@ are included but only a single CEK is used. Each COSE\_recipient structure
 contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
 KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
 The benefit of this approach is that the firmware image is encrypted only once with 
-a CEK while there is no sharing of the KEK accross recipients. Hence, authorized recipients 
+a CEK while there is no sharing of the KEK across recipients. Hence, authorized recipients 
 still use their individual KEKs to decrypt the CEK and to subsequently obtain the 
 plaintext firmware.
 
@@ -397,7 +399,7 @@ D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
 315818AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D
 ~~~
 
-The resulting COSE_Encrypt structure in a dignostic format is shown in {{aeskw-example}}. 
+The resulting COSE_Encrypt structure in a diagnostic format is shown in {{aeskw-example}}. 
 
 ~~~
 96(
@@ -444,14 +446,14 @@ Diffie-Hellman exchange to derive a shared secret, is used to
 encrypt a CEK. This CEK is subsequently used to encrypt the firmware image. 
 Hence, the plaintext passed to HPKE is the randomly generated CEK. 
 The output of the HPKE SealBase function is therefore 
-the encrypted CEK along with HPKE encapsulated key (i.e. the ephemeral ECDH 
+the encrypted CEK along with HPKE encapsulated key (i.e., the ephemeral ECDH 
 public key).
 
 Only the holder of recipient's private key can decapsulate the CEK to decrypt the 
-firmware. Key generation in HPKE is influced by additional parameters, such as 
+firmware. Key generation in HPKE is influenced by additional parameters, such as 
 identity information.
 
-This approach allows all recipients to use the same CEK to encrypt the 
+This approach allows all recipients to use the same CEK to decrypt the 
 firmware image, in case there are multiple recipients, to fulfill a requirement for 
 the efficient distribution of firmware images using a multicast or broadcast protocol. 
 
@@ -465,7 +467,7 @@ additional data using the cipher algorithm and mode also used to encrypt the
 plaintext.
 
 As explained in {{arch}}, the suit-cek-verification parameter is optional to
-implement and optional to use. When used, it reduces the risk of an battery
+implement and optional to use. When used, it reduces the risk of a battery
 exhaustion attack against the IoT device.
 
 # Ciphers without Integrity Protection
@@ -474,7 +476,7 @@ The ability to restart an interrupted firmware update is often a requirement
 for low-end IoT devices. To fulfill this requirement it is necessary to chunk
 a larger firmware image into blocks and to encrypt each block individually
 using a cipher that does not increase the size of the resulting ciphertext 
-(i.e. by not adding an authentication tag after each encrypted block).
+(i.e., by not adding an authentication tag after each encrypted block).
 
 When the encrypted firmware image has been transferred to the device, it will
 typically be stored in a staging area. Then, the bootloader starts decrypting 
@@ -495,37 +497,9 @@ technique again offers robustness.
 To accomplish this functionality, ciphers without integrity protection are used
 to encrypt the firmware image. Integrity protection for the firmware image is,
 however, important and therefore the image digest defined in 
-{{I-D.ietf-suit-manifest}} MUST be used. 
+{{I-D.ietf-suit-manifest}} MUST be used.
 
-This document registers several cipher algorithms for use with firmware encryption
-that do not offer integrity protection. These ciphers are registered within
-the COSE algorithm registry but are dedicated for this specific applications only. 
-Hence, all algorithms listed in {{iana-algo}} are not recommended for general
-use.
-
-~~~
-   +===========+=====+===========+==============+=========+============+
-   | Name      |Value|Description| Capabilities |Reference|Recommended |
-   +===========+=====+===========+==============+=========+============+
-   |AES-128-CBC|  35 | AES 128   | []           | [This   |No          |
-   |           |     | CBC Mode  |              |Document]|            |
-   |           |     |           |              |         |            |
-   +-----------+-----+-----------+--------------+---------+------------+
-   |AES-256-CBC|  36 | AES 256   | []           | [This   |No          |
-   |           |     | CBC Mode  |              |Document]|            |
-   |           |     |           |              |         |            |
-   +-----------+-----+-----------+--------------+---------+------------+
-   |AES-128-CTR|  37 | AES 128   | []           | [This   |No          |
-   |           |     | Counter   |              |Document]|            |
-   |           |     | Mode (CTR)|              |         |            |
-   +-----------+-----+-----------+--------------+---------+------------+
-   |AES-256-CTR|  38 | AES 256   | []           | [This   |No          |
-   |           |     | Counter   |              |Document]|            |
-   |           |     | Mode (CTR)|              |         |            |
-   +-----------+-----+-----------+--------------+---------+------------+
-~~~
-{: #iana-algo title="Algorithms for the COSE Algorithm Registry"}
-
+{{I-D.housley-cose-aes-ctr-and-cbc}} registers several ciphers that do not offer integrity protection.
 
 # Complete Examples 
 
@@ -544,7 +518,7 @@ This interaction is likely provided by an IoT device management solution, as des
 
 For AES-Key Wrap to provide high security it is important that the KEK is of high entropy, and that implementations protect the KEK from disclosure. Compromise of the KEK may result in the disclosure of all key data protected with that KEK.
 
-Since the CEK is randomly generated, it must be ensured that the guidelines for random number generations are followed, see {{RFC8937}}.
+Since the CEK is randomly generated, it must be ensured that the guidelines for random number generation in {{RFC8937}} are followed.
 
 In some cases third party companies analyse binaries for known security vulnerabilities. With encrypted firmware images this type of analysis is prevented. Consequently, these third party companies either need to be given access to the plaintext binary before encryption or they need to become authorized recipients of the encrypted firmware images. In either case, it is necessary to explicitly consider those third parties in the software supply chain when such a binary analysis is desired.
 
@@ -557,7 +531,7 @@ registry. The values are listed in {{iana-algo}}.
 
 # Acknowledgements
 
-We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for making us aware of the challenges firmware encryption imposes on binary analysis.
+We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson, Dave Thaler, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for making us aware of the challenges firmware encryption imposes on binary analysis.
 
 
  
