@@ -44,6 +44,12 @@ author:
       email: Brendan.Moran@arm.com
 
 
+ -
+      ins: D. Brown
+      name: David Brown
+      organization: Linaro
+      email: david.brown@linaro.org
+
 normative:
   RFC2119:
   RFC3394:
