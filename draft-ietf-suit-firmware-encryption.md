@@ -50,6 +50,13 @@ author:
       organization: Linaro
       email: david.brown@linaro.org
 
+ -
+      ins: K. Takayama
+      name: Ken Takayama
+      organization: SECOM CO., LTD.
+      email: ken.takayama.ietf@gmail.com 
+
+
 normative:
   RFC2119:
   RFC3394:
