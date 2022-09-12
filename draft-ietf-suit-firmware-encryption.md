@@ -74,6 +74,12 @@ informative:
   RFC8937:
   RFC2630:
   RFC4949:
+  iana-algo:
+    author:
+      org: Internet Assigned Numbers Authority
+    title: CBOR Object Signing and Encryption (COSE)
+    date: 2022-09-01
+    target: https://www.iana.org/assignments/cose/cose.xhtml
   
 --- abstract
 
