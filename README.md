@@ -1,3 +1,6 @@
-# SUIT Firmware Encryption
+# SUIT Software Encryption
 
-This is the repo for the IETF draft defining firmware encryption for SUIT.
+This is the repo for the IETF draft defining software encryption using the SUIT
+manifest. 
+
+
