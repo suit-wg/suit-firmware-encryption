@@ -1,6 +1,6 @@
 ---
-title: Software Encryption with SUIT Manifests
-abbrev: Software Encryption
+title: Encrypted Objects in SUIT Manifests
+abbrev: Encrypted Objects in SUIT Manifests
 docname: draft-ietf-suit-firmware-encryption-07
 category: std
 
