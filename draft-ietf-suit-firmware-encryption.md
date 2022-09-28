@@ -490,7 +490,7 @@ As explained in {{arch}}, the suit-cek-verification parameter is optional to
 implement and optional to use. When used, it reduces the risk of a battery
 exhaustion attack against the IoT device.
 
-# Ciphers without Integrity Protection for Firmware Encryption
+# Firmware Updates on IoT Devices with Flash Memory.
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
 data in units called blocks, pages or sectors and re-writes data at byte level 
