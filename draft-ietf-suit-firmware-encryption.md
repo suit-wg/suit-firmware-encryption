@@ -507,7 +507,18 @@ typically be stored in a staging area, in the secondary slot in our example.
 
 At the next boot, the bootloader will recognize a new firmware image in the 
 secondary slot and will start decrypting the downloaded image sector-by-sector
-and will swap it with the image found in the primary slot. 
+and will swap it with the image found in the primary slot.
+
+The swap should only take place after the signature on the plaintext is verified.
+Note that the plaintext firmware image is available in the primary slot only after
+the swap has been completed, unless "dummy decrypt" is used to compute the hash 
+over the plaintext prior to executing the decrypt operation during a swap.
+Dummy decryption here refers to the decryption of the firmware image found in 
+the secondary slot sector-by-sector and computing a rolling hash over the resulting
+plaintext firmware image (also sector-by-sector) without performing the swap operation. 
+While there are performance optimizations possible, such as conveying hashes for 
+each sector in the manifest rather than a hash of the entire firmware image, 
+such optimizations are not described in this specification.
 
 This approach of swapping the newly downloaded image with the previously valid 
 image is often referred as A/B approach. A/B refers to the two slots involved.
