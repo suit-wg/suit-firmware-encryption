@@ -497,36 +497,190 @@ additional data using the cipher algorithm and mode also used to encrypt the
 plaintext. The same nonce used for CEK verification MUST NOT be used to 
 encrypt plaintext with the same CEK.
 
-# Ciphers without Integrity Protection
+# Firmware Updates on IoT Devices with Flash Memory.
+
+Flash memory on microcontrollers is a type of non-volatile memory that erases
+data in units called blocks, pages or sectors and re-writes data at byte level 
+(often 4-bytes).
+Flash memory is furthermore segmented into different memory regions, which store
+the bootloader, different versions of firmware images (in so-called slots), 
+and configuration data. {{image-layout}} shows an example layout of a 
+microcontroller flash area. The primary slot contains the firmware image to be 
+executed by the bootloader, which is a common deployment on devices that do 
+not offer the concept of position independent code.
+
+When the encrypted firmware image has been transferred to the device, it will
+typically be stored in a staging area, in the secondary slot in our example. 
+
+At the next boot, the bootloader will recognize a new firmware image in the 
+secondary slot and will start decrypting the downloaded image sector-by-sector
+and will swap it with the image found in the primary slot.
+
+The swap should only take place after the signature on the plaintext is verified.
+Note that the plaintext firmware image is available in the primary slot only after
+the swap has been completed, unless "dummy decrypt" is used to compute the hash 
+over the plaintext prior to executing the decrypt operation during a swap.
+Dummy decryption here refers to the decryption of the firmware image found in 
+the secondary slot sector-by-sector and computing a rolling hash over the resulting
+plaintext firmware image (also sector-by-sector) without performing the swap operation. 
+While there are performance optimizations possible, such as conveying hashes for 
+each sector in the manifest rather than a hash of the entire firmware image, 
+such optimizations are not described in this specification.
+
+This approach of swapping the newly downloaded image with the previously valid 
+image is often referred as A/B approach. A/B refers to the two slots involved.
+Two slots are used to allow the update to be reversed in case the newly obtained
+firmware image fails to boot. This approach adds robustness to the firmware 
+update procedure.
+
+Since the image in primary slot is available in cleartext it may need to 
+re-encrypted it before copying it to the secondary slot. This may be necessary
+when the secondary slot has different access permissions or when the staging
+area is located in an off-chip flash memory and therefore more vulnerable to
+physical attacks. Note that this description assumes that the processor does
+not execute encrypted memory (i.e. using on-the-fly decryption in hardware).
+
+~~~
++--------------------------------------------------+
+| Bootloader                                       |
++--------------------------------------------------+
+| Primary Slot                                     |
+|                                        (sector 1)|
+|..................................................|
+|                                                  |
+|                                        (sector 2)|
+|..................................................|
+|                                                  |
+|                                        (sector 3)|
+|..................................................|
+|                                                  |
+|                                        (sector 4)|
++--------------------------------------------------+
+| Secondary Slot                                   |
+|                                        (sector 1)|
+|..................................................|
+|                                                  |
+|                                        (sector 2)|
+|..................................................|
+|                                                  |
+|                                        (sector 3)|
+|..................................................|
+|                                                  |
+|                                        (sector 4)|
++--------------------------------------------------+
+| Swap Area                                        |
+|                                                  |
++--------------------------------------------------+
+| Configuration Data                               |
++--------------------------------------------------+
+~~~
+{: #image-layout title="Example Flash Area Layout"}
 
 The ability to restart an interrupted firmware update is often a requirement
 for low-end IoT devices. To fulfill this requirement it is necessary to chunk
-a larger firmware image into blocks and to encrypt each block individually
+a firmware image into sectors and to encrypt each sector individually
 using a cipher that does not increase the size of the resulting ciphertext 
 (i.e., by not adding an authentication tag after each encrypted block).
 
-When the encrypted firmware image has been transferred to the device, it will
-typically be stored in a staging area. Then, the bootloader starts decrypting 
-the downloaded image block-by-block and swaps it with the currently valid 
-image. Note that the currently valid image is available in cleartext and hence
-it has to be re-encrypted before copying it to the staging area.
-
-This approach of swapping the newly downloaded image with the previously valid 
-image is often referred as A/B approach.  A/B refers to the two storage areas,
-sometimes called slots, involved. Two slots are used to allow the update to be
-reversed in case the newly obtained firmware image fails to boot. This approach
-adds robustness to the firmware update procedure.
-
 When an update gets aborted while the bootloader is decrypting the newly obtained
-image and swapping the blocks, the bootloader can restart where it left off. This
-technique again offers robustness.
+image and swapping the sectors, the bootloader can restart where it left off. This
+technique offers robustness and better performance.
 
-To accomplish this functionality, ciphers without integrity protection are used
-to encrypt the firmware image. Integrity protection for the firmware image is,
-however, important and therefore the image digest defined in 
-{{I-D.ietf-suit-manifest}} MUST be used.
+For this purpose ciphers without integrity protection are used
+to encrypt the firmware image. Integrity protection for the firmware image must,
+however, be provided and the the suit-parameter-image-digest, defined in Section 
+8.4.8.6 of {{I-D.ietf-suit-manifest}}, MUST be used.
 
-{{I-D.housley-cose-aes-ctr-and-cbc}} registers several ciphers that do not offer integrity protection.
+{{I-D.housley-cose-aes-ctr-and-cbc}} registers AES Counter mode (AES-CTR) and 
+AES Cipher Block Chaining (AES-CBC) ciphers that do not offer integrity protection. 
+These ciphers are useful for the use cases that require firmware encryption on IoT
+devices. For many other use cases where software packages, configuration information 
+or personalization data needs to be encrypted, the use of Authenticated Encryption 
+with Additional Data (AEAD) ciphers is preferred.
+
+The following sub-sections provide further information about the initialization vector
+(IV) selection for use with AES-CBC and AES-CTR in the firmware encryption context. An
+IV MUST NOTE be re-used when the same key is used. For this application, the IVs are
+not random but rather based on the slot/sector-combination in flash memory. The 
+text below assumes that the block-size of AES is (much) smaller than sector size. The
+typical sector-size of flash memory is in the order of KiB. Hence, multiple AES blocks
+need to be decrypted until an entire sector is completed.
+
+## AES-CBC
+
+In AES-CBC a single IV is used for encryption of firmware belonging to a single sector
+since individual AES blocks are chained toghether, as shown in {{aes-cbc}}. The numbering 
+of sectors in a slot MUST start with zero (0) and MUST increase by one with every sector
+till the end of the slot is reached. The IV follows this numbering.
+
+For example, let us assume the slot size of a specific flash controller on an IoT device 
+is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
+128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
+If the firmware image fills the entire slot then that slot contains 16 sectors, i.e. IVs
+ranging from 0 to 15.
+
+~~~
+       P1              P2
+        |              |
+   IV--(+)    +-------(+)
+        |     |        |
+        |     |        |
+    +-------+ |    +-------+
+    |       | |    |       |
+    |       | |    |       |
+ k--|  E    | | k--|  E    |
+    |       | |    |       |
+    +-------+ |    +-------+
+        |     |        |
+        +-----+        |
+        |              |
+        |              |
+        C1             C2
+
+Legend: 
+  Pi = Plaintext blocks
+  Ci = Ciphertext blocks
+  E = Encryption function
+  k = Symmetric key
+  (+) = XOR operation
+~~~
+{: #aes-cbc title="AES-CBC Operation"}
+
+## AES-CTR
+
+Unlike AES-CBC, AES-CTR uses an IV per AES operation. Hence, when an image is encrypted
+using AES-CTR-128 or AES-CTR-256, the IV MUST start with zero (0) and MUST be 
+incremented by one for each 16-byte plaintext block within the entire slot.
+
+Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
+the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
+and 16 * 256 IVs for the remaining sectors in the slot. The last IV used to encrypt 
+data in the slot is therefore 
+
+
+~~~
+         IV1            IV2
+          |              |
+          |              |
+          |              |
+      +-------+      +-------+
+      |       |      |       |
+      |       |      |       |
+   k--|  E    |   k--|  E    |
+      |       |      |       |
+      +-------+      +-------+
+          |              |
+     P1--(+)        P2--(+)
+          |              |
+          |              |
+          C1             C2
+
+Legend: 
+  See previous diagram.
+~~~
+{: #image-layout title="AES-CTR Operation"}
+
+
 
 # Complete Examples 
 
