@@ -1,6 +1,6 @@
 ---
-title: Software Encryption with SUIT Manifests
-abbrev: Software Encryption
+title: Encrypted Payloads in SUIT Manifests
+abbrev: Encrypted Payloads in SUIT Manifests
 docname: draft-ietf-suit-firmware-encryption-07
 category: std
 
@@ -42,7 +42,6 @@ author:
       name: Brendan Moran
       organization: Arm Limited
       email: Brendan.Moran@arm.com
-
 
  -
       ins: D. Brown
@@ -112,13 +111,11 @@ Encryption prevents third parties, including attackers, from gaining access to
 the firmware binary. Hackers typically need intimate knowledge of the target 
 firmware to mount their attacks. For example, return-oriented programming (ROP)
 requires access to the binary and encryption makes it much more difficult to write 
-exploits. 
+exploits.
 
 The SUIT manifest provides the data needed for authorized recipients 
 of the firmware image to decrypt it. The firmware image is encrypted using a 
-symmetric key. This symmetric cryptographic key is established for encryption 
-and decryption, and that key can be applied to a SUIT manifest, firmware images, 
-or personalization data, depending on the encryption choices of the firmware author. 
+symmetric key.
 
 A symmetric key can be established using a variety of mechanisms; this document 
 defines two approaches for use with the IETF SUIT manifest, namely: 
@@ -129,15 +126,16 @@ defines two approaches for use with the IETF SUIT manifest, namely:
 These choices reduce the number of possible key establishment options and thereby 
 help increase interoperability between different SUIT manifest parser implementations. 
 
-The document also contains a number of examples.
-
-The original motivating use case of this document was to encrypt firmware. However, SUIT manifests
-may require other payloads than firmware images to experience confidentiality
-protection using encryption, for example software, personalization data, configuration data, 
-or machine learning models. While the term firmware is used throughout
-the document, plaintext other than firmware images may get encrypted using
-the described mechanism. Hence, the terms firmware (image), software and plaintext are 
-used interchangeably.
+While the original motivating use case of this document was firmware encryption, SUIT manifests
+may require payloads other than firmware images to experience confidentiality
+protection, such as
+- software (other than firmware),
+- personalization data, 
+- configuration data,
+- machine learning models, etc. 
+ 
+Hence, the term payload is used to generically refer to those objects that may be subject to 
+encryption.
 
 # Conventions and Terminology
 
@@ -152,9 +150,8 @@ the SUIT information model {{RFC9124}} and the SUIT architecture {{RFC9019}}.
 The terms sender and recipient are defined in {{RFC9180}} and have 
 the following meaning: 
 
-* Sender: Role of the entity that sends an encrypted message.
-* Recipient: Role of the entity that receives an encrypted message. The terms
-firmware consumer and recipient are used interchangeably in this document.
+* Sender: Role of the entity that sends an encrypted payload.
+* Recipient: Role of the entity that receives an encrypted payload.
 
 Additionally, the following abbreviations are used in this document: 
 
@@ -165,14 +162,27 @@ Additionally, the following abbreviations are used in this document:
 
 # Architecture {#arch}
 
-{{RFC9019}} describes the architecture for distributing firmware images 
-and manifests from the author to the firmware consumer. It does not, however,
-detail the use of encrypted firmware images. 
+{{RFC9019}} describes the architecture for distributing payloads 
+and manifests from an author to devices. It does, however, not
+detail the use of payload encryption.
 
-This document enhances the SUIT architecture to include firmware encryption.
+This document enhances this architecture to support encryption.
+The author and the distribution system are logical roles. In some deployments
+these roles are separated in different physical entities and in others
+they are co-located.
+
 {{arch-fig}} shows the distribution system, which represents the firmware server 
 and the device management infrastructure. The distribution system is aware 
-of the individual devices to which a firmware update has to be delivered.
+of the individual devices to which a payload has to be delivered. The author
+is typically unaware which devices need to receive these payloads.
+
+To apply encryption the sender needs to know the recipient. For AES-KW the 
+KEK needs to be known and, in case of HPKE, the sender needs to be in possession 
+of the public key of the recipient.
+
+If the author delegates the task of identifying devices that are the recipients 
+of the payloads to the distribution system, it needs to trust the delivery 
+system to perform the encryption of the plaintext firmware image.
 
 ~~~
                                            +----------+
@@ -181,64 +191,45 @@ of the individual devices to which a firmware update has to be delivered.
                                            |          |
  +----------+                              +----------+
  |  Device  |---+                               | 
- |(Firmware |   |                               | Firmware +
- | Consumer)|   |                               | Manifest
+ |          |   |                               | Firmware +
+ |          |   |                               | Manifest
  +----------+   |                               |
                 |                               |
                 |                        +--------------+
                 |                        |              |
  +----------+   |  Firmware + Manifest   | Distribution |
  |  Device  |---+------------------------|    System    |
- |(Firmware |   |                        |              |
- | Consumer)|   |                        |              |
+ |          |   |                        |              |
+ |          |   |                        |              |
  +----------+   |                        +--------------+
                 |
                 |
  +----------+   |
  |  Device  +---+
- |(Firmware |
- | Consumer)|
+ |          |
+ |          |
  +----------+
 ~~~
 {: #arch-fig title="Firmware Encryption Architecture."}
 
-Firmware encryption requires the sender to know the firmware consumers and the 
-respective credentials used by the key distribution mechanism. For AES-KW the 
-KEK needs to be known and, in case of HPKE, the sender needs to be in possession 
-of the public key of the recipient.
-
-The firmware author may have knowledge about all devices that need 
-to receive an encrypted firmware image but in most cases this is not  
-likely. The distribution system certainly has the knowledge about the 
-recipients to perform firmware encryption.
-
-To offer confidentiality protection for firmware images two deployment variants need to be 
+To offer confidentiality protection two deployment variants need to be 
 supported:
 
-* The firmware author acts as the sender and the recipient is the firmware consumer
-  (or the firmware consumers). 
+* The author acts as the sender and the recipient is the device
+  (or the devices).
   
-* The firmware author encrypts the firmware image with the distribution system as 
-  the initial recipient. Then, the distribution system decrypts and re-encrypts the 
-  firmware image towards the firmware consumer(s). Delegating the task of re-encrypting 
-  the firmware image to the distribution system offers flexiblity when the number 
-  of devices that need to receive encrypted firmware images changes dynamically 
+* The author treats the distribution system as the initial recipient. Then, 
+  the distribution system decrypts and re-encrypts the payload for consumption 
+  by the device (or devices). Delegating the task of re-encrypting 
+  the payload to the distribution system offers flexiblity when the number 
+  of devices that need to receive encrypted payloads changes dynamically 
   or when updates to KEKs or recipient public keys are necessary. As a downside, 
   the author needs to trust the distribution system with performing the re-encryption 
-  of the firmware image. 
+  of the payload.
 
-Irrespectively of the two variants, the key distribution data (in the form of the 
+For both variants the key distribution data (embedded inside the
 COSE_Encrypt structure) is included in the SUIT envelope rather than in the SUIT 
-manifest since the manifest will be digitally signed (or MACed) by the firmware author.
-
-Since the SUIT envelope is not protected cryptographically an adversary could modify
-the COSE_Encrypt structure. For example, if the attacker alters the key distribution
-data then a recipient will decrypt the firmware image with an incorrect key. This
-will lead to expending energy and flash cycles until the failure is detected. To
-mitigate this attack, the optional suit-cek-verification parameter is added to the
-manifest. Since the manifest is protected by a digital signature (or a MAC), an
-adversary cannot successfully modify this value. This parameter allows the recipient
-to verify whether the CEK has successfully been derived.
+manifest since the manifest will be digitally signed (or MACed) by the author.
 
 Details about the changes to the envelope and the manifest can be found in the next 
 section. 
@@ -312,31 +303,33 @@ ENC(plaintext, key) refers to the encryption of plaintext with a given key.
 
 - If all authorized recipients have access to the KEK, a single 
 COSE\_recipient structure contains the encrypted CEK. This means KEK(*,S) ENC(CEK,KEK), and 
-ENC(firmware,CEK).
+ENC(payload,CEK).
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures 
 are included but only a single CEK is used. Each COSE\_recipient structure 
 contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
 KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
-The benefit of this approach is that the firmware image is encrypted only once with 
+The benefit of this approach is that the payload is encrypted only once with 
 a CEK while there is no sharing of the KEK across recipients. Hence, authorized recipients 
 still use their individual KEKs to decrypt the CEK and to subsequently obtain the 
-plaintext firmware.
+plaintext.
 
 - The third option is to use different CEKs encrypted with KEKs of the 
 authorized recipients. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S), and 
 for i=1 to n the following computations need to be made: ENC(CEK_i, KEK_i) and 
 ENC(firmware,CEK_i). This approach is appropriate when no benefits can be gained
-from encrypting and transmitting firmware images only once. For example, 
-firmware images may contain information unique to a device instance.  
+from encrypting and transmitting payloads only once. For example, 
+payloads may contain information unique to an instance of a device rather than
+information that is independent of a device instance and therefore applies to an 
+entire class of devices.
 
 Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}}, 
 does not have public parameters that vary on a per-invocation basis. Hence, 
 the protected structure in the COSE_recipient is a byte string of zero length. 
 
-The COSE\_Encrypt conveys information for encrypting the firmware image, 
+The COSE\_Encrypt conveys information for encrypting the payload, 
 which includes information like the algorithm and the IV, even though the 
-firmware image is not embedded in the COSE_Encrypt.ciphertext itself since 
+payload is not embedded in the COSE_Encrypt.ciphertext itself since 
 it conveyed as detached content.
 
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-aeskw}}. 
@@ -408,7 +401,7 @@ We use the following parameters in this example:
 - IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
 - KEK: "aaaaaaaaaaaaaaaa"
 - KID: "kid-1"
-- Plaintext Firmware: "This is a real firmware image."
+- Plaintext: "This is a real firmware image."
 - Firmware (hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -459,7 +452,7 @@ Hybrid public-key encryption (HPKE) {{RFC9180}} is a scheme that
 provides public key encryption of arbitrary-sized plaintexts given a 
 recipient's public key.
 
-For use with firmware encryption the scheme works as follows: HPKE, 
+For use with this specification the scheme works as follows: HPKE, 
 which internally utilizes a non-interactive ephemeral-static
 Diffie-Hellman exchange to derive a shared secret, is used to 
 encrypt a CEK. This CEK is subsequently used to encrypt the firmware image. 
@@ -480,15 +473,29 @@ the efficient distribution of firmware images using a multicast or broadcast pro
 
 # CEK Verification {#cek-verification}
 
+While the SUIT manifest is integrity protected and authenticated, the SUIT envelope 
+is not protected cryptographically. Hence, an adversary located along the communication
+path between the sender and the recipient could modify the COSE_Encrypt structure
+(assuming that no other communication security mechanism is in use). 
+
+For example, if the attacker alters the key distribution data then a recipient will
+decrypt the firmware image with an incorrect key. This will lead to expending 
+energy and flash cycles until the failure is detected. 
+
+To mitigate this attack, a new parameter, called suit-cek-verification, is added
+to the manifest. The suit-cek-verification parameter is optional to implement and 
+optional to use. When used, it reduces the risk of a battery exhaustion attack against 
+the IoT device.
+
+Since the manifest is protected by a digital signature (or a MAC), an adversary cannot 
+successfully modify this value. This parameter allows the recipient to verify 
+whether the CEK has successfully been derived.
+
 The suit-cek-verification parameter contains a byte string resulting from the 
 encryption of 8 bytes of 0xA5 using the CEK with a nonce of all zeros and empty 
 additional data using the cipher algorithm and mode also used to encrypt the
 plaintext. The same nonce used for CEK verification MUST NOT be used to 
 encrypt plaintext with the same CEK.
-
-As explained in {{arch}}, the suit-cek-verification parameter is optional to
-implement and optional to use. When used, it reduces the risk of a battery
-exhaustion attack against the IoT device.
 
 # Firmware Updates on IoT Devices with Flash Memory.
 
@@ -682,19 +689,27 @@ multiple recipients, encryption of manifests (in comparison to firmware images).
 
 # Security Considerations {#sec-cons}
 
-The algorithms described in this document assume that the party performing the firmware encryption  
+The algorithms described in this document assume that the party performing payload encryption  
 
-- shares a key-encryption key (KEK) with the firmware consumer (for use with the AES-Key Wrap scheme), or 
-- is in possession of the public key of the firmware consumer (for use with HPKE).  
+- shares a key-encryption key (KEK) with the recipient (for use with the AES-Key Wrap scheme), or 
+- is in possession of the public key of the recipient (for use with HPKE).  
 
-Both cases require some upfront communication interaction, which is not part of the SUIT manifest. 
-This interaction is likely provided by an IoT device management solution, as described in {{RFC9019}}.
+Both cases require some upfront communication interaction. This interaction is likely provided by
+an IoT device management solution, as described in {{RFC9019}}.
 
-For AES-Key Wrap to provide high security it is important that the KEK is of high entropy, and that implementations protect the KEK from disclosure. Compromise of the KEK may result in the disclosure of all key data protected with that KEK.
+For AES-Key Wrap to provide high security it is important that the KEK is of high entropy, 
+and that implementations protect the KEK from disclosure. Compromise of the KEK may result 
+in the disclosure of all key data protected with that KEK.
 
-Since the CEK is randomly generated, it must be ensured that the guidelines for random number generation in {{RFC8937}} are followed.
+Since the CEK is randomly generated, it must be ensured that the guidelines for random number 
+generation in {{RFC8937}} are followed.
 
-In some cases third party companies analyse binaries for known security vulnerabilities. With encrypted firmware images this type of analysis is prevented. Consequently, these third party companies either need to be given access to the plaintext binary before encryption or they need to become authorized recipients of the encrypted firmware images. In either case, it is necessary to explicitly consider those third parties in the software supply chain when such a binary analysis is desired.
+In some cases third party companies analyse binaries for known security vulnerabilities. With 
+encrypted payloads this type of analysis is prevented. Consequently, these third party 
+companies either need to be given access to the plaintext binary before encryption or they need 
+to become authorized recipients of the encrypted payloads. In either case, it is necessary to 
+explicitly consider those third parties in the software supply chain when such a binary analysis
+is desired.
 
 #  IANA Considerations
 
@@ -705,7 +720,10 @@ registry. The values are listed in {{iana-algo}}.
 
 # Acknowledgements
 
-We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. Additionally, we would like to thank Michael Richardson, Dave Thaler, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for making us aware of the challenges firmware encryption imposes on binary analysis.
+We would like to thank Henk Birkholz for his feedback on the CDDL description in this document. 
+Additionally, we would like to thank Michael Richardson, Dave Thaler, and Carsten Bormann for 
+their review feedback. Finally, we would like to thank Dick Brooks for making us aware of the 
+challenges firmware encryption imposes on binary analysis.
 
 
  
