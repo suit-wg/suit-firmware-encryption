@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-07
+docname: draft-ietf-suit-firmware-encryption-08
 category: std
 
 ipr: pre5378Trust200902
@@ -342,7 +342,7 @@ SUIT_Encryption_Info = COSE_Encrypt_Tagged
 COSE_Encrypt = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
-  ciphertext  : null,                  ; because of detached ciphertext
+  ciphertext  : null,            ; because of detached ciphertext
   recipients  : [ + COSE_recipient ]
 ]
 
@@ -609,7 +609,7 @@ need to be decrypted until an entire sector is completed.
 ## AES-CBC
 
 In AES-CBC a single IV is used for encryption of firmware belonging to a single sector
-since individual AES blocks are chained toghether, as shown in {{aes-cbc}}. The numbering 
+since individual AES blocks are chained toghether, as shown in {{aes-cbc-fig}}. The numbering 
 of sectors in a slot MUST start with zero (0) and MUST increase by one with every sector
 till the end of the slot is reached. The IV follows this numbering.
 
@@ -644,13 +644,14 @@ Legend:
   k = Symmetric key
   (+) = XOR operation
 ~~~
-{: #aes-cbc title="AES-CBC Operation"}
+{: #aes-cbc-fig title="AES-CBC Operation"}
 
 ## AES-CTR
 
-Unlike AES-CBC, AES-CTR uses an IV per AES operation. Hence, when an image is encrypted
-using AES-CTR-128 or AES-CTR-256, the IV MUST start with zero (0) and MUST be 
-incremented by one for each 16-byte plaintext block within the entire slot.
+Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}. 
+Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
+start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
+within the entire slot.
 
 Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
 the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
@@ -678,7 +679,7 @@ data in the slot is therefore
 Legend: 
   See previous diagram.
 ~~~
-{: #image-layout title="AES-CTR Operation"}
+{: #aes-ctr-fig title="AES-CTR Operation"}
 
 
 

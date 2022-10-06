@@ -5,18 +5,18 @@
 SUIT                                                       H. Tschofenig
 Internet-Draft                                               Arm Limited
 Intended status: Standards Track                              R. Housley
-Expires: March 24, 2023                                   Vigil Security
+Expires: April 9, 2023                                    Vigil Security
                                                                 B. Moran
                                                              Arm Limited
                                                                 D. Brown
                                                                   Linaro
                                                              K. Takayama
                                                          SECOM CO., LTD.
-                                                      September 20, 2022
+                                                        October 06, 2022
 
 
-                Software Encryption with SUIT Manifests
-                 draft-ietf-suit-firmware-encryption-07
+                  Encrypted Payloads in SUIT Manifests
+                 draft-ietf-suit-firmware-encryption-08
 
 Abstract
 
@@ -42,7 +42,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on March 24, 2023.
+   This Internet-Draft will expire on April 9, 2023.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                 [Page 1]
+Tschofenig, et al.        Expires April 9, 2023                 [Page 1]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -83,37 +83,39 @@ Internet-Draft             Software Encryption            September 2022
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Conventions and Terminology . . . . . . . . . . . . . . . . .   4
+   2.  Conventions and Terminology . . . . . . . . . . . . . . . . .   3
    3.  Architecture  . . . . . . . . . . . . . . . . . . . . . . . .   4
    4.  SUIT Envelope and SUIT Manifest . . . . . . . . . . . . . . .   6
    5.  AES Key Wrap  . . . . . . . . . . . . . . . . . . . . . . . .   7
    6.  Hybrid Public-Key Encryption (HPKE) . . . . . . . . . . . . .  11
    7.  CEK Verification  . . . . . . . . . . . . . . . . . . . . . .  12
-   8.  Ciphers without Integrity Protection  . . . . . . . . . . . .  12
-   9.  Complete Examples . . . . . . . . . . . . . . . . . . . . . .  13
-   10. Security Considerations . . . . . . . . . . . . . . . . . . .  13
-   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
-   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
-     12.1.  Normative References . . . . . . . . . . . . . . . . . .  14
-     12.2.  Informative References . . . . . . . . . . . . . . . . .  15
-   Appendix A.  Acknowledgements . . . . . . . . . . . . . . . . . .  16
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
+   8.  Firmware Updates on IoT Devices with Flash Memory.  . . . . .  12
+     8.1.  AES-CBC . . . . . . . . . . . . . . . . . . . . . . . . .  15
+     8.2.  AES-CTR . . . . . . . . . . . . . . . . . . . . . . . . .  16
+   9.  Complete Examples . . . . . . . . . . . . . . . . . . . . . .  17
+   10. Security Considerations . . . . . . . . . . . . . . . . . . .  17
+   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  18
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  18
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .  18
+     12.2.  Informative References . . . . . . . . . . . . . . . . .  19
+   Appendix A.  Acknowledgements . . . . . . . . . . . . . . . . . .  20
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  20
 
 1.  Introduction
 
    Vulnerabilities with Internet of Things (IoT) devices have raised the
    need for a reliable and secure firmware update mechanism that is also
    suitable for constrained devices.  To protect firmware images the
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                 [Page 2]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
    SUIT manifest format was developed [I-D.ietf-suit-manifest].  The
    SUIT manifest provides a bundle of metadata about the firmware for an
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                 [Page 2]
-
-Internet-Draft             Software Encryption            September 2022
-
-
    IoT device, where to find the firmware image, and the devices to
    which it applies.
 
@@ -131,10 +133,7 @@ Internet-Draft             Software Encryption            September 2022
 
    The SUIT manifest provides the data needed for authorized recipients
    of the firmware image to decrypt it.  The firmware image is encrypted
-   using a symmetric key.  This symmetric cryptographic key is
-   established for encryption and decryption, and that key can be
-   applied to a SUIT manifest, firmware images, or personalization data,
-   depending on the encryption choices of the firmware author.
+   using a symmetric key.
 
    A symmetric key can be established using a variety of mechanisms;
    this document defines two approaches for use with the IETF SUIT
@@ -148,33 +147,29 @@ Internet-Draft             Software Encryption            September 2022
    and thereby help increase interoperability between different SUIT
    manifest parser implementations.
 
-   The document also contains a number of examples.
+   While the original motivating use case of this document was firmware
+   encryption, SUIT manifests may require payloads other than firmware
+   images to experience confidentiality protection, such as - software
+   (other than firmware), - personalization data, - configuration data,
+   - machine learning models, etc.
 
-   The original motivating use case of this document was to encrypt
-   firmware.  However, SUIT manifests may require other payloads than
-   firmware images to experience confidentiality protection using
-   encryption, for example software, personalization data, configuration
-   data, or machine learning models.  While the term firmware is used
-   throughout the document, plaintext other than firmware images may get
-   encrypted using the described mechanism.  Hence, the terms firmware
-   (image), software and plaintext are used interchangeably.
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                 [Page 3]
-
-Internet-Draft             Software Encryption            September 2022
-
+   Hence, the term payload is used to generically refer to those objects
+   that may be subject to encryption.
 
 2.  Conventions and Terminology
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
    "OPTIONAL" in this document are to be interpreted as described in
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                 [Page 3]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
@@ -185,11 +180,9 @@ Internet-Draft             Software Encryption            September 2022
    The terms sender and recipient are defined in [RFC9180] and have the
    following meaning:
 
-   -  Sender: Role of the entity that sends an encrypted message.
+   -  Sender: Role of the entity that sends an encrypted payload.
 
-   -  Recipient: Role of the entity that receives an encrypted message.
-      The terms firmware consumer and recipient are used interchangeably
-      in this document.
+   -  Recipient: Role of the entity that receives an encrypted payload.
 
    Additionally, the following abbreviations are used in this document:
 
@@ -204,27 +197,37 @@ Internet-Draft             Software Encryption            September 2022
 
 3.  Architecture
 
-   [RFC9019] describes the architecture for distributing firmware images
-   and manifests from the author to the firmware consumer.  It does not,
-   however, detail the use of encrypted firmware images.
+   [RFC9019] describes the architecture for distributing payloads and
+   manifests from an author to devices.  It does, however, not detail
+   the use of payload encryption.
 
-   This document enhances the SUIT architecture to include firmware
-   encryption.  Figure 1 shows the distribution system, which represents
-   the firmware server and the device management infrastructure.  The
-   distribution system is aware of the individual devices to which a
-   firmware update has to be delivered.
+   This document enhances this architecture to support encryption.  The
+   author and the distribution system are logical roles.  In some
+   deployments these roles are separated in different physical entities
+   and in others they are co-located.
+
+   Figure 1 shows the distribution system, which represents the firmware
+   server and the device management infrastructure.  The distribution
+   system is aware of the individual devices to which a payload has to
+   be delivered.  The author is typically unaware which devices need to
+   receive these payloads.
+
+   To apply encryption the sender needs to know the recipient.  For AES-
+   KW the KEK needs to be known and, in case of HPKE, the sender needs
+   to be in possession of the public key of the recipient.
+
+   If the author delegates the task of identifying devices that are the
+   recipients of the payloads to the distribution system, it needs to
 
 
 
-
-
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                 [Page 4]
+Tschofenig, et al.        Expires April 9, 2023                 [Page 4]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
+
+   trust the delivery system to perform the encryption of the plaintext
+   firmware image.
 
                                               +----------+
                                               |          |
@@ -232,78 +235,55 @@ Internet-Draft             Software Encryption            September 2022
                                               |          |
     +----------+                              +----------+
     |  Device  |---+                               |
-    |(Firmware |   |                               | Firmware +
-    | Consumer)|   |                               | Manifest
+    |          |   |                               | Firmware +
+    |          |   |                               | Manifest
     +----------+   |                               |
                    |                               |
                    |                        +--------------+
                    |                        |              |
     +----------+   |  Firmware + Manifest   | Distribution |
     |  Device  |---+------------------------|    System    |
-    |(Firmware |   |                        |              |
-    | Consumer)|   |                        |              |
+    |          |   |                        |              |
+    |          |   |                        |              |
     +----------+   |                        +--------------+
                    |
                    |
     +----------+   |
     |  Device  +---+
-    |(Firmware |
-    | Consumer)|
+    |          |
+    |          |
     +----------+
 
                 Figure 1: Firmware Encryption Architecture.
 
-   Firmware encryption requires the sender to know the firmware
-   consumers and the respective credentials used by the key distribution
-   mechanism.  For AES-KW the KEK needs to be known and, in case of
-   HPKE, the sender needs to be in possession of the public key of the
-   recipient.
+   To offer confidentiality protection two deployment variants need to
+   be supported:
 
-   The firmware author may have knowledge about all devices that need to
-   receive an encrypted firmware image but in most cases this is not
-   likely.  The distribution system certainly has the knowledge about
-   the recipients to perform firmware encryption.
+   -  The author acts as the sender and the recipient is the device (or
+      the devices).
 
-   To offer confidentiality protection for firmware images two
-   deployment variants need to be supported:
+   -  The author treats the distribution system as the initial
+      recipient.  Then, the distribution system decrypts and re-encrypts
+      the payload for consumption by the device (or devices).
+      Delegating the task of re-encrypting the payload to the
+      distribution system offers flexiblity when the number of devices
+      that need to receive encrypted payloads changes dynamically or
+      when updates to KEKs or recipient public keys are necessary.  As a
+      downside, the author needs to trust the distribution system with
+      performing the re-encryption of the payload.
 
-   -  The firmware author acts as the sender and the recipient is the
-      firmware consumer (or the firmware consumers).
-
-   -  The firmware author encrypts the firmware image with the
-      distribution system as the initial recipient.  Then, the
-      distribution system decrypts and re-encrypts the firmware image
-      towards the firmware consumer(s).  Delegating the task of re-
+   For both variants the key distribution data (embedded inside the
+   COSE_Encrypt structure) is included in the SUIT envelope rather than
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                 [Page 5]
+Tschofenig, et al.        Expires April 9, 2023                 [Page 5]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
-      encrypting the firmware image to the distribution system offers
-      flexiblity when the number of devices that need to receive
-      encrypted firmware images changes dynamically or when updates to
-      KEKs or recipient public keys are necessary.  As a downside, the
-      author needs to trust the distribution system with performing the
-      re-encryption of the firmware image.
-
-   Irrespectively of the two variants, the key distribution data (in the
-   form of the COSE_Encrypt structure) is included in the SUIT envelope
-   rather than in the SUIT manifest since the manifest will be digitally
-   signed (or MACed) by the firmware author.
-
-   Since the SUIT envelope is not protected cryptographically an
-   adversary could modify the COSE_Encrypt structure.  For example, if
-   the attacker alters the key distribution data then a recipient will
-   decrypt the firmware image with an incorrect key.  This will lead to
-   expending energy and flash cycles until the failure is detected.  To
-   mitigate this attack, the optional suit-cek-verification parameter is
-   added to the manifest.  Since the manifest is protected by a digital
-   signature (or a MAC), an adversary cannot successfully modify this
-   value.  This parameter allows the recipient to verify whether the CEK
-   has successfully been derived.
+   in the SUIT manifest since the manifest will be digitally signed (or
+   MACed) by the author.
 
    Details about the changes to the envelope and the manifest can be
    found in the next section.
@@ -321,22 +301,6 @@ Internet-Draft             Software Encryption            September 2022
    and in Section 6 (for HPKE).  When the encryption capability is used,
    the suit-protection-wrappers parameter MUST be included in the
    envelope.
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                 [Page 6]
-
-Internet-Draft             Software Encryption            September 2022
-
 
    SUIT_Envelope_Tagged = #6.107(SUIT_Envelope)
    SUIT_Envelope = {
@@ -359,6 +323,20 @@ Internet-Draft             Software Encryption            September 2022
    is utilized in environments where battery exhaustion attacks are a
    concern.  Details about the CEK verification can be found in
    Section 7.
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                 [Page 6]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
 
    SUIT_Manifest = {
        suit-manifest-version         => 1,
@@ -385,15 +363,6 @@ Internet-Draft             Software Encryption            September 2022
    The COSE_recipient structure, which is a substructure of the
    COSE_Encrypt structure, contains the CEK encrypted by the KEK.
 
-
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                 [Page 7]
-
-Internet-Draft             Software Encryption            September 2022
-
-
    When the firmware image is encrypted for use by multiple recipients,
    there are three options.  We use the following notation KEK(R1,S) is
    the KEK shared between recipient R1 and the sender S.  Likewise,
@@ -405,36 +374,45 @@ Internet-Draft             Software Encryption            September 2022
 
    -  If all authorized recipients have access to the KEK, a single
       COSE_recipient structure contains the encrypted CEK.  This means
-      KEK(*,S) ENC(CEK,KEK), and ENC(firmware,CEK).
+      KEK(*,S) ENC(CEK,KEK), and ENC(payload,CEK).
 
    -  If recipients have different KEKs, then multiple COSE_recipient
       structures are included but only a single CEK is used.  Each
       COSE_recipient structure contains the CEK encrypted with the KEKs
       appropriate for the recipient.  In short, KEK_1(R1, S),...,
       KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK).
-      The benefit of this approach is that the firmware image is
-      encrypted only once with a CEK while there is no sharing of the
-      KEK across recipients.  Hence, authorized recipients still use
-      their individual KEKs to decrypt the CEK and to subsequently
-      obtain the plaintext firmware.
+      The benefit of this approach is that the payload is encrypted only
+      once with a CEK while there is no sharing of the KEK across
+      recipients.  Hence, authorized recipients still use their
+      individual KEKs to decrypt the CEK and to subsequently obtain the
+      plaintext.
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                 [Page 7]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
 
    -  The third option is to use different CEKs encrypted with KEKs of
       the authorized recipients.  Assume there are KEK_1(R1, S),...,
       KEK_n(Rn, S), and for i=1 to n the following computations need to
       be made: ENC(CEK_i, KEK_i) and ENC(firmware,CEK_i).  This approach
       is appropriate when no benefits can be gained from encrypting and
-      transmitting firmware images only once.  For example, firmware
-      images may contain information unique to a device instance.
+      transmitting payloads only once.  For example, payloads may
+      contain information unique to an instance of a device rather than
+      information that is independent of a device instance and therefore
+      applies to an entire class of devices.
 
    Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of
    [RFC3394], does not have public parameters that vary on a per-
    invocation basis.  Hence, the protected structure in the
    COSE_recipient is a byte string of zero length.
 
-   The COSE_Encrypt conveys information for encrypting the firmware
-   image, which includes information like the algorithm and the IV, even
-   though the firmware image is not embedded in the
-   COSE_Encrypt.ciphertext itself since it conveyed as detached content.
+   The COSE_Encrypt conveys information for encrypting the payload,
+   which includes information like the algorithm and the IV, even though
+   the payload is not embedded in the COSE_Encrypt.ciphertext itself
+   since it conveyed as detached content.
 
    The CDDL for the COSE_Encrypt_Tagged structure is shown in Figure 4.
 
@@ -445,46 +423,68 @@ Internet-Draft             Software Encryption            September 2022
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                 [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                 [Page 8]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
- COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
+   COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
 
- SUIT_Encryption_Info = COSE_Encrypt_Tagged
+   SUIT_Encryption_Info = COSE_Encrypt_Tagged
 
- COSE_Encrypt = [
-   protected   : bstr .cbor outer_header_map_protected,
-   unprotected : outer_header_map_unprotected,
-   ciphertext  : null,                  ; because of detached ciphertext
-   recipients  : [ + COSE_recipient ]
- ]
+   COSE_Encrypt = [
+     protected   : bstr .cbor outer_header_map_protected,
+     unprotected : outer_header_map_unprotected,
+     ciphertext  : null,            ; because of detached ciphertext
+     recipients  : [ + COSE_recipient ]
+   ]
 
- outer_header_map_protected =
- {
-     1 => int,         ; algorithm identifier
-   * label =values     ; extension point
- }
+   outer_header_map_protected =
+   {
+       1 => int,         ; algorithm identifier
+     * label =values     ; extension point
+   }
 
- outer_header_map_unprotected =
- {
-     5 => bstr,        ; IV
-   * label =values     ; extension point
- }
+   outer_header_map_unprotected =
+   {
+       5 => bstr,        ; IV
+     * label =values     ; extension point
+   }
 
- COSE_recipient = [
-   protected   : bstr .size 0,
-   unprotected : recipient_header_map,
-   ciphertext  : bstr        ; CEK encrypted with KEK
- ]
+   COSE_recipient = [
+     protected   : bstr .size 0,
+     unprotected : recipient_header_map,
+     ciphertext  : bstr        ; CEK encrypted with KEK
+   ]
 
- recipient_header_map =
- {
-     1 => int,         ; algorithm identifier
-     4 => bstr,        ; key identifier
-   * label =values     ; extension point
- }
+   recipient_header_map =
+   {
+       1 => int,         ; algorithm identifier
+       4 => bstr,        ; key identifier
+     * label =values     ; extension point
+   }
 
                 Figure 4: CDDL for AES Key Wrap Encryption
 
@@ -501,9 +501,9 @@ Internet-Draft             Software Encryption            September 2022
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                 [Page 9]
+Tschofenig, et al.        Expires April 9, 2023                 [Page 9]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
           Enc_structure = [
@@ -534,7 +534,7 @@ Internet-Draft             Software Encryption            September 2022
 
    -  KID: "kid-1"
 
-   -  Plaintext Firmware: "This is a real firmware image."
+   -  Plaintext: "This is a real firmware image."
 
    -  Firmware (hex):
       546869732069732061207265616C206669726D7761726520696D6167652E
@@ -557,9 +557,9 @@ Internet-Draft             Software Encryption            September 2022
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                [Page 10]
+Tschofenig, et al.        Expires April 9, 2023                [Page 10]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
    96(
@@ -598,7 +598,7 @@ Internet-Draft             Software Encryption            September 2022
    provides public key encryption of arbitrary-sized plaintexts given a
    recipient's public key.
 
-   For use with firmware encryption the scheme works as follows: HPKE,
+   For use with this specification the scheme works as follows: HPKE,
    which internally utilizes a non-interactive ephemeral-static Diffie-
    Hellman exchange to derive a shared secret, is used to encrypt a CEK.
    This CEK is subsequently used to encrypt the firmware image.  Hence,
@@ -613,9 +613,9 @@ Internet-Draft             Software Encryption            September 2022
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                [Page 11]
+Tschofenig, et al.        Expires April 9, 2023                [Page 11]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
    This approach allows all recipients to use the same CEK to decrypt
@@ -628,60 +628,296 @@ Internet-Draft             Software Encryption            September 2022
 
 7.  CEK Verification
 
+   While the SUIT manifest is integrity protected and authenticated, the
+   SUIT envelope is not protected cryptographically.  Hence, an
+   adversary located along the communication path between the sender and
+   the recipient could modify the COSE_Encrypt structure (assuming that
+   no other communication security mechanism is in use).
+
+   For example, if the attacker alters the key distribution data then a
+   recipient will decrypt the firmware image with an incorrect key.
+   This will lead to expending energy and flash cycles until the failure
+   is detected.
+
+   To mitigate this attack, a new parameter, called suit-cek-
+   verification, is added to the manifest.  The suit-cek-verification
+   parameter is optional to implement and optional to use.  When used,
+   it reduces the risk of a battery exhaustion attack against the IoT
+   device.
+
+   Since the manifest is protected by a digital signature (or a MAC), an
+   adversary cannot successfully modify this value.  This parameter
+   allows the recipient to verify whether the CEK has successfully been
+   derived.
+
    The suit-cek-verification parameter contains a byte string resulting
    from the encryption of 8 bytes of 0xA5 using the CEK with a nonce of
    all zeros and empty additional data using the cipher algorithm and
    mode also used to encrypt the plaintext.  The same nonce used for CEK
    verification MUST NOT be used to encrypt plaintext with the same CEK.
 
-   As explained in Section 3, the suit-cek-verification parameter is
-   optional to implement and optional to use.  When used, it reduces the
-   risk of a battery exhaustion attack against the IoT device.
+8.  Firmware Updates on IoT Devices with Flash Memory.
 
-8.  Ciphers without Integrity Protection
+   Flash memory on microcontrollers is a type of non-volatile memory
+   that erases data in units called blocks, pages or sectors and re-
+   writes data at byte level (often 4-bytes).  Flash memory is
+   furthermore segmented into different memory regions, which store the
+   bootloader, different versions of firmware images (in so-called
+   slots), and configuration data.  Figure 7 shows an example layout of
+   a microcontroller flash area.  The primary slot contains the firmware
+   image to be executed by the bootloader, which is a common deployment
 
-   The ability to restart an interrupted firmware update is often a
-   requirement for low-end IoT devices.  To fulfill this requirement it
-   is necessary to chunk a larger firmware image into blocks and to
-   encrypt each block individually using a cipher that does not increase
-   the size of the resulting ciphertext (i.e., by not adding an
-   authentication tag after each encrypted block).
+
+
+Tschofenig, et al.        Expires April 9, 2023                [Page 12]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
+   on devices that do not offer the concept of position independent
+   code.
 
    When the encrypted firmware image has been transferred to the device,
-   it will typically be stored in a staging area.  Then, the bootloader
-   starts decrypting the downloaded image block-by-block and swaps it
-   with the currently valid image.  Note that the currently valid image
-   is available in cleartext and hence it has to be re-encrypted before
-   copying it to the staging area.
+   it will typically be stored in a staging area, in the secondary slot
+   in our example.
+
+   At the next boot, the bootloader will recognize a new firmware image
+   in the secondary slot and will start decrypting the downloaded image
+   sector-by-sector and will swap it with the image found in the primary
+   slot.
+
+   The swap should only take place after the signature on the plaintext
+   is verified.  Note that the plaintext firmware image is available in
+   the primary slot only after the swap has been completed, unless
+   "dummy decrypt" is used to compute the hash over the plaintext prior
+   to executing the decrypt operation during a swap.  Dummy decryption
+   here refers to the decryption of the firmware image found in the
+   secondary slot sector-by-sector and computing a rolling hash over the
+   resulting plaintext firmware image (also sector-by-sector) without
+   performing the swap operation.  While there are performance
+   optimizations possible, such as conveying hashes for each sector in
+   the manifest rather than a hash of the entire firmware image, such
+   optimizations are not described in this specification.
 
    This approach of swapping the newly downloaded image with the
    previously valid image is often referred as A/B approach.  A/B refers
-   to the two storage areas, sometimes called slots, involved.  Two
-   slots are used to allow the update to be reversed in case the newly
-   obtained firmware image fails to boot.  This approach adds robustness
-   to the firmware update procedure.
+   to the two slots involved.  Two slots are used to allow the update to
+   be reversed in case the newly obtained firmware image fails to boot.
+   This approach adds robustness to the firmware update procedure.
+
+   Since the image in primary slot is available in cleartext it may need
+   to re-encrypted it before copying it to the secondary slot.  This may
+   be necessary when the secondary slot has different access permissions
+   or when the staging area is located in an off-chip flash memory and
+   therefore more vulnerable to physical attacks.  Note that this
+   description assumes that the processor does not execute encrypted
+   memory (i.e. using on-the-fly decryption in hardware).
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                [Page 13]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
+   +--------------------------------------------------+
+   | Bootloader                                       |
+   +--------------------------------------------------+
+   | Primary Slot                                     |
+   |                                        (sector 1)|
+   |..................................................|
+   |                                                  |
+   |                                        (sector 2)|
+   |..................................................|
+   |                                                  |
+   |                                        (sector 3)|
+   |..................................................|
+   |                                                  |
+   |                                        (sector 4)|
+   +--------------------------------------------------+
+   | Secondary Slot                                   |
+   |                                        (sector 1)|
+   |..................................................|
+   |                                                  |
+   |                                        (sector 2)|
+   |..................................................|
+   |                                                  |
+   |                                        (sector 3)|
+   |..................................................|
+   |                                                  |
+   |                                        (sector 4)|
+   +--------------------------------------------------+
+   | Swap Area                                        |
+   |                                                  |
+   +--------------------------------------------------+
+   | Configuration Data                               |
+   +--------------------------------------------------+
+
+                    Figure 7: Example Flash Area Layout
+
+   The ability to restart an interrupted firmware update is often a
+   requirement for low-end IoT devices.  To fulfill this requirement it
+   is necessary to chunk a firmware image into sectors and to encrypt
+   each sector individually using a cipher that does not increase the
+   size of the resulting ciphertext (i.e., by not adding an
+   authentication tag after each encrypted block).
 
    When an update gets aborted while the bootloader is decrypting the
-   newly obtained image and swapping the blocks, the bootloader can
-   restart where it left off.  This technique again offers robustness.
+   newly obtained image and swapping the sectors, the bootloader can
+   restart where it left off.  This technique offers robustness and
+   better performance.
 
 
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                [Page 12]
+Tschofenig, et al.        Expires April 9, 2023                [Page 14]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
-   To accomplish this functionality, ciphers without integrity
-   protection are used to encrypt the firmware image.  Integrity
-   protection for the firmware image is, however, important and
-   therefore the image digest defined in [I-D.ietf-suit-manifest] MUST
+   For this purpose ciphers without integrity protection are used to
+   encrypt the firmware image.  Integrity protection for the firmware
+   image must, however, be provided and the the suit-parameter-image-
+   digest, defined in Section 8.4.8.6 of [I-D.ietf-suit-manifest], MUST
    be used.
 
-   [I-D.housley-cose-aes-ctr-and-cbc] registers several ciphers that do
-   not offer integrity protection.
+   [I-D.housley-cose-aes-ctr-and-cbc] registers AES Counter mode (AES-
+   CTR) and AES Cipher Block Chaining (AES-CBC) ciphers that do not
+   offer integrity protection.  These ciphers are useful for the use
+   cases that require firmware encryption on IoT devices.  For many
+   other use cases where software packages, configuration information or
+   personalization data needs to be encrypted, the use of Authenticated
+   Encryption with Additional Data (AEAD) ciphers is preferred.
+
+   The following sub-sections provide further information about the
+   initialization vector (IV) selection for use with AES-CBC and AES-CTR
+   in the firmware encryption context.  An IV MUST NOTE be re-used when
+   the same key is used.  For this application, the IVs are not random
+   but rather based on the slot/sector-combination in flash memory.  The
+   text below assumes that the block-size of AES is (much) smaller than
+   sector size.  The typical sector-size of flash memory is in the order
+   of KiB.  Hence, multiple AES blocks need to be decrypted until an
+   entire sector is completed.
+
+8.1.  AES-CBC
+
+   In AES-CBC a single IV is used for encryption of firmware belonging
+   to a single sector since individual AES blocks are chained toghether,
+   as shown in Figure 8.  The numbering of sectors in a slot MUST start
+   with zero (0) and MUST increase by one with every sector till the end
+   of the slot is reached.  The IV follows this numbering.
+
+   For example, let us assume the slot size of a specific flash
+   controller on an IoT device is 64 KiB, the sector size 4096 bytes (4
+   KiB) and AES-128-CBC uses an AES-block size of 128 bit (16 bytes).
+   Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
+   If the firmware image fills the entire slot then that slot contains
+   16 sectors, i.e. IVs ranging from 0 to 15.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                [Page 15]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
+          P1              P2
+           |              |
+      IV--(+)    +-------(+)
+           |     |        |
+           |     |        |
+       +-------+ |    +-------+
+       |       | |    |       |
+       |       | |    |       |
+    k--|  E    | | k--|  E    |
+       |       | |    |       |
+       +-------+ |    +-------+
+           |     |        |
+           +-----+        |
+           |              |
+           |              |
+           C1             C2
+
+   Legend:
+     Pi = Plaintext blocks
+     Ci = Ciphertext blocks
+     E = Encryption function
+     k = Symmetric key
+     (+) = XOR operation
+
+                        Figure 8: AES-CBC Operation
+
+8.2.  AES-CTR
+
+   Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in
+   Figure 9.  Hence, when an image is encrypted using AES-CTR-128 or
+   AES-CTR-256, the IV MUST start with zero (0) and MUST be incremented
+   by one for each 16-byte plaintext block within the entire slot.
+
+   Using the previous example with a slot size of 64 KiB, the sector
+   size 4096 bytes and the AES plaintext block size of 16 byte requires
+   IVs from 0 to 255 in the first sector and 16 * 256 IVs for the
+   remaining sectors in the slot.  The last IV used to encrypt data in
+   the slot is therefore
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                [Page 16]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
+            IV1            IV2
+             |              |
+             |              |
+             |              |
+         +-------+      +-------+
+         |       |      |       |
+         |       |      |       |
+      k--|  E    |   k--|  E    |
+         |       |      |       |
+         +-------+      +-------+
+             |              |
+        P1--(+)        P2--(+)
+             |              |
+             |              |
+             C1             C2
+
+   Legend:
+     See previous diagram.
+
+                        Figure 9: AES-CTR Operation
 
 9.  Complete Examples
 
@@ -692,43 +928,43 @@ Internet-Draft             Software Encryption            September 2022
 10.  Security Considerations
 
    The algorithms described in this document assume that the party
-   performing the firmware encryption
+   performing payload encryption
 
-   -  shares a key-encryption key (KEK) with the firmware consumer (for
-      use with the AES-Key Wrap scheme), or
+   -  shares a key-encryption key (KEK) with the recipient (for use with
+      the AES-Key Wrap scheme), or
 
-   -  is in possession of the public key of the firmware consumer (for
-      use with HPKE).
+   -  is in possession of the public key of the recipient (for use with
+      HPKE).
 
-   Both cases require some upfront communication interaction, which is
-   not part of the SUIT manifest.  This interaction is likely provided
-   by an IoT device management solution, as described in [RFC9019].
+   Both cases require some upfront communication interaction.  This
+   interaction is likely provided by an IoT device management solution,
+   as described in [RFC9019].
 
    For AES-Key Wrap to provide high security it is important that the
    KEK is of high entropy, and that implementations protect the KEK from
    disclosure.  Compromise of the KEK may result in the disclosure of
    all key data protected with that KEK.
 
+
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                [Page 17]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
    Since the CEK is randomly generated, it must be ensured that the
    guidelines for random number generation in [RFC8937] are followed.
 
    In some cases third party companies analyse binaries for known
-   security vulnerabilities.  With encrypted firmware images this type
-   of analysis is prevented.  Consequently, these third party companies
+   security vulnerabilities.  With encrypted payloads this type of
+   analysis is prevented.  Consequently, these third party companies
    either need to be given access to the plaintext binary before
    encryption or they need to become authorized recipients of the
-   encrypted firmware images.  In either case, it is necessary to
-   explicitly consider those third parties in the software supply chain
-   when such a binary analysis is desired.
-
-
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                [Page 13]
-
-Internet-Draft             Software Encryption            September 2022
-
+   encrypted payloads.  In either case, it is necessary to explicitly
+   consider those third parties in the software supply chain when such a
+   binary analysis is desired.
 
 11.  IANA Considerations
 
@@ -740,20 +976,19 @@ Internet-Draft             Software Encryption            September 2022
 12.1.  Normative References
 
    [I-D.housley-cose-aes-ctr-and-cbc]
-              Vigil Security, LLC and Arm Limited, "CBOR Object Signing
-              and Encryption (COSE): AES-CTR and AES-CBC", draft-
-              housley-cose-aes-ctr-and-cbc-00 (work in progress), August
-              2022.
+              Housley, R. and H. Tschofenig, "CBOR Object Signing and
+              Encryption (COSE): AES-CTR and AES-CBC", draft-housley-
+              cose-aes-ctr-and-cbc-00 (work in progress), August 2022.
 
    [I-D.ietf-cose-hpke]
-              Arm Limited, Vigil Security, LLC, and Arm Limited, "Use of
-              Hybrid Public-Key Encryption (HPKE) with CBOR Object
-              Signing and Encryption (COSE)", draft-ietf-cose-hpke-02
-              (work in progress), July 2022.
+              Tschofenig, H., Housley, R., and B. Moran, "Use of Hybrid
+              Public-Key Encryption (HPKE) with CBOR Object Signing and
+              Encryption (COSE)", draft-ietf-cose-hpke-02 (work in
+              progress), July 2022.
 
    [I-D.ietf-suit-manifest]
-              Arm Limited, Arm Limited, Fraunhofer SIT, and Inria, "A
-              Concise Binary Object Representation (CBOR)-based
+              Moran, B., Tschofenig, H., Birkholz, H., and K. Zandberg,
+              "A Concise Binary Object Representation (CBOR)-based
               Serialization Format for the Software Updates for Internet
               of Things (SUIT) Manifest", draft-ietf-suit-manifest-19
               (work in progress), August 2022.
@@ -767,6 +1002,14 @@ Internet-Draft             Software Encryption            September 2022
               (AES) Key Wrap Algorithm", RFC 3394, DOI 10.17487/RFC3394,
               September 2002, <https://www.rfc-editor.org/info/rfc3394>.
 
+
+
+
+Tschofenig, et al.        Expires April 9, 2023                [Page 18]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
+
+
    [RFC8152]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
               RFC 8152, DOI 10.17487/RFC8152, July 2017,
               <https://www.rfc-editor.org/info/rfc8152>.
@@ -778,13 +1021,6 @@ Internet-Draft             Software Encryption            September 2022
    [RFC9180]  Barnes, R., Bhargavan, K., Lipp, B., and C. Wood, "Hybrid
               Public Key Encryption", RFC 9180, DOI 10.17487/RFC9180,
               February 2022, <https://www.rfc-editor.org/info/rfc9180>.
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                [Page 14]
-
-Internet-Draft             Software Encryption            September 2022
-
 
 12.2.  Informative References
 
@@ -825,21 +1061,9 @@ Internet-Draft             Software Encryption            September 2022
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires March 24, 2023                [Page 15]
+Tschofenig, et al.        Expires April 9, 2023                [Page 19]
 
-Internet-Draft             Software Encryption            September 2022
+Internet-Draft    Encrypted Payloads in SUIT Manifests      October 2022
 
 
 Appendix A.  Acknowledgements
@@ -893,4 +1117,4 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.       Expires March 24, 2023                [Page 16]
+Tschofenig, et al.        Expires April 9, 2023                [Page 20]
