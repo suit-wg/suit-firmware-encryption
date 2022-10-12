@@ -713,11 +713,13 @@ Each example uses SHA256 as the digest function.
 
 ## Example 0: AES Key Wrap {#example-AES-KW}
 Diagnostic notation of the SUIT Manifest:
+
 ~~~
 {::include examples/suit-manifest-aes-kw.diag.signed}
 ~~~
 
-In Hex:
+In hex:
+
 ~~~
 {::include examples/suit-manifest-aes-kw.hex.signed}
 ~~~
