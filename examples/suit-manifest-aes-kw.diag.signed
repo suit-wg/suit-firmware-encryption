@@ -2,7 +2,7 @@
   / suit-authentication-wrapper / 2: << [
     / digest: / << [
       / suit-digest-algorithm-id: / -16 / SHA256 /,
-      / suit-digest-bytes: / h'278134552290F8AED8A3F30FE84052CF31A558D2331E8DBAB384D6A23F6CDA07'
+      / suit-digest-bytes: / h'A447024C395B90095678C174C4075F321EF29A57A0A028D01080019E5B21ED5F'
     ] >>,
     / signatures: / << / COSE_Sign1_Tagged / 18( [
       / protected: / << {
@@ -10,7 +10,7 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'73792AFA05D776FB59984AFEB16E3111A61A7463749F6350731403E6F2F94B27D1320E323823E22D260F698B94DF54A5FBEDCD7F866D838A55E674900D99B7DF'
+      / signature: / h'65C40240E28F7F02046CE85F8343A7886B349D2523B3A815C161D54337395721953ACA109690B3588761195071BCF04D557260484B4B281C508D9E95FED4B9EF'
     ] ) >>
   ] >>,
   / suit-manifest / 3: << {
@@ -22,7 +22,7 @@
         [h'01'] / encrypted firmware /
       ]
     } >>,
-    / suit-install / 9: << [
+    / suit-install / 17: << [
       / fetch encrypted firmware /
       / suit-directive-set-component-index / 12, 1 / [h'01'] /,
       / suit-directive-override-parameters / 20, {
