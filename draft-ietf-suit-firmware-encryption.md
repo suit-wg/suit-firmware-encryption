@@ -256,7 +256,7 @@ SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 SUIT_Parameters //= (suit-parameter-cek-verification => bstr)
 
-suit-parameter-encryption-info   = 18
+suit-parameter-encryption-info   = 19
 ~~~
 {: #parameter-fig title="Extended SUIT_Parameters CDDL."}
 
