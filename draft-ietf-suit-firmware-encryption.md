@@ -688,6 +688,42 @@ Legend:
 [[Editor's Note: Add examples for a complete manifest here (including a digital signature), 
 multiple recipients, encryption of manifests (in comparison to firmware images).]]
 
+The following manifests examplify how to deliver the encrypted firmware and its encryption info to the Devices.
+
+The examples are signed using the following ECDSA secp256r1 key:
+
+~~~
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgApZYjZCUGLM50VBC
+CjYStX+09jGmnyJPrpDLTz/hiXOhRANCAASEloEarguqq9JhVxie7NomvqqL8Rtv
+P+bitWWchdvArTsfKktsCYExwKNtrNHXi9OB3N+wnAUtszmR23M4tKiW
+-----END PRIVATE KEY-----
+~~~
+
+The corresponding public key can be used to verify these examples:
+
+~~~
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhJaBGq4LqqvSYVcYnuzaJr6qi/Eb
+bz/m4rVlnIXbwK07HypLbAmBMcCjbazR14vTgdzfsJwFLbM5kdtzOLSolg==
+-----END PUBLIC KEY-----
+~~~
+
+Each example uses SHA256 as the digest function.
+
+## Example 0: AES Key Wrap {#example-AES-KW}
+Diagnostic notation of the SUIT Manifest:
+
+~~~
+{::include examples/suit-manifest-aes-kw.diag.signed}
+~~~
+
+In hex:
+
+~~~
+{::include examples/suit-manifest-aes-kw.hex.signed}
+~~~
+
 # Security Considerations {#sec-cons}
 
 The algorithms described in this document assume that the party performing payload encryption  
