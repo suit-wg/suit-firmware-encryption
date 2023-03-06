@@ -2,7 +2,9 @@
   / suit-authentication-wrapper / 2: << [
     / digest: / << [
       / suit-digest-algorithm-id: / -16 / SHA256 /,
-      / suit-digest-bytes: / h'A447024C395B90095678C174C4075F321EF29A57A0A028D01080019E5B21ED5F'
+      / suit-digest-bytes: / 
+      h'A447024C395B90095678C174C4075F3
+      21EF29A57A0A028D01080019E5B21ED5F'
     ] >>,
     / signatures: / << / COSE_Sign1_Tagged / 18( [
       / protected: / << {
@@ -10,7 +12,11 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'65C40240E28F7F02046CE85F8343A7886B349D2523B3A815C161D54337395721953ACA109690B3588761195071BCF04D557260484B4B281C508D9E95FED4B9EF'
+      / signature: / 
+      h'65C40240E28F7F02046CE85F8343A78
+      86B349D2523B3A815C161D54337395721
+      953ACA109690B3588761195071BCF04D5
+      57260484B4B281C508D9E95FED4B9EF'
     ] ) >>
   ] >>,
   / suit-manifest / 3: << {
@@ -26,10 +32,13 @@
       / fetch encrypted firmware /
       / suit-directive-set-component-index / 12, 1 / [h'01'] /,
       / suit-directive-override-parameters / 20, {
-        / suit-parameter-uri / 21: "https://author.example.com/encrypted-firmware.bin",
+        / suit-parameter-uri / 
+        21: "https://author.example.com/encrypted-firmware.bin",
         / suit-parameter-image-digest / 3: << [
           / suit-digest-algorithm-id: / -16 / SHA256 /,
-          / suit-digest-bytes: / h'F63187728B49B0E57FE891B932C9C881735D880EFAE69A9A4D45E0FE72C70DA1'
+          / suit-digest-bytes: / 
+          h'F63187728B49B0E57FE891B932C9C88
+          1735D880EFAE69A9A4D45E0FE72C70DA1'
         ] >>,
         / suit-parameter-image-size / 14: 46
       },
@@ -54,17 +63,22 @@
                / alg / 1: -3 / A128KW /,
                / kid / 4: h'6B69642D31'
               },
-             / payload: / h'AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D' / CEK encrypted with KEK /
+             / payload: CEK encrypted with KEK / 
+             h'AF09622B4F40F17930129D18D0C
+             EA46F159C49E7F68B644D' 
           ]
         ] )
       },
-      / suit-directive-copy / 22, 15 / consumes the SUIT_Encryption_Info above /,
+      / suit-directive-copy / 22, 15 
+      / consumes the SUIT_Encryption_Info above /,
 
       / verify decrypted firmware /
       / suit-directive-override-parameters / 20, {
         / suit-parameter-image-digest / 3: << [
           / suit-digest-algorithm-id: / -16 / SHA256 /,
-          / suit-digest-bytes: / h'36921488FE6680712F734E11F58D87EEB66D4B21A8A1AD3441060814DA16D50F'
+          / suit-digest-bytes: / 
+          h'36921488FE6680712F734E11F58D87E
+          EB66D4B21A8A1AD3441060814DA16D50F'
         ] >>,
         / suit-parameter-image-size / 14: 30
       },
