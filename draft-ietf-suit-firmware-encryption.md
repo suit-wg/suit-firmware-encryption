@@ -69,13 +69,20 @@ informative:
   RFC9019:
   RFC9124:
   RFC8937:
-  RFC2630:
-  iana-algo:
+  RFC5652:
+  RFC5280:
+  iana-suit:
     author:
       org: Internet Assigned Numbers Authority
-    title: CBOR Object Signing and Encryption (COSE)
+    title: IANA SUIT Manifest Registry
     date: 2023
-    target: https://www.iana.org/assignments/cose/cose.xhtml
+    target: TBD
+  ROP:
+    author:
+      org: Wikipedia
+    title: Return-Oriented Programming
+    date: 06.03.2023
+    target: https://en.wikipedia.org/wiki/Return-oriented_programming
   
 --- abstract
 
@@ -107,8 +114,8 @@ be afforded confidentiality using encryption.
 Encryption prevents third parties, including attackers, from gaining access to
 the firmware binary. Hackers typically need intimate knowledge of the target 
 firmware to mount their attacks. For example, return-oriented programming (ROP)
-requires access to the binary and encryption makes it much more difficult to write 
-exploits.
+{{ROP}} requires access to the binary and encryption makes it much more difficult
+to write exploits.
 
 The SUIT manifest provides the data needed for authorized recipients 
 of the firmware image to decrypt it. The firmware image is encrypted using a 
@@ -120,16 +127,18 @@ defines two approaches for use with the IETF SUIT manifest, namely:
 - Ephemeral-Static (ES) Diffie-Hellman (DH), and 
 - AES Key Wrap (AES-KW) using a pre-shared key-encryption key (KEK). 
 
+OPEN ISSUE: Should KEM algorithms also be supported?
+
 These choices reduce the number of possible key establishment options and thereby 
 help increase interoperability between different SUIT manifest parser implementations. 
 
 While the original motivating use case of this document was firmware encryption, SUIT manifests
 may require payloads other than firmware images to experience confidentiality
 protection, such as
-- software (other than firmware),
+- software packages,
 - personalization data, 
-- configuration data,
-- machine learning models, etc. 
+- configuration data, and
+- machine learning models. 
  
 Hence, the term payload is used to generically refer to those objects that may be subject to 
 encryption.
@@ -153,32 +162,33 @@ Additionally, the following abbreviations are used in this document:
 
 * Key Wrap (KW), defined in {{RFC3394}} (for use with AES)
 * Key-Encryption Key (KEK) {{RFC3394}}
-* Content-Encryption Key (CEK) {{RFC2630}}
+* Content-Encryption Key (CEK) {{RFC5652}}
 * Ephemeral-Static (ES) Diffie-Hellman (DH) {{RFC9052}}
 
 # Architecture {#arch}
 
-{{RFC9019}} describes the architecture for distributing payloads 
-and manifests from an author to devices. It does, however, not
-detail the use of payload encryption.
+{{RFC9019}} describes the architecture for distributing payloads and
+manifests from an author to devices. It does, however, not detail the
+use of payload encryption.
 
-This document enhances this architecture to support encryption.
-The author and the distribution system are logical roles. In some deployments
-these roles are separated in different physical entities and in others
-they are co-located.
+This document enhances this architecture to support encryption. The author
+and the distribution system are logical roles. In some deployments these
+roles are separated in different physical entities and in others they are
+co-located.
 
-{{arch-fig}} shows the distribution system, which represents the firmware server 
-and the device management infrastructure. The distribution system is aware 
-of the individual devices to which a payload has to be delivered. The author
-is typically unaware which devices need to receive these payloads.
+{{arch-fig}} shows the distribution system, which represents the firmware
+server and the device management infrastructure. The distribution system is
+aware of the individual devices to which a payload has to be delivered. The
+author is typically unaware which devices need to receive these payloads.
 
-To apply encryption the sender needs to know the recipient. For AES-KW the 
-KEK needs to be known and, in case of ES-DH, the sender needs to be in possession 
-of the public key of the recipient.
+To apply encryption the sender needs to know the recipient. For AES-KW the
+KEK needs to be known and, in case of ES-DH, the sender needs to be in possession
+of the public key of the recipient. The DH public key and parameters may be in
+the recipient's X.509 certificate {{RFC5280}}.
 
-If the author delegates the task of identifying devices that are the recipients 
-of the payloads to the distribution system, it needs to trust the delivery 
-system to perform the encryption of the plaintext firmware image.
+If the author delegates the task of identifying the recipients of the payloads
+to the distribution system, it needs to trust it with the appropriate
+protection of the plaintext firmware image before encryption is performed.
 
 ~~~
                                            +----------+
@@ -186,7 +196,7 @@ system to perform the encryption of the plaintext firmware image.
                                            |  Author  |
                                            |          |
  +----------+                              +----------+
- |  Device  |---+                               | 
+ |  Device  |---+                               |
  |          |   |                               | Firmware +
  |          |   |                               | Manifest
  +----------+   |                               |
@@ -208,114 +218,138 @@ system to perform the encryption of the plaintext firmware image.
 ~~~
 {: #arch-fig title="Firmware Encryption Architecture."}
 
-To offer confidentiality protection two deployment variants need to be 
+To offer confidentiality protection two deployment variants need to be
 supported:
 
-* The author acts as the sender and the recipient is the device
-  (or the devices).
-  
-* The author treats the distribution system as the initial recipient. Then, 
-  the distribution system decrypts and re-encrypts the payload for consumption 
-  by the device (or devices). Delegating the task of re-encrypting 
-  the payload to the distribution system offers flexiblity when the number 
-  of devices that need to receive encrypted payloads changes dynamically 
-  or when updates to KEKs or recipient public keys are necessary. As a downside, 
-  the author needs to trust the distribution system with performing the re-encryption 
-  of the payload.
+* The author, as the sender, transmits the encrypted payload to a single
+  device, or to multiple devices. The device(s) perform decryption and
+  act as recipients.
 
-For both variants the key distribution data (embedded inside the
-COSE_Encrypt structure) is included in the SUIT envelope rather than in the SUIT 
-manifest since the manifest will be digitally signed (or MACed) by the author.
+* The author treats the distribution system as the initial recipient. Then,
+  the distribution system decrypts and re-encrypts the payload for consumption
+  by the device (or the devices). Delegating the task of re-encrypting
+  the payload to the distribution system offers flexiblity when the number
+  of devices that need to receive encrypted payloads changes dynamically
+  or when updates to KEKs or recipient public keys are necessary. As a downside,
+  the author needs to trust the distribution system with performing the
+  re-encryption of the payload.
 
-Details about the changes to the envelope and the manifest can be found in the next 
-section. 
+For both variants the key distribution data, which is embedded inside the
+COSE_Encrypt structure, is included in the SUIT manifest.
 
-# SUIT Envelope and SUIT Manifest 
+# New Extensions {#parameters}
 
-This specification introduces two extensions to the SUIT_Parameters,
-as motivated in {{arch}}.
- 
-The SUIT manifest is enhanced with a key exchange payload, which is carried within
-the suit-directive-override-parameters or suit-directive-set-parameters for each
-encrypted payload. One SUIT_Encryption_Info is carried with
-suit-parameter-encryption-info, see {{parameter-fig}}.
-The content of the SUIT_Encryption_Info is explained in 
-{{AES-KW}} (for AES-KW) and {{RFC9052}} (for ECDH-ES). When the encryption capability 
-is used, the SUIT_Encryption_Info parameter MUST be included in the SUIT_Directive. 
+This specification introduces two extensions to the SUIT_Parameters structure.
 
-A CEK verification parameter (called suit-parameter-cek-verification),
-see {{parameter-fig}}, also extends the manifest. This parameter is optional 
-and is utilized in environments where battery exhaustion attacks are a 
-concern. Details about the CEK verification can be found in 
-{{cek-verification}}.
+- A SUIT encryption info parameter (called suit-parameter-encryption-info),
+see {{parameter-fig}}, which contains key distribution information. It is carried
+within the suit-directive-override-parameters or the suit-directive-set-parameters
+structure. The content of the SUIT_Encryption_Info structure is explained in 
+{{AES-KW}} (for AES-KW) and {{ES-DH}} (for ECDH-ES). An implementation claiming
+conformance with this specification must implement support for this parameter.
+A device may, however, support only one of the available key distribution techniques.
+
+- A CEK verification parameter (called suit-parameter-cek-verification), see
+{{parameter-fig}}, is utilized in environments where battery exhaustion attacks
+are a concern. Details about the CEK verification can be found in 
+{{cek-verification}}. This parameter is optional to implement and use. 
 
 ~~~
-SUIT_Manifest = {
-    suit-manifest-version         => 1,
-    suit-manifest-sequence-number => uint,
-    suit-common                   => bstr .cbor SUIT_Common,
-    ? suit-reference-uri          => tstr,
-    SUIT_Severable_Members_Choice,
-    SUIT_Unseverable_Members,
-    * $$SUIT_Manifest_Extensions,
-}
-
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 SUIT_Parameters //= (suit-parameter-cek-verification => bstr)
 
-suit-parameter-encryption-info   = 19
+suit-parameter-encryption-info   = [TBD1: Proposed 19]
+suit-parameter-cek-verification  = [TBD2: Proposed 20] 
 ~~~
 {: #parameter-fig title="Extended SUIT_Parameters CDDL."}
 
-# AES Key Wrap {#AES-KW}
+# Content Key Distribution Methods
+
+The sub-sections below describe two content key distribution mechanisms,
+namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
+Other mechanisms are supported by COSE and may be supported via enhancements
+to this specification.
+
+When an encrypted firmware image is sent to multiple recipients, there
+are different deployment options. To explain these options we use the
+following notation:
+
+- KEK(R1,S) refers to a KEK shared between recipient R1 and the sender S.
+The KEK, as a concept, is used by AES Key Wrap.
+- CEK(R1,S) refers to a CEK shared between R1 and S.
+- CEK(*,S) or KEK(*,S) are used when a single CEK or a single KEK is shared
+with all authorized recipients by a given sender S in a certain context. 
+- ENC(plaintext, k) refers to the encryption of plaintext with a key k.
+- KEK_i or CEK_i refers to the i-th instance of the KEK or CEK, respectively.
+
+## Content Key Distribution with AES Key Wrap {#AES-KW}
+
+### Introduction
 
 The AES Key Wrap (AES-KW) algorithm is described in RFC 3394 {{RFC3394}}, and
-it can be used to encrypt a randomly generated content-encryption key (CEK)
+can be used to encrypt a randomly generated content-encryption key (CEK)
 with a pre-shared key-encryption key (KEK). The COSE conventions for using
 AES-KW are specified in Section 8.5.2 of {{RFC9052}} and in Section 6.2.1 of 
-{{RFC9053}}.  The encrypted CEK is carried in the COSE\_recipient structure
+{{RFC9053}}. The encrypted CEK is carried in the COSE\_recipient structure
 alongside the information needed for AES-KW. The COSE\_recipient structure,
 which is a substructure of the COSE\_Encrypt structure, contains the CEK 
 encrypted by the KEK. 
 
-When the firmware image is encrypted for use by multiple recipients, there 
-are three options. We use the following notation KEK(R1,S) is the KEK shared 
-between recipient R1 and the sender S. Likewise, CEK(R1,S) is shared between
-R1 and S. If a single CEK or a single KEK is shared with all authorized 
-recipients R by a given sender S in a certain context then we use CEK(*,S) 
-or KEK(*,S), respectively. The notation ENC(plaintext, key) refers to the
-encryption of plaintext with a given key. 
+The COSE\_Encrypt structure conveys information for encrypting the payload, which 
+includes information like the algorithm and the IV, even though the payload 
+is not embedded in the COSE_Encrypt.ciphertext itself since it conveyed as detached content.
+
+### Deployment Options
+
+There are three deployment options for use with AES Key Wrap for payload
+encryption:
 
 - If all authorized recipients have access to the KEK, a single 
-COSE\_recipient structure contains the encrypted CEK. This means KEK(*,S) 
-ENC(CEK,KEK), and ENC(payload,CEK).
+COSE\_recipient structure contains the encrypted CEK. The sender executes
+the following steps:
+
+~~~
+      Fetch KEK(*,S)
+      Generate CEK
+      ENC(CEK,KEK)
+      ENC(payload,CEK)
+~~~
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures 
 are included but only a single CEK is used. Each COSE\_recipient structure 
-contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
-KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
+contains the CEK encrypted with the KEKs appropriate for a given recipient.
 The benefit of this approach is that the payload is encrypted only once with 
 a CEK while there is no sharing of the KEK across recipients. Hence, authorized 
-recipients still use their individual KEKs to decrypt the CEK and to subsequently
-obtain the plaintext.
+recipients still use their individual KEK to decrypt the CEK and to subsequently
+obtain the plaintext. The steps taken by the sender are:
 
-- The third option is to use different CEKs encrypted with KEKs of the 
-authorized recipients. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S), and 
-for i=1 to n the following computations need to be made: ENC(CEK_i, KEK_i) and 
-ENC(firmware,CEK_i). This approach is appropriate when no benefits can be gained
-from encrypting and transmitting payloads only once. For example, 
-payloads may contain information unique to an instance of a device rather than
-information that is independent of a device instance and therefore applies to an 
-entire class of devices.
+~~~
+      Generate CEK
+      for i=1 to n {
+         Fetch KEK_i(Ri, S)
+         ENC(CEK, KEK_i)
+      }
+      ENC(payload,CEK)
+~~~
 
-Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}}, 
-does not have public parameters that vary on a per-invocation basis. Hence, 
-the protected structure in the COSE_recipient is a byte string of zero length. 
+- The third option is to use different CEKs encrypted with KEKs of 
+authorized recipients. Assume there are n recipients with their unique KEKs - 
+KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to make the following steps:
 
-The COSE\_Encrypt conveys information for encrypting the payload, which 
-includes information like the algorithm and the IV, even though the payload 
-is not embedded in the COSE_Encrypt.ciphertext itself since it conveyed as detached content.
+~~~
+      for i=1 to n {
+         Fetch KEK_i(Ri, S)
+         Generate CEK_i
+         ENC(CEK_i, KEK_i)
+         ENC(payload,CEK_i)
+      }
+~~~
+
+This approach is appropriate when no benefits can be gained
+from encrypting and transmitting payloads only once.
+
+### CDDL
 
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-aeskw}}. 
 
@@ -327,7 +361,7 @@ SUIT_Encryption_Info = COSE_Encrypt_Tagged
 COSE_Encrypt = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
-  ciphertext  : null,            ; because of detached ciphertext
+  ciphertext  : bstr / nil,
   recipients  : [ + COSE_recipient ]
 ]
 
@@ -358,11 +392,16 @@ recipient_header_map =
 ~~~
 {: #cddl-aeskw title="CDDL for AES Key Wrap Encryption"}
 
+Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}}, 
+does not have public parameters that vary on a per-invocation basis. Hence, 
+the protected parameter in the COSE_recipient structure is a byte string
+of zero length.
+
 The COSE specification requires a consistent byte stream for the
-authenticated data structure to be created, which is shown in
+authenticated data structure to be created. This structure is replaced in
 {{cddl-enc-aeskw}}.
 
-~~~    
+~~~
        Enc_structure = [
          context : "Encrypt",
          protected : empty_or_serialized_map,
@@ -371,23 +410,28 @@ authenticated data structure to be created, which is shown in
 ~~~
 {: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
 
-As shown in {{cddl-aeskw}}, there are two protected fields: one 
-protected field in the COSE_Encrypt structure and a second one in
-the COSE_recipient structure. The 'protected' field in the Enc_structure, 
-see {{cddl-enc-aeskw}}, refers to the content of the protected 
-field from the COSE_Encrypt structure. 
+This Enc_structure needs to be populated as follows:
 
-The value of the external_aad MUST be set to null.
+The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
+to the content of the protected field from the COSE_Encrypt structure. 
+It is important to note that there are two protected fields shown 
+in {{cddl-aeskw}}:
+- one in the COSE_Encrypt structure, and 
+- a second one in the COSE_recipient structure.
 
-The following example illustrates the use of the AES-KW algorithm with AES-128.
+The value of the external_aad MUST be set to a null value
+(major type 7, value 22).
 
-We use the following parameters in this example: 
+### Example
 
+This example uses the following parameters:
+- Algorithm for payload encryption: AES-GCM-128
+- Algorithm id for key wrap: A128KW
 - IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
 - KEK: "aaaaaaaaaaaaaaaa"
 - KID: "kid-1"
-- Plaintext: "This is a real firmware image."
-- Firmware (hex): 546869732069732061207265616C206669726D7761726520696D6167652E
+- Plaintext firmware (txt): "This is a real firmware image."
+  (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -396,7 +440,8 @@ D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
 315818AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D
 ~~~
 
-The resulting COSE_Encrypt structure in a diagnostic format is shown in {{aeskw-example}}. 
+The resulting COSE_Encrypt structure in a diagnostic format is shown in 
+{{aeskw-example}}. 
 
 ~~~
 96(
@@ -407,8 +452,8 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in {{aeskw-
            / unprotected field with iv /
            5: h'26682306D4FB28CA01B43B80'
         }, 
-        / null because of detached ciphertext /
-        null, 
+        / null value due to detached ciphertext /
+        null,
         [ / recipients array /
            h'', / protected field /
            {    / unprotected field /
@@ -423,18 +468,24 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in {{aeskw-
 ~~~
 {: #aeskw-example title="COSE_Encrypt Example for AES Key Wrap"}
 
-The CEK, in hex format, was "4C805F1587D624ED5E0DBB7A7F7FA7EB" and 
-the encrypted firmware (with a line feed added) was:
+The CEK, in hex format, was "4C805F1587D624ED5E0DBB7A7F7FA7EB".
+The encrypted firmware (with a line feed added) was:
 
 ~~~ 
 A8B6E61EF17FBAD1F1BF3235B3C64C06098EA512223260
 F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 ~~~
 
-# Ephemeral-Static (ES) Diffie-Hellman (DH) {#ESDH}
 
-ES-DH, see {{RFC9052}}, is a scheme that provides public key
-encryption given a recipient's public key.
+
+## Content Key Distribution with Ephemeral-Static Diffie-Hellman {#ES-DH}
+
+### Introduction
+
+Ephemeral-Static Diffie-Hellman (ES-DH) is a scheme that provides public key
+encryption given a recipient's public key. There are multiple variants
+of this scheme; this document re-uses the variant specified in Section 8.5.5 
+of {{RFC9052}}.
 
 The following three layer structure is used:
 
@@ -444,12 +495,183 @@ CEK with the KEK derived by layer 2.
 - Layer 2: Uses ECDH Ephemeral-Static direct to generate the KEK for layer 1.
 
 As a result, the three layers combine ECDH-ES with AES-KW. An example is
-given in Appendix B of RFC 9052.
+given in Appendix B of RFC 9052 and in {{esdh-example}}.
 
-This approach allows all recipients to use the same CEK to decrypt the 
-firmware image, in case there are multiple recipients, to fulfill a requirement for 
-the efficient distribution of firmware images using a multicast or broadcast 
-distribution protocol.
+### Deployment Options
+
+There are two deployment options with this approach. We assume that recipients
+are always configured with a device-unique public / private key pair. 
+
+- A sender wants to transmit a payload to multiple recipients. All recipients
+shall receive the same encrypted payload, i.e. the same CEK is used. 
+One COSE\_recipient structure per recipient is used and it contains the 
+CEK encrypted with the KEK. To generate the KEK each COSE\_recipient structure
+contains a COSE_recipient_inner structure to carry the sender's emphemeral key
+and an identifier for the recipients public key.
+The steps taken by the sender are:
+
+~~~
+      Generate CEK
+      for i=1 to n {
+         Generate KEK_i(Ri, S) using ES-DH
+         ENC(CEK, KEK_i)
+      }
+      ENC(payload,CEK)
+~~~
+
+- The alternative is to encrypt a payload with a different CEK for each
+recipient. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S) have been generated
+for the different recipients using ES-DH. The following steps needs to be made
+by the sender:
+
+~~~
+      for i=1 to n {
+         Generate KEK_i(Ri, S) using ES-DH
+         Generate CEK_i
+         ENC(CEK_i, KEK_i)
+         ENC(payload,CEK_i)
+      }
+~~~
+
+This results in n-manifests. This approach is useful when payloads contain 
+information unique to a device. The encryption operation effectively becomes
+ENC(payload_i,CEK_i).
+
+### CDDL
+
+The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-esdh}}. 
+
+~~~
+COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
+ 
+SUIT_Encryption_Info = COSE_Encrypt_Tagged
+
+COSE_Encrypt = [
+  protected   : bstr .cbor outer_header_map_protected,
+  unprotected : outer_header_map_unprotected,
+  ciphertext  : bstr / nil,
+  recipients  : [ + COSE_recipient ]
+]
+
+outer_header_map_protected =
+{
+    1 => int,         ; algorithm identifier
+  * label =values     ; extension point
+}
+
+outer_header_map_unprotected = 
+{
+    5 => bstr,        ; IV
+  * label =values     ; extension point
+}
+
+COSE_recipient = [
+  protected   : bstr .size 0,
+  unprotected : recipient_header_map,
+  ciphertext  : bstr        ; CEK encrypted with KEK
+  recipients : [ + COSE_recipient_inner ]  
+]
+
+recipient_header_map = 
+{
+    1 => int,         ; algorithm identifier for key wrap
+    4 => bstr,        ; key identifier
+  * label =values     ; extension point
+}
+
+
+COSE_recipient_inner = [
+  protected   : bstr .cbor inner_recipient_header_pr_map,
+  unprotected : inner_recipient_header_unpr_map,
+  ciphertext  : nil
+]
+
+
+inner_recipient_header_pr_map = 
+{
+    1 => int,         ; algorithm identifier for ES-DH
+  * label =values     ; extension point
+}
+
+inner_recipient_header_unpr_map = 
+{
+    1 => int,         ; algorithm identifier
+   -1 => COSE_Key,    ; ephemeral public key for the sender
+    4 => bstr,        ; identifier of the recipient public key
+  * label =values     ; extension point
+}
+
+~~~
+{: #cddl-esdh title="CDDL for ES-DH-based "}
+
+### Example
+
+This example uses the following parameters:
+- Algorithm for payload encryption: AES-GCM-128
+- Algorithm id for key wrap: A128KW
+- Algorithm for ES-DH: ECDH-ES + HKDF-256
+- IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
+- KID: "kid-1"
+- Plaintext: "This is a real firmware image."
+- Firmware (hex): 546869732069732061207265616C206669726D7761726520696D6167652E
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+D8608443A10101A1054C26682306D4FB28CA01B43B80F6818440A101225
+818DBD43C4E9D719C27C6275C67D628D493F090593DB8218F11818344A1
+013818A220A401022001215820B2ADD44368EA6D641F9CA9AF308B4079A
+EB519F11E9B8A55A600B21233E86E6822F404456B69642D3140
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in 
+{{aeskw-example}}. 
+
+~~~
+  96(
+     [
+       / protected / h'a10101' / {
+           \ alg \ 1:1 \ AES-GCM-128 \
+         } / ,
+       / unprotected / {
+         / iv / 5:h'26682306D4FB28CA01B43B80'
+         },
+       / null value due to detached ciphertext /
+         null,
+       / recipients / [
+         [
+           / protected / h'',
+           / unprotected / {
+             / alg / 1:-3 / A128KW /
+           },
+           / ciphertext - CEK encrypted with KEK /
+           h'dbd43c4e9d719c27c6275c67d628d493f090593db8218f11',
+           / recipients-inner / [
+             [
+               / protected / h'a1013818' / {
+                   \ alg \ 1:-25 \ ECDH-ES + HKDF-256 \
+                 } / ,
+               / unprotected / {
+                 / ephemeral / -1:{
+                   / kty / 1:2,
+                   / crv / -1:1,
+                   / x / -2:h'b2add44368ea6d641f9ca9af308b4079
+                              aeb519f11e9b8a55a600b21233e86e68',
+                   / y / -3:false
+                 },
+                 / kid / 4:'kid-1'
+               },
+               / ciphertext / h''
+             ]
+           ]
+         ]
+       ]
+     ]
+   )
+~~~
+{: #esdh-example title="COSE_Encrypt Example for ES-DH"}
+
+
 
 # CEK Verification {#cek-verification}
 
@@ -467,7 +689,7 @@ to the manifest. The suit-cek-verification parameter is optional to implement an
 optional to use. When used, it reduces the risk of a battery exhaustion attack against 
 the IoT device.
 
-Since the manifest is protected by a digital signature (or a MAC), an adversary cannot 
+Since the manifest is protected by a digital signature or a MAC, an adversary cannot 
 successfully modify this value. This parameter allows the recipient to verify 
 whether the CEK has successfully been derived.
 
@@ -568,7 +790,7 @@ technique offers robustness and better performance.
 
 For this purpose ciphers without integrity protection are used
 to encrypt the firmware image. Integrity protection for the firmware image must,
-however, be provided and the the suit-parameter-image-digest, defined in Section 
+however, be provided and the suit-parameter-image-digest, defined in Section 
 8.4.8.6 of {{I-D.ietf-suit-manifest}}, MUST be used.
 
 {{I-D.ietf-cose-aes-ctr-and-cbc}} registers AES Counter mode (AES-CTR) and 
@@ -689,9 +911,9 @@ bz/m4rVlnIXbwK07HypLbAmBMcCjbazR14vTgdzfsJwFLbM5kdtzOLSolg==
 -----END PUBLIC KEY-----
 ~~~
 
-Each example uses SHA256 as the digest function.
+Each example uses SHA-256 as the digest function.
 
-## Example 0: AES Key Wrap {#example-AES-KW}
+## AES Key Wrap Example {#example-AES-KW}
 
 Diagnostic notation of the SUIT manifest (with line
 breaks added for readability). 
@@ -732,9 +954,19 @@ is desired.
 
 #  IANA Considerations
 
-This document asks IANA to register new values into the COSE algorithm
-registry. The values are listed in {{iana-algo}}.
+IANA is asked to add two values to the SUIT_Parameters registry established by {{I-D.ietf-suit-manifest}}.
 
+~~~
+Label      Name                 Reference
+-----------------------------------------
+TBD1       Encryption Info      Section 4
+TBD2       CEK Verification     Section 4
+~~~
+
+[Editor's Note: 
+ - TBD1: Proposed 19
+ - TBD2: Proposed 20
+]
 --- back
 
 # Acknowledgements

@@ -55,7 +55,7 @@
       </address>
     </author>
 
-    <date year="2023" month="March" day="06"/>
+    <date year="2023" month="March" day="08"/>
 
     <area>Security</area>
     <workgroup>SUIT</workgroup>
@@ -101,8 +101,8 @@ be afforded confidentiality using encryption.</t>
 <t>Encryption prevents third parties, including attackers, from gaining access to
 the firmware binary. Hackers typically need intimate knowledge of the target 
 firmware to mount their attacks. For example, return-oriented programming (ROP)
-requires access to the binary and encryption makes it much more difficult to write 
-exploits.</t>
+<xref target="ROP"/> requires access to the binary and encryption makes it much more difficult
+to write exploits.</t>
 
 <t>The SUIT manifest provides the data needed for authorized recipients 
 of the firmware image to decrypt it. The firmware image is encrypted using a 
@@ -116,16 +116,18 @@ defines two approaches for use with the IETF SUIT manifest, namely:</t>
   <t>AES Key Wrap (AES-KW) using a pre-shared key-encryption key (KEK).</t>
 </list></t>
 
+<t>OPEN ISSUE: Should KEM algorithms also be supported?</t>
+
 <t>These choices reduce the number of possible key establishment options and thereby 
 help increase interoperability between different SUIT manifest parser implementations.</t>
 
 <t>While the original motivating use case of this document was firmware encryption, SUIT manifests
 may require payloads other than firmware images to experience confidentiality
 protection, such as
-- software (other than firmware),
+- software packages,
 - personalization data, 
-- configuration data,
-- machine learning models, etc.</t>
+- configuration data, and
+- machine learning models.</t>
 
 <t>Hence, the term payload is used to generically refer to those objects that may be subject to 
 encryption.</t>
@@ -153,34 +155,35 @@ the SUIT information model <xref target="RFC9124"/> and the SUIT architecture <x
 <t><list style="symbols">
   <t>Key Wrap (KW), defined in <xref target="RFC3394"/> (for use with AES)</t>
   <t>Key-Encryption Key (KEK) <xref target="RFC3394"/></t>
-  <t>Content-Encryption Key (CEK) <xref target="RFC2630"/></t>
+  <t>Content-Encryption Key (CEK) <xref target="RFC5652"/></t>
   <t>Ephemeral-Static (ES) Diffie-Hellman (DH) <xref target="RFC9052"/></t>
 </list></t>
 
 </section>
 <section anchor="arch"><name>Architecture</name>
 
-<t><xref target="RFC9019"/> describes the architecture for distributing payloads 
-and manifests from an author to devices. It does, however, not
-detail the use of payload encryption.</t>
+<t><xref target="RFC9019"/> describes the architecture for distributing payloads and
+manifests from an author to devices. It does, however, not detail the
+use of payload encryption.</t>
 
-<t>This document enhances this architecture to support encryption.
-The author and the distribution system are logical roles. In some deployments
-these roles are separated in different physical entities and in others
-they are co-located.</t>
+<t>This document enhances this architecture to support encryption. The author
+and the distribution system are logical roles. In some deployments these
+roles are separated in different physical entities and in others they are
+co-located.</t>
 
-<t><xref target="arch-fig"/> shows the distribution system, which represents the firmware server 
-and the device management infrastructure. The distribution system is aware 
-of the individual devices to which a payload has to be delivered. The author
-is typically unaware which devices need to receive these payloads.</t>
+<t><xref target="arch-fig"/> shows the distribution system, which represents the firmware
+server and the device management infrastructure. The distribution system is
+aware of the individual devices to which a payload has to be delivered. The
+author is typically unaware which devices need to receive these payloads.</t>
 
-<t>To apply encryption the sender needs to know the recipient. For AES-KW the 
-KEK needs to be known and, in case of ES-DH, the sender needs to be in possession 
-of the public key of the recipient.</t>
+<t>To apply encryption the sender needs to know the recipient. For AES-KW the
+KEK needs to be known and, in case of ES-DH, the sender needs to be in possession
+of the public key of the recipient. The DH public key and parameters may be in
+the recipient's X.509 certificate <xref target="RFC5280"/>.</t>
 
-<t>If the author delegates the task of identifying devices that are the recipients 
-of the payloads to the distribution system, it needs to trust the delivery 
-system to perform the encryption of the plaintext firmware image.</t>
+<t>If the author delegates the task of identifying the recipients of the payloads
+to the distribution system, it needs to trust it with the appropriate
+protection of the plaintext firmware image before encryption is performed.</t>
 
 <figure title="Firmware Encryption Architecture." anchor="arch-fig"><artwork><![CDATA[
                                            +----------+
@@ -188,7 +191,7 @@ system to perform the encryption of the plaintext firmware image.</t>
                                            |  Author  |
                                            |          |
  +----------+                              +----------+
- |  Device  |---+                               | 
+ |  Device  |---+                               |
  |          |   |                               | Firmware +
  |          |   |                               | Manifest
  +----------+   |                               |
@@ -209,116 +212,151 @@ system to perform the encryption of the plaintext firmware image.</t>
  +----------+
 ]]></artwork></figure>
 
-<t>To offer confidentiality protection two deployment variants need to be 
+<t>To offer confidentiality protection two deployment variants need to be
 supported:</t>
 
 <t><list style="symbols">
-  <t>The author acts as the sender and the recipient is the device
-(or the devices).</t>
-  <t>The author treats the distribution system as the initial recipient. Then, 
-the distribution system decrypts and re-encrypts the payload for consumption 
-by the device (or devices). Delegating the task of re-encrypting 
-the payload to the distribution system offers flexiblity when the number 
-of devices that need to receive encrypted payloads changes dynamically 
-or when updates to KEKs or recipient public keys are necessary. As a downside, 
-the author needs to trust the distribution system with performing the re-encryption 
-of the payload.</t>
+  <t>The author, as the sender, transmits the encrypted payload to a single
+device, or to multiple devices. The device(s) perform decryption and
+act as recipients.</t>
+  <t>The author treats the distribution system as the initial recipient. Then,
+the distribution system decrypts and re-encrypts the payload for consumption
+by the device (or the devices). Delegating the task of re-encrypting
+the payload to the distribution system offers flexiblity when the number
+of devices that need to receive encrypted payloads changes dynamically
+or when updates to KEKs or recipient public keys are necessary. As a downside,
+the author needs to trust the distribution system with performing the
+re-encryption of the payload.</t>
 </list></t>
 
-<t>For both variants the key distribution data (embedded inside the
-COSE_Encrypt structure) is included in the SUIT envelope rather than in the SUIT 
-manifest since the manifest will be digitally signed (or MACed) by the author.</t>
-
-<t>Details about the changes to the envelope and the manifest can be found in the next 
-section.</t>
+<t>For both variants the key distribution data, which is embedded inside the
+COSE_Encrypt structure, is included in the SUIT manifest.</t>
 
 </section>
-<section anchor="suit-envelope-and-suit-manifest"><name>SUIT Envelope and SUIT Manifest</name>
+<section anchor="parameters"><name>New Extensions</name>
 
-<t>This specification introduces two extensions to the SUIT_Parameters,
-as motivated in <xref target="arch"/>.</t>
+<t>This specification introduces two extensions to the SUIT_Parameters structure.</t>
 
-<t>The SUIT manifest is enhanced with a key exchange payload, which is carried within
-the suit-directive-override-parameters or suit-directive-set-parameters for each
-encrypted payload. One SUIT_Encryption_Info is carried with
-suit-parameter-encryption-info, see <xref target="parameter-fig"/>.
-The content of the SUIT_Encryption_Info is explained in 
-<xref target="AES-KW"/> (for AES-KW) and <xref target="RFC9052"/> (for ECDH-ES). When the encryption capability 
-is used, the SUIT_Encryption_Info parameter MUST be included in the SUIT_Directive.</t>
-
-<t>A CEK verification parameter (called suit-parameter-cek-verification),
-see <xref target="parameter-fig"/>, also extends the manifest. This parameter is optional 
-and is utilized in environments where battery exhaustion attacks are a 
-concern. Details about the CEK verification can be found in 
-<xref target="cek-verification"/>.</t>
+<t><list style="symbols">
+  <t>A SUIT encryption info parameter (called suit-parameter-encryption-info),
+see <xref target="parameter-fig"/>, which contains key distribution information. It is carried
+within the suit-directive-override-parameters or the suit-directive-set-parameters
+structure. The content of the SUIT_Encryption_Info structure is explained in 
+<xref target="AES-KW"/> (for AES-KW) and <xref target="ES-DH"/> (for ECDH-ES). An implementation claiming
+conformance with this specification must implement support for this parameter.
+A device may, however, support only one of the available key distribution techniques.</t>
+  <t>A CEK verification parameter (called suit-parameter-cek-verification), see
+<xref target="parameter-fig"/>, is utilized in environments where battery exhaustion attacks
+are a concern. Details about the CEK verification can be found in 
+<xref target="cek-verification"/>. This parameter is optional to implement and use.</t>
+</list></t>
 
 <figure title="Extended SUIT_Parameters CDDL." anchor="parameter-fig"><artwork><![CDATA[
-SUIT_Manifest = {
-    suit-manifest-version         => 1,
-    suit-manifest-sequence-number => uint,
-    suit-common                   => bstr .cbor SUIT_Common,
-    ? suit-reference-uri          => tstr,
-    SUIT_Severable_Members_Choice,
-    SUIT_Unseverable_Members,
-    * $$SUIT_Manifest_Extensions,
-}
-
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 SUIT_Parameters //= (suit-parameter-cek-verification => bstr)
 
-suit-parameter-encryption-info   = 19
+suit-parameter-encryption-info   = [TBD1: Proposed 19]
+suit-parameter-cek-verification  = [TBD2: Proposed 20] 
 ]]></artwork></figure>
 
 </section>
-<section anchor="AES-KW"><name>AES Key Wrap</name>
+<section anchor="content-key-distribution-methods"><name>Content Key Distribution Methods</name>
+
+<t>The sub-sections below describe two content key distribution mechanisms,
+namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
+Other mechanisms are supported by COSE and may be supported via enhancements
+to this specification.</t>
+
+<t>When an encrypted firmware image is sent to multiple recipients, there
+are different deployment options. To explain these options we use the
+following notation:</t>
+
+<t><list style="symbols">
+  <t>KEK(R1,S) refers to a KEK shared between recipient R1 and the sender S.
+The KEK, as a concept, is used by AES Key Wrap.</t>
+  <t>CEK(R1,S) refers to a CEK shared between R1 and S.</t>
+  <t>CEK(<em>,S) or KEK(</em>,S) are used when a single CEK or a single KEK is shared
+with all authorized recipients by a given sender S in a certain context.</t>
+  <t>ENC(plaintext, k) refers to the encryption of plaintext with a key k.</t>
+  <t>KEK_i or CEK_i refers to the i-th instance of the KEK or CEK, respectively.</t>
+</list></t>
+
+<section anchor="AES-KW"><name>Content Key Distribution with AES Key Wrap</name>
+
+<section anchor="introduction-1"><name>Introduction</name>
 
 <t>The AES Key Wrap (AES-KW) algorithm is described in RFC 3394 <xref target="RFC3394"/>, and
-it can be used to encrypt a randomly generated content-encryption key (CEK)
+can be used to encrypt a randomly generated content-encryption key (CEK)
 with a pre-shared key-encryption key (KEK). The COSE conventions for using
 AES-KW are specified in Section 8.5.2 of <xref target="RFC9052"/> and in Section 6.2.1 of 
-<xref target="RFC9053"/>.  The encrypted CEK is carried in the COSE_recipient structure
+<xref target="RFC9053"/>. The encrypted CEK is carried in the COSE_recipient structure
 alongside the information needed for AES-KW. The COSE_recipient structure,
 which is a substructure of the COSE_Encrypt structure, contains the CEK 
 encrypted by the KEK.</t>
 
-<t>When the firmware image is encrypted for use by multiple recipients, there 
-are three options. We use the following notation KEK(R1,S) is the KEK shared 
-between recipient R1 and the sender S. Likewise, CEK(R1,S) is shared between
-R1 and S. If a single CEK or a single KEK is shared with all authorized 
-recipients R by a given sender S in a certain context then we use CEK(<em>,S) 
-or KEK(</em>,S), respectively. The notation ENC(plaintext, key) refers to the
-encryption of plaintext with a given key.</t>
+<t>The COSE_Encrypt structure conveys information for encrypting the payload, which 
+includes information like the algorithm and the IV, even though the payload 
+is not embedded in the COSE_Encrypt.ciphertext itself since it conveyed as detached content.</t>
+
+</section>
+<section anchor="deployment-options"><name>Deployment Options</name>
+
+<t>There are three deployment options for use with AES Key Wrap for payload
+encryption:</t>
 
 <t><list style="symbols">
   <t>If all authorized recipients have access to the KEK, a single 
-COSE_recipient structure contains the encrypted CEK. This means KEK(*,S) 
-ENC(CEK,KEK), and ENC(payload,CEK).</t>
-  <t>If recipients have different KEKs, then multiple COSE_recipient structures 
-are included but only a single CEK is used. Each COSE_recipient structure 
-contains the CEK encrypted with the KEKs appropriate for the recipient. In short, 
-KEK_1(R1, S),..., KEK_n(Rn, S), ENC(CEK, KEK_i) for i=1 to n, and ENC(firmware,CEK). 
-The benefit of this approach is that the payload is encrypted only once with 
-a CEK while there is no sharing of the KEK across recipients. Hence, authorized 
-recipients still use their individual KEKs to decrypt the CEK and to subsequently
-obtain the plaintext.</t>
-  <t>The third option is to use different CEKs encrypted with KEKs of the 
-authorized recipients. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S), and 
-for i=1 to n the following computations need to be made: ENC(CEK_i, KEK_i) and 
-ENC(firmware,CEK_i). This approach is appropriate when no benefits can be gained
-from encrypting and transmitting payloads only once. For example, 
-payloads may contain information unique to an instance of a device rather than
-information that is independent of a device instance and therefore applies to an 
-entire class of devices.</t>
+COSE_recipient structure contains the encrypted CEK. The sender executes
+the following steps:</t>
 </list></t>
 
-<t>Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of <xref target="RFC3394"/>, 
-does not have public parameters that vary on a per-invocation basis. Hence, 
-the protected structure in the COSE_recipient is a byte string of zero length.</t>
+<figure><artwork><![CDATA[
+      Fetch KEK(*,S)
+      Generate CEK
+      ENC(CEK,KEK)
+      ENC(payload,CEK)
+]]></artwork></figure>
 
-<t>The COSE_Encrypt conveys information for encrypting the payload, which 
-includes information like the algorithm and the IV, even though the payload 
-is not embedded in the COSE_Encrypt.ciphertext itself since it conveyed as detached content.</t>
+<t><list style="symbols">
+  <t>If recipients have different KEKs, then multiple COSE_recipient structures 
+are included but only a single CEK is used. Each COSE_recipient structure 
+contains the CEK encrypted with the KEKs appropriate for a given recipient.
+The benefit of this approach is that the payload is encrypted only once with 
+a CEK while there is no sharing of the KEK across recipients. Hence, authorized 
+recipients still use their individual KEK to decrypt the CEK and to subsequently
+obtain the plaintext. The steps taken by the sender are:</t>
+</list></t>
+
+<figure><artwork><![CDATA[
+      Generate CEK
+      for i=1 to n {
+         Fetch KEK_i(Ri, S)
+         ENC(CEK, KEK_i)
+      }
+      ENC(payload,CEK)
+]]></artwork></figure>
+
+<t><list style="symbols">
+  <t>The third option is to use different CEKs encrypted with KEKs of 
+authorized recipients. Assume there are n recipients with their unique KEKs - 
+KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to make the following steps:</t>
+</list></t>
+
+<figure><artwork><![CDATA[
+      for i=1 to n {
+         Fetch KEK_i(Ri, S)
+         Generate CEK_i
+         ENC(CEK_i, KEK_i)
+         ENC(payload,CEK_i)
+      }
+]]></artwork></figure>
+
+<t>This approach is appropriate when no benefits can be gained
+from encrypting and transmitting payloads only once.</t>
+
+</section>
+<section anchor="cddl"><name>CDDL</name>
 
 <t>The CDDL for the COSE_Encrypt_Tagged structure is shown in <xref target="cddl-aeskw"/>.</t>
 
@@ -330,7 +368,7 @@ SUIT_Encryption_Info = COSE_Encrypt_Tagged
 COSE_Encrypt = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
-  ciphertext  : null,            ; because of detached ciphertext
+  ciphertext  : bstr / nil,
   recipients  : [ + COSE_recipient ]
 ]
 
@@ -360,8 +398,13 @@ recipient_header_map =
 }
 ]]></artwork></figure>
 
+<t>Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of <xref target="RFC3394"/>, 
+does not have public parameters that vary on a per-invocation basis. Hence, 
+the protected parameter in the COSE_recipient structure is a byte string
+of zero length.</t>
+
 <t>The COSE specification requires a consistent byte stream for the
-authenticated data structure to be created, which is shown in
+authenticated data structure to be created. This structure is replaced in
 <xref target="cddl-enc-aeskw"/>.</t>
 
 <figure title="CDDL for Enc_structure Data Structure" anchor="cddl-enc-aeskw"><artwork><![CDATA[
@@ -372,25 +415,29 @@ authenticated data structure to be created, which is shown in
        ]
 ]]></artwork></figure>
 
-<t>As shown in <xref target="cddl-aeskw"/>, there are two protected fields: one 
-protected field in the COSE_Encrypt structure and a second one in
-the COSE_recipient structure. The 'protected' field in the Enc_structure, 
-see <xref target="cddl-enc-aeskw"/>, refers to the content of the protected 
-field from the COSE_Encrypt structure.</t>
+<t>This Enc_structure needs to be populated as follows:</t>
 
-<t>The value of the external_aad MUST be set to null.</t>
+<t>The protected field in the Enc_structure from <xref target="cddl-enc-aeskw"/> refers
+to the content of the protected field from the COSE_Encrypt structure. 
+It is important to note that there are two protected fields shown 
+in <xref target="cddl-aeskw"/>:
+- one in the COSE_Encrypt structure, and 
+- a second one in the COSE_recipient structure.</t>
 
-<t>The following example illustrates the use of the AES-KW algorithm with AES-128.</t>
+<t>The value of the external_aad MUST be set to a null value
+(major type 7, value 22).</t>
 
-<t>We use the following parameters in this example:</t>
+</section>
+<section anchor="example"><name>Example</name>
 
-<t><list style="symbols">
-  <t>IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80</t>
-  <t>KEK: "aaaaaaaaaaaaaaaa"</t>
-  <t>KID: "kid-1"</t>
-  <t>Plaintext: "This is a real firmware image."</t>
-  <t>Firmware (hex): 546869732069732061207265616C206669726D7761726520696D6167652E</t>
-</list></t>
+<t>This example uses the following parameters:
+- Algorithm for payload encryption: AES-GCM-128
+- Algorithm id for key wrap: A128KW
+- IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
+- KEK: "aaaaaaaaaaaaaaaa"
+- KID: "kid-1"
+- Plaintext firmware (txt): "This is a real firmware image."
+  (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E</t>
 
 <t>The COSE_Encrypt structure, in hex format, is (with a line break inserted):</t>
 
@@ -399,7 +446,8 @@ D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
 315818AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D
 ]]></artwork></figure>
 
-<t>The resulting COSE_Encrypt structure in a diagnostic format is shown in <xref target="aeskw-example"/>.</t>
+<t>The resulting COSE_Encrypt structure in a diagnostic format is shown in 
+<xref target="aeskw-example"/>.</t>
 
 <figure title="COSE_Encrypt Example for AES Key Wrap" anchor="aeskw-example"><artwork><![CDATA[
 96(
@@ -410,8 +458,8 @@ D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
            / unprotected field with iv /
            5: h'26682306D4FB28CA01B43B80'
         }, 
-        / null because of detached ciphertext /
-        null, 
+        / null value due to detached ciphertext /
+        null,
         [ / recipients array /
            h'', / protected field /
            {    / unprotected field /
@@ -425,8 +473,8 @@ D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
 )
 ]]></artwork></figure>
 
-<t>The CEK, in hex format, was "4C805F1587D624ED5E0DBB7A7F7FA7EB" and 
-the encrypted firmware (with a line feed added) was:</t>
+<t>The CEK, in hex format, was "4C805F1587D624ED5E0DBB7A7F7FA7EB".
+The encrypted firmware (with a line feed added) was:</t>
 
 <figure><artwork><![CDATA[
 A8B6E61EF17FBAD1F1BF3235B3C64C06098EA512223260
@@ -434,10 +482,15 @@ F9425105F67F0FB6C92248AE289A025258F06C2AD70415
 ]]></artwork></figure>
 
 </section>
-<section anchor="ESDH"><name>Ephemeral-Static (ES) Diffie-Hellman (DH)</name>
+</section>
+<section anchor="ES-DH"><name>Content Key Distribution with Ephemeral-Static Diffie-Hellman</name>
 
-<t>ES-DH, see <xref target="RFC9052"/>, is a scheme that provides public key
-encryption given a recipient's public key.</t>
+<section anchor="introduction-2"><name>Introduction</name>
+
+<t>Ephemeral-Static Diffie-Hellman (ES-DH) is a scheme that provides public key
+encryption given a recipient's public key. There are multiple variants
+of this scheme; this document re-uses the variant specified in Section 8.5.5 
+of <xref target="RFC9052"/>.</t>
 
 <t>The following three layer structure is used:</t>
 
@@ -449,13 +502,189 @@ CEK with the KEK derived by layer 2.</t>
 </list></t>
 
 <t>As a result, the three layers combine ECDH-ES with AES-KW. An example is
-given in Appendix B of RFC 9052.</t>
+given in Appendix B of RFC 9052 and in <xref target="esdh-example"/>.</t>
 
-<t>This approach allows all recipients to use the same CEK to decrypt the 
-firmware image, in case there are multiple recipients, to fulfill a requirement for 
-the efficient distribution of firmware images using a multicast or broadcast 
-distribution protocol.</t>
+</section>
+<section anchor="deployment-options-1"><name>Deployment Options</name>
 
+<t>There are two deployment options with this approach. We assume that recipients
+are always configured with a device-unique public / private key pair.</t>
+
+<t><list style="symbols">
+  <t>A sender wants to transmit a payload to multiple recipients. All recipients
+shall receive the same encrypted payload, i.e. the same CEK is used. 
+One COSE_recipient structure per recipient is used and it contains the 
+CEK encrypted with the KEK. To generate the KEK each COSE_recipient structure
+contains a COSE_recipient_inner structure to carry the sender's emphemeral key
+and an identifier for the recipients public key.
+The steps taken by the sender are:</t>
+</list></t>
+
+<figure><artwork><![CDATA[
+      Generate CEK
+      for i=1 to n {
+         Generate KEK_i(Ri, S) using ES-DH
+         ENC(CEK, KEK_i)
+      }
+      ENC(payload,CEK)
+]]></artwork></figure>
+
+<t><list style="symbols">
+  <t>The alternative is to encrypt a payload with a different CEK for each
+recipient. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S) have been generated
+for the different recipients using ES-DH. The following steps needs to be made
+by the sender:</t>
+</list></t>
+
+<figure><artwork><![CDATA[
+      for i=1 to n {
+         Generate KEK_i(Ri, S) using ES-DH
+         Generate CEK_i
+         ENC(CEK_i, KEK_i)
+         ENC(payload,CEK_i)
+      }
+]]></artwork></figure>
+
+<t>This results in n-manifests. This approach is useful when payloads contain 
+information unique to a device. The encryption operation effectively becomes
+ENC(payload_i,CEK_i).</t>
+
+</section>
+<section anchor="cddl-1"><name>CDDL</name>
+
+<t>The CDDL for the COSE_Encrypt_Tagged structure is shown in <xref target="cddl-esdh"/>.</t>
+
+<figure title="CDDL for ES-DH-based " anchor="cddl-esdh"><artwork><![CDATA[
+COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
+ 
+SUIT_Encryption_Info = COSE_Encrypt_Tagged
+
+COSE_Encrypt = [
+  protected   : bstr .cbor outer_header_map_protected,
+  unprotected : outer_header_map_unprotected,
+  ciphertext  : bstr / nil,
+  recipients  : [ + COSE_recipient ]
+]
+
+outer_header_map_protected =
+{
+    1 => int,         ; algorithm identifier
+  * label =values     ; extension point
+}
+
+outer_header_map_unprotected = 
+{
+    5 => bstr,        ; IV
+  * label =values     ; extension point
+}
+
+COSE_recipient = [
+  protected   : bstr .size 0,
+  unprotected : recipient_header_map,
+  ciphertext  : bstr        ; CEK encrypted with KEK
+  recipients : [ + COSE_recipient_inner ]  
+]
+
+recipient_header_map = 
+{
+    1 => int,         ; algorithm identifier for key wrap
+    4 => bstr,        ; key identifier
+  * label =values     ; extension point
+}
+
+
+COSE_recipient_inner = [
+  protected   : bstr .cbor inner_recipient_header_pr_map,
+  unprotected : inner_recipient_header_unpr_map,
+  ciphertext  : nil
+]
+
+
+inner_recipient_header_pr_map = 
+{
+    1 => int,         ; algorithm identifier for ES-DH
+  * label =values     ; extension point
+}
+
+inner_recipient_header_unpr_map = 
+{
+    1 => int,         ; algorithm identifier
+   -1 => COSE_Key,    ; ephemeral public key for the sender
+    4 => bstr,        ; identifier of the recipient public key
+  * label =values     ; extension point
+}
+
+]]></artwork></figure>
+
+</section>
+<section anchor="example-1"><name>Example</name>
+
+<t>This example uses the following parameters:
+- Algorithm for payload encryption: AES-GCM-128
+- Algorithm id for key wrap: A128KW
+- Algorithm for ES-DH: ECDH-ES + HKDF-256
+- IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
+- KID: "kid-1"
+- Plaintext: "This is a real firmware image."
+- Firmware (hex): 546869732069732061207265616C206669726D7761726520696D6167652E</t>
+
+<t>The COSE_Encrypt structure, in hex format, is (with a line break inserted):</t>
+
+<figure><artwork><![CDATA[
+D8608443A10101A1054C26682306D4FB28CA01B43B80F6818440A101225
+818DBD43C4E9D719C27C6275C67D628D493F090593DB8218F11818344A1
+013818A220A401022001215820B2ADD44368EA6D641F9CA9AF308B4079A
+EB519F11E9B8A55A600B21233E86E6822F404456B69642D3140
+]]></artwork></figure>
+
+<t>The resulting COSE_Encrypt structure in a diagnostic format is shown in 
+<xref target="aeskw-example"/>.</t>
+
+<figure title="COSE_Encrypt Example for ES-DH" anchor="esdh-example"><artwork><![CDATA[
+  96(
+     [
+       / protected / h'a10101' / {
+           \ alg \ 1:1 \ AES-GCM-128 \
+         } / ,
+       / unprotected / {
+         / iv / 5:h'26682306D4FB28CA01B43B80'
+         },
+       / null value due to detached ciphertext /
+         null,
+       / recipients / [
+         [
+           / protected / h'',
+           / unprotected / {
+             / alg / 1:-3 / A128KW /
+           },
+           / ciphertext - CEK encrypted with KEK /
+           h'dbd43c4e9d719c27c6275c67d628d493f090593db8218f11',
+           / recipients-inner / [
+             [
+               / protected / h'a1013818' / {
+                   \ alg \ 1:-25 \ ECDH-ES + HKDF-256 \
+                 } / ,
+               / unprotected / {
+                 / ephemeral / -1:{
+                   / kty / 1:2,
+                   / crv / -1:1,
+                   / x / -2:h'b2add44368ea6d641f9ca9af308b4079
+                              aeb519f11e9b8a55a600b21233e86e68',
+                   / y / -3:false
+                 },
+                 / kid / 4:'kid-1'
+               },
+               / ciphertext / h''
+             ]
+           ]
+         ]
+       ]
+     ]
+   )
+]]></artwork></figure>
+
+</section>
+</section>
 </section>
 <section anchor="cek-verification"><name>CEK Verification</name>
 
@@ -473,7 +702,7 @@ to the manifest. The suit-cek-verification parameter is optional to implement an
 optional to use. When used, it reduces the risk of a battery exhaustion attack against 
 the IoT device.</t>
 
-<t>Since the manifest is protected by a digital signature (or a MAC), an adversary cannot 
+<t>Since the manifest is protected by a digital signature or a MAC, an adversary cannot 
 successfully modify this value. This parameter allows the recipient to verify 
 whether the CEK has successfully been derived.</t>
 
@@ -574,7 +803,7 @@ technique offers robustness and better performance.</t>
 
 <t>For this purpose ciphers without integrity protection are used
 to encrypt the firmware image. Integrity protection for the firmware image must,
-however, be provided and the the suit-parameter-image-digest, defined in Section 
+however, be provided and the suit-parameter-image-digest, defined in Section 
 8.4.8.6 of <xref target="I-D.ietf-suit-manifest"/>, MUST be used.</t>
 
 <t><xref target="I-D.ietf-cose-aes-ctr-and-cbc"/> registers AES Counter mode (AES-CTR) and 
@@ -693,9 +922,9 @@ bz/m4rVlnIXbwK07HypLbAmBMcCjbazR14vTgdzfsJwFLbM5kdtzOLSolg==
 -----END PUBLIC KEY-----
 ]]></artwork></figure>
 
-<t>Each example uses SHA256 as the digest function.</t>
+<t>Each example uses SHA-256 as the digest function.</t>
 
-<section anchor="example-AES-KW"><name>Example 0: AES Key Wrap</name>
+<section anchor="example-AES-KW"><name>AES Key Wrap Example</name>
 
 <t>Diagnostic notation of the SUIT manifest (with line
 breaks added for readability).</t>
@@ -752,7 +981,7 @@ breaks added for readability).</t>
       / suit-directive-set-component-index / 12, 0 / [h'00'] /,
       / suit-directive-override-parameters / 20, {
         / suit-parameter-source-component / 22: 1 / [h'01'] /,
-        / suit-parameter-encryption-info<TBD> / 19: 96( [
+        / suit-parameter-encryption-info<TBD1> / 19: 96( [
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
           } >>,
@@ -840,8 +1069,19 @@ is desired.</t>
 </section>
 <section anchor="iana-considerations"><name>IANA Considerations</name>
 
-<t>This document asks IANA to register new values into the COSE algorithm
-registry. The values are listed in <xref target="iana-algo"/>.</t>
+<t>IANA is asked to add two values to the SUIT_Parameters registry established by <xref target="I-D.ietf-suit-manifest"/>.</t>
+
+<figure><artwork><![CDATA[
+Label      Name                 Reference
+-----------------------------------------
+TBD1       Encryption Info      Section 4
+TBD2       CEK Verification     Section 4
+]]></artwork></figure>
+
+<t>[Editor's Note: 
+ - TBD1: Proposed 19
+ - TBD2: Proposed 20
+]</t>
 
 </section>
 
@@ -1045,25 +1285,53 @@ registry. The values are listed in <xref target="iana-algo"/>.</t>
 
 
 
-<reference anchor='RFC2630'>
+<reference anchor='RFC5652'>
 <front>
-<title>Cryptographic Message Syntax</title>
+<title>Cryptographic Message Syntax (CMS)</title>
 <author fullname='R. Housley' initials='R.' surname='Housley'><organization/></author>
-<date month='June' year='1999'/>
-<abstract><t>This document describes the Cryptographic Message Syntax.  This syntax is used to digitally sign, digest, authenticate, or encrypt arbitrary messages.  [STANDARDS-TRACK]</t></abstract>
+<date month='September' year='2009'/>
+<abstract><t>This document describes the Cryptographic Message Syntax (CMS).  This syntax is used to digitally sign, digest, authenticate, or encrypt arbitrary message content.  [STANDARDS-TRACK]</t></abstract>
 </front>
-<seriesInfo name='RFC' value='2630'/>
-<seriesInfo name='DOI' value='10.17487/RFC2630'/>
+<seriesInfo name='STD' value='70'/>
+<seriesInfo name='RFC' value='5652'/>
+<seriesInfo name='DOI' value='10.17487/RFC5652'/>
 </reference>
 
 
-<reference anchor="iana-algo" target="https://www.iana.org/assignments/cose/cose.xhtml">
+
+<reference anchor='RFC5280'>
+<front>
+<title>Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile</title>
+<author fullname='D. Cooper' initials='D.' surname='Cooper'><organization/></author>
+<author fullname='S. Santesson' initials='S.' surname='Santesson'><organization/></author>
+<author fullname='S. Farrell' initials='S.' surname='Farrell'><organization/></author>
+<author fullname='S. Boeyen' initials='S.' surname='Boeyen'><organization/></author>
+<author fullname='R. Housley' initials='R.' surname='Housley'><organization/></author>
+<author fullname='W. Polk' initials='W.' surname='Polk'><organization/></author>
+<date month='May' year='2008'/>
+<abstract><t>This memo profiles the X.509 v3 certificate and X.509 v2 certificate revocation list (CRL) for use in the Internet.  An overview of this approach and model is provided as an introduction.  The X.509 v3 certificate format is described in detail, with additional information regarding the format and semantics of Internet name forms.  Standard certificate extensions are described and two Internet-specific extensions are defined.  A set of required certificate extensions is specified.  The X.509 v2 CRL format is described in detail along with standard and Internet-specific extensions.  An algorithm for X.509 certification path validation is described.  An ASN.1 module and examples are provided in the appendices.  [STANDARDS-TRACK]</t></abstract>
+</front>
+<seriesInfo name='RFC' value='5280'/>
+<seriesInfo name='DOI' value='10.17487/RFC5280'/>
+</reference>
+
+
+<reference anchor="iana-suit" target="TBD">
   <front>
-    <title>CBOR Object Signing and Encryption (COSE)</title>
+    <title>IANA SUIT Manifest Registry</title>
     <author >
       <organization>Internet Assigned Numbers Authority</organization>
     </author>
     <date year="2023"/>
+  </front>
+</reference>
+<reference anchor="ROP" target="https://en.wikipedia.org/wiki/Return-oriented_programming">
+  <front>
+    <title>Return-Oriented Programming</title>
+    <author >
+      <organization>Wikipedia</organization>
+    </author>
+    <date year="2023" month="March"/>
   </front>
 </reference>
 
@@ -1084,265 +1352,293 @@ making us aware of the challenges firmware encryption imposes on binary analysis
   </back>
 
 <!-- ##markdown-source:
-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
-X4FrlUolsUgv1zksNPkeEj5OcXAURae63wX4kkLPRuiI9oBNHD8s8jcx51ud
-PKDiATrGK7MRcgLyG8QdXY+gEvYKoOhxpFzLCkXQpsgkh9NsGqZNkmqdgKiA
-vt8JlHfUR9cHr6QtbGgjJd9ZTQSYPAaILqZBZKkApobJvN38zpX8dYln73J8
-cvbOMdNrD7PXH3uWiYf8V/X8c77/52L/B5/nRJfYI7q+Pv7X4HtgbW9sLd/p
-q1OQ738cmV+VZFeeQfSYVQ/nwVpR0KTxjqABmVEQNOoGb7buVJ5zQpTzyy8j
-OFpE8ZOEAiKneNRQLJbIV4IouzALJtLp6Mh4u8JuNhVlcOxNxszbidnlwEc+
-x6fd2E/oPRXFRJHj2q+/7p5usgEYbMysWmIEL1J3kh7KkqBrRdLEBIhufJFR
-r6FRJ3xNNTgSK3R5CV8xliU3ZQCNBsOrHvL5GqRAbKPayKo5iPL6o+dnr8Sb
-y7N3PTjvvBz9TL+WSxdnz1/0FqPeRf/ieX/7/vnVRaML358PBvLz/ehF/7l1
-796f9Xs//LDorf/2829/G7x9fn7RtN6hoT747eer9KenVve356tw+/2beD08
-v/54svR/er287L0a9HpXoyAaufFi8/599/vluw++134Vre7evz/vXKZ35dKb
-p2DZ/fjjdDm768XXyfzlbZoMfh59uH/5Ko1fvfjJ777u1189vQ97b9Pk4+rS
-qV800pf+j3Jpo1fDPQszqkgoJzJZR5z4aL6MJ39fjcyRS+n4r1C/H49v++dn
-AxON49v70f3PL15Gfzv7+Js16P3w85n8POz9MB0C4kbL793+8/eN8/fv765+
-fjf9Odx8dL+PW+/9k9GkXJp8PFk14ndBePbT5P6l1X6xXZ9Peqv+xXTw28T9
-eGk37q4Xs4/z5Pv78fnkonk7Sz++Pr+KgsWzZyYiipBJPNBdFEqPkYK/etFD
-leGqaxoX9PYWaYmo45jyoVqnxYuE5FhV40KhYVaHo28hMe43y3iZiw+w9ADW
-jUVIMg2UmB++z6Rf9tgo1TlRlzFxZrEqfj4RttU+4mqbE3Zj5f2R1fsYb8eP
-4alzKv78Z1XqcyKXfAqfsl/1IPywqhMHq/4MW1ZB1Z4o1J1U9ncirY+t1ePl
-k16j0bacxqDebfa7ltVtttqdgd1uDBpWuzmuq4aOPRo73V6z3bN6ltMZWrbV
-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
+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
 
 -->
 
