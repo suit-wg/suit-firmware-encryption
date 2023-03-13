@@ -5,14 +5,14 @@
 SUIT                                                       H. Tschofenig
 Internet-Draft                                                          
 Intended status: Standards Track                              R. Housley
-Expires: 9 September 2023                                 Vigil Security
+Expires: 14 September 2023                                Vigil Security
                                                                 B. Moran
                                                              Arm Limited
                                                                 D. Brown
                                                                   Linaro
                                                              K. Takayama
                                                          SECOM CO., LTD.
-                                                            8 March 2023
+                                                           13 March 2023
 
 
                   Encrypted Payloads in SUIT Manifests
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 September 2023.
+   This Internet-Draft will expire on 14 September 2023.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Tschofenig, et al.      Expires 9 September 2023                [Page 1]
+Tschofenig, et al.      Expires 14 September 2023               [Page 1]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -95,7 +95,7 @@ Table of Contents
            Diffie-Hellman  . . . . . . . . . . . . . . . . . . . . .  11
        5.2.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  11
        5.2.2.  Deployment Options  . . . . . . . . . . . . . . . . .  12
-       5.2.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  12
+       5.2.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  13
        5.2.4.  Example . . . . . . . . . . . . . . . . . . . . . . .  14
    6.  CEK Verification  . . . . . . . . . . . . . . . . . . . . . .  16
    7.  Firmware Updates on IoT Devices with Flash Memory.  . . . . .  16
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Tschofenig, et al.      Expires 9 September 2023                [Page 2]
+Tschofenig, et al.      Expires 14 September 2023               [Page 2]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -165,16 +165,22 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023                [Page 3]
+Tschofenig, et al.      Expires 14 September 2023               [Page 3]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
    While the original motivating use case of this document was firmware
    encryption, SUIT manifests may require payloads other than firmware
-   images to experience confidentiality protection, such as - software
-   packages, - personalization data, - configuration data, and - machine
-   learning models.
+   images to experience confidentiality protection, such as
+
+   *  software packages,
+
+   *  personalization data,
+
+   *  configuration data, and
+
+   *  machine learning models.
 
    Hence, the term payload is used to generically refer to those objects
    that may be subject to encryption.
@@ -213,18 +219,17 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
    manifests from an author to devices.  It does, however, not detail
    the use of payload encryption.
 
+
+
+Tschofenig, et al.      Expires 14 September 2023               [Page 4]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
+
+
    This document enhances this architecture to support encryption.  The
    author and the distribution system are logical roles.  In some
    deployments these roles are separated in different physical entities
    and in others they are co-located.
-
-
-
-
-Tschofenig, et al.      Expires 9 September 2023                [Page 4]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
-
 
    Figure 1 shows the distribution system, which represents the firmware
    server and the device management infrastructure.  The distribution
@@ -270,17 +275,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
                 Figure 1: Firmware Encryption Architecture.
 
-   To offer confidentiality protection two deployment variants need to
-   be supported:
 
 
-
-
-
-Tschofenig, et al.      Expires 9 September 2023                [Page 5]
+Tschofenig, et al.      Expires 14 September 2023               [Page 5]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
+
+   To offer confidentiality protection two deployment variants need to
+   be supported:
 
    *  The author, as the sender, transmits the encrypted payload to a
       single device, or to multiple devices.  The device(s) perform
@@ -327,16 +330,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
    suit-parameter-encryption-info   = [TBD1: Proposed 19]
    suit-parameter-cek-verification  = [TBD2: Proposed 20]
 
-                  Figure 2: Extended SUIT_Parameters CDDL.
 
 
 
-
-
-Tschofenig, et al.      Expires 9 September 2023                [Page 6]
+Tschofenig, et al.      Expires 14 September 2023               [Page 6]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
+
+                  Figure 2: Extended SUIT_Parameters CDDL.
 
 5.  Content Key Distribution Methods
 
@@ -387,9 +389,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-
-
-Tschofenig, et al.      Expires 9 September 2023                [Page 7]
+Tschofenig, et al.      Expires 14 September 2023               [Page 7]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -445,7 +445,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023                [Page 8]
+Tschofenig, et al.      Expires 14 September 2023               [Page 8]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -501,7 +501,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023                [Page 9]
+Tschofenig, et al.      Expires 14 September 2023               [Page 9]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -523,44 +523,50 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
    The protected field in the Enc_structure from Figure 4 refers to the
    content of the protected field from the COSE_Encrypt structure.  It
    is important to note that there are two protected fields shown in
-   Figure 3: - one in the COSE_Encrypt structure, and - a second one in
-   the COSE_recipient structure.
+   Figure 3:
+
+   *  one in the COSE_Encrypt structure, and
+
+   *  a second one in the COSE_recipient structure.
 
    The value of the external_aad MUST be set to a null value (major type
    7, value 22).
 
 5.1.4.  Example
 
-   This example uses the following parameters: - Algorithm for payload
-   encryption: AES-GCM-128 - Algorithm id for key wrap: A128KW - IV:
-   0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b,
-   0x80 - KEK: "aaaaaaaaaaaaaaaa" - KID: "kid-1" - Plaintext firmware
-   (txt): "This is a real firmware image." (in hex):
-   546869732069732061207265616C206669726D7761726520696D6167652E
+   This example uses the following parameters:
+
+   *  Algorithm for payload encryption: AES-GCM-128
+
+   *  Algorithm id for key wrap: A128KW
+
+   *  IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4,
+      0x3b, 0x80
+
+   *  KEK: "aaaaaaaaaaaaaaaa"
+
+   *  KID: "kid-1"
+
+   *  Plaintext firmware (txt): "This is a real firmware image." (in
+      hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
    The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
+
+
+
+
+
+Tschofenig, et al.      Expires 14 September 2023              [Page 10]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
+
 
    D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
    315818AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 5.
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.      Expires 9 September 2023               [Page 10]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
-
 
    96(
        [
@@ -603,20 +609,20 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
    The following three layer structure is used:
 
+
+
+
+
+Tschofenig, et al.      Expires 14 September 2023              [Page 11]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
+
+
    *  Layer 0: Has a content encrypted with the CEK.  The content may be
       detached.
 
    *  Layer 1: Uses the AES Key Wrap algorithm to encrypt a randomly
       generated CEK with the KEK derived by layer 2.
-
-
-
-
-
-Tschofenig, et al.      Expires 9 September 2023               [Page 11]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
-
 
    *  Layer 2: Uses ECDH Ephemeral-Static direct to generate the KEK for
       layer 1.
@@ -661,18 +667,16 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
    contain information unique to a device.  The encryption operation
    effectively becomes ENC(payload_i,CEK_i).
 
-5.2.3.  CDDL
-
-   The CDDL for the COSE_Encrypt_Tagged structure is shown in Figure 6.
 
 
-
-
-
-Tschofenig, et al.      Expires 9 September 2023               [Page 12]
+Tschofenig, et al.      Expires 14 September 2023              [Page 12]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
+
+5.2.3.  CDDL
+
+   The CDDL for the COSE_Encrypt_Tagged structure is shown in Figure 6.
 
    COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
 
@@ -719,17 +723,16 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
    ]
 
 
-   inner_recipient_header_pr_map =
-   {
-       1 => int,         ; algorithm identifier for ES-DH
 
 
-
-Tschofenig, et al.      Expires 9 September 2023               [Page 13]
+Tschofenig, et al.      Expires 14 September 2023              [Page 13]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
+   inner_recipient_header_pr_map =
+   {
+       1 => int,         ; algorithm identifier for ES-DH
      * label =values     ; extension point
    }
 
@@ -745,12 +748,23 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 5.2.4.  Example
 
-   This example uses the following parameters: - Algorithm for payload
-   encryption: AES-GCM-128 - Algorithm id for key wrap: A128KW -
-   Algorithm for ES-DH: ECDH-ES + HKDF-256 - IV: 0x26, 0x68, 0x23, 0x06,
-   0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80 - KID: "kid-1" -
-   Plaintext: "This is a real firmware image." - Firmware (hex):
-   546869732069732061207265616C206669726D7761726520696D6167652E
+   This example uses the following parameters:
+
+   *  Algorithm for payload encryption: AES-GCM-128
+
+   *  Algorithm id for key wrap: A128KW
+
+   *  Algorithm for ES-DH: ECDH-ES + HKDF-256
+
+   *  IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4,
+      0x3b, 0x80
+
+   *  KID: "kid-1"
+
+   *  Plaintext: "This is a real firmware image."
+
+   *  Firmware (hex):
+      546869732069732061207265616C206669726D7761726520696D6167652E
 
    The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
@@ -767,21 +781,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.      Expires 9 September 2023               [Page 14]
+Tschofenig, et al.      Expires 14 September 2023              [Page 14]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -837,7 +837,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 15]
+Tschofenig, et al.      Expires 14 September 2023              [Page 15]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -893,7 +893,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 16]
+Tschofenig, et al.      Expires 14 September 2023              [Page 16]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -949,7 +949,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 17]
+Tschofenig, et al.      Expires 14 September 2023              [Page 17]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1005,7 +1005,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 18]
+Tschofenig, et al.      Expires 14 September 2023              [Page 18]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1061,7 +1061,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 19]
+Tschofenig, et al.      Expires 14 September 2023              [Page 19]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1117,7 +1117,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 20]
+Tschofenig, et al.      Expires 14 September 2023              [Page 20]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1173,7 +1173,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 21]
+Tschofenig, et al.      Expires 14 September 2023              [Page 21]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1229,7 +1229,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 22]
+Tschofenig, et al.      Expires 14 September 2023              [Page 22]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1285,7 +1285,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 23]
+Tschofenig, et al.      Expires 14 September 2023              [Page 23]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1341,7 +1341,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 24]
+Tschofenig, et al.      Expires 14 September 2023              [Page 24]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1397,7 +1397,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 25]
+Tschofenig, et al.      Expires 14 September 2023              [Page 25]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1453,7 +1453,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 26]
+Tschofenig, et al.      Expires 14 September 2023              [Page 26]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests        March 2023
 
@@ -1509,4 +1509,4 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.      Expires 9 September 2023               [Page 27]
+Tschofenig, et al.      Expires 14 September 2023              [Page 27]

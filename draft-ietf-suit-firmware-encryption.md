@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-10
+docname: draft-ietf-suit-firmware-encryption-11
 category: std
 
 ipr: pre5378Trust200902
@@ -135,6 +135,7 @@ help increase interoperability between different SUIT manifest parser implementa
 While the original motivating use case of this document was firmware encryption, SUIT manifests
 may require payloads other than firmware images to experience confidentiality
 protection, such as
+
 - software packages,
 - personalization data, 
 - configuration data, and
@@ -416,6 +417,7 @@ The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
 to the content of the protected field from the COSE_Encrypt structure. 
 It is important to note that there are two protected fields shown 
 in {{cddl-aeskw}}:
+
 - one in the COSE_Encrypt structure, and 
 - a second one in the COSE_recipient structure.
 
@@ -425,6 +427,7 @@ The value of the external_aad MUST be set to a null value
 ### Example
 
 This example uses the following parameters:
+
 - Algorithm for payload encryption: AES-GCM-128
 - Algorithm id for key wrap: A128KW
 - IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
@@ -607,6 +610,7 @@ inner_recipient_header_unpr_map =
 ### Example
 
 This example uses the following parameters:
+
 - Algorithm for payload encryption: AES-GCM-128
 - Algorithm id for key wrap: A128KW
 - Algorithm for ES-DH: ECDH-ES + HKDF-256
@@ -670,8 +674,6 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
    )
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
-
-
 
 # CEK Verification {#cek-verification}
 
@@ -883,8 +885,6 @@ Legend:
 ~~~
 {: #aes-ctr-fig title="AES-CTR Operation"}
 
-
-
 # Complete Examples 
 
 [[Editor's Note: Add examples for a complete manifest here (including a digital signature), 
@@ -967,6 +967,7 @@ TBD2       CEK Verification     Section 4
  - TBD1: Proposed 19
  - TBD2: Proposed 20
 ]
+
 --- back
 
 # Acknowledgements
