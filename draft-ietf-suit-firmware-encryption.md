@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-11
+docname: draft-ietf-suit-firmware-encryption-12
 category: std
 
 ipr: pre5378Trust200902
@@ -265,6 +265,44 @@ suit-parameter-cek-verification  = [TBD2: Proposed 20]
 ~~~
 {: #parameter-fig title="Extended SUIT_Parameters CDDL."}
 
+# Extended Directives
+
+This specification extends these directives.
+
+- Directive Write (suit-directive-write) to decrypt the content specified by
+suit-parameter-content with suit-parameter-encryption-info.
+- Directive Copy (suit-directive-copy) to decrypt the content of the component
+specified by suit-parameter-source-component with suit-parameter-encryption-info.
+
+~~~
+/ directive-override-parameters / 20, {
+  / parameter-content / 18: h'EA1CED',
+  / parameter-encryption-info / 19: h'D860E1A1F0'
+},
+/ directive-write / 18, 15
+/ NOTE: decrypt h'EA1CED' using h'D860E1A1F0' /
+/ NOTE: plaintext payload is stored into component #0 /
+~~~
+{: #encryption-info-consumed-with-write title="Extended suit-directive-write example."
+
+~~~
+/ directive-set-component-index / 12, 1,
+/ directive-override-parameters / 20, {
+  / parameter-uri / 21: "http://example.com/encrypted.bin",
+},
+/ directive-fetch / 21, 15,
+/ NOTE: encrypted payload is stored into component #1 /
+/ directive-set-component-index / 12, 0,
+/ directive-override-parameters / 20, {
+  / parameter-source-component / 22: 1,
+  / parameter-encryption-info / 19: h'D860E1A1F0'
+},
+/ directive-copy / 22, 15
+/ NOTE: decrypt component #1 using h'D860E1A1F0' /
+/ NOTE: plaintext payload is stored into component #0 /
+~~~
+{: #encryption-info-consumed-with-copy title="Extended suit-directive-copy example."
+
 # Content Key Distribution Methods
 
 The sub-sections below describe two content key distribution mechanisms,
@@ -447,27 +485,27 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{aeskw-example}}. 
 
 ~~~
-96(
+96([
+  / protected: / << {
+    / alg / 1: 1 / AES-GCM-128 /
+  } >>,
+  / unprotected: / {
+    / IV / 5: h'1de460e8b5b68d7222c0d6f20484d8ab'
+  },
+  / payload: / null / detached ciphertext /,
+  / recipients: / [
     [
-        / protected field with alg=AES-GCM-128 /
-        h'A10101', 
-        {
-           / unprotected field with iv /
-           5: h'26682306D4FB28CA01B43B80'
-        }, 
-        / null value due to detached ciphertext /
-        null,
-        [ / recipients array /
-           h'', / protected field /
-           {    / unprotected field /
-              1: -3,            / alg=A128KW /
-              4: h'6B69642D31'  / key id /
-           }, 
-           / CEK encrypted with KEK /
-           h'AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D'
-        ]
+      / protected: / << {
+      } >>,
+      / unprotected: / {
+        / alg / 1: -3 / A128KW /,
+        / kid / 4: 'kid-1'
+      },
+      / payload: / h'a86200e4754733e4c00fc08c6a72cc1996e129922eab504f' / CEK encrypted with KEK /
     ]
-)
+  ]
+])
+
 ~~~
 {: #aeskw-example title="COSE_Encrypt Example for AES Key Wrap"}
 
@@ -913,10 +951,34 @@ bz/m4rVlnIXbwK07HypLbAmBMcCjbazR14vTgdzfsJwFLbM5kdtzOLSolg==
 
 Each example uses SHA-256 as the digest function.
 
-## AES Key Wrap Example {#example-AES-KW}
+## AES Key Wrap Example with Write Directive {#example-AES-KW-write}
+
+This SUIT Manifest requests parser to write and to decrypt the encrypted payload
+into a component with suit-directive-write.
+The size would be bigger because the encrypted payload is inside.
+Easy to understand and to process it.
 
 Diagnostic notation of the SUIT manifest (with line
-breaks added for readability). 
+breaks added for readability).
+
+~~~
+{::include examples/suit-manifest-aes-kw-content.diag.signed}
+~~~
+
+In hex
+
+~~~
+{::include examples/suit-manifest-aes-kw-content.hex.signed}
+~~~
+
+## AES Key Wrap Example with Fetch + Copy Directives {#example-AES-KW-copy}
+
+This SUIT Manifest requests parser to fetch the encrypted payload and to stores it,
+then decrypt it into another component with suit-directive-copy.
+Good for constrained devices with less working memory.
+
+Diagnostic notation of the SUIT manifest (with line
+breaks added for readability).
 
 ~~~
 {::include examples/suit-manifest-aes-kw.diag.signed}
