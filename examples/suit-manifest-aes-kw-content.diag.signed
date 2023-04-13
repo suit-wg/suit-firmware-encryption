@@ -3,8 +3,8 @@
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
       / digest-bytes: /
-      h'65576167AF903B981C419CDAC9B5F63C
-        3A697927CC7FBF81CD6E34F4A70BCB60'
+      h'21F91D0007458DED08ED6C3D6B9A6824
+        FE58100529DF05F5947BDD1FFF5DFBE9'
     ] >>,
     << / COSE_Sign1_Tagged / 18([
       / protected: / << {
@@ -13,10 +13,10 @@
       / unprotected: / {},
       / payload: / null,
       / signature: /
-      h'A8C807FF03015088492C9C3B0779A771
-        502639676E7D27C3D33E8432037FA9D1
-        FE948D3C4C82778A6E2B1ADA74287809
-        526014A2BACFDC64600F63847956AE6F'
+      h'B1614992A357783A6D35D7D77807D7DA
+        0F67E0CB5D0BDBFD592D9C45C5BDD3B6
+        828E3A7A1101B33D558EB7C5114D0571
+        22D69455972D9937A1000E8F10DD5A2E'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -25,23 +25,15 @@
     / common / 3: << {
       / components / 2: [
         [h'00'] / to be decrypted payload /,
-        [h'01'] / encrypted payload /
       ]
     } >>,
     / install / 17: << [
       / fetch encrypted firmware /
-      / directive-set-component-index / 12, 1 / [h'01'] /,
       / directive-override-parameters / 20, {
-        / parameter-uri / 21:
-        "https://author.example.com/encrypted-firmware.bin",
-        / parameter-image-size / 14: 47
-      },
-      / directive-fetch / 21, 15,
-
-      / decrypt encrypted firmware /
-      / directive-set-component-index / 12, 0 / [h'00'] /,
-      / directive-override-parameters / 20, {
-        / parameter-source-component / 22: 1 / [h'01'] /,
+        / parameter-content / 18:
+        h'2b3765ff457dd98a4ba7130a40462b66
+          3c08198146d23f3a32094392ca5040c3
+          121c8e5f4c04d5a3d1d6171bcf362b',
         / parameter-encryption-info / 19: << 96([
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
@@ -66,7 +58,9 @@
           ]
         ]) >>
       },
-      / directive-copy / 22, 15
+
+      / decrypt encrypted firmware /
+      / directive-write / 18, 15
       / consumes the SUIT_Encryption_Info above /,
 
       / verify decrypted firmware /
