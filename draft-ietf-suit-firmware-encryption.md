@@ -407,13 +407,13 @@ COSE_Encrypt = [
 outer_header_map_protected =
 {
     1 => int,         ; algorithm identifier
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 
 outer_header_map_unprotected = 
 {
     5 => bstr,        ; IV
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 
 COSE_recipient = [
@@ -426,7 +426,7 @@ recipient_header_map =
 {
     1 => int,         ; algorithm identifier
     4 => bstr,        ; key identifier
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 ~~~
 {: #cddl-aeskw title="CDDL for AES-KW-based Content Key Distribution"}
@@ -595,13 +595,13 @@ COSE_Encrypt = [
 outer_header_map_protected =
 {
     1 => int,         ; algorithm identifier
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 
 outer_header_map_unprotected = 
 {
     5 => bstr,        ; IV
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 
 COSE_recipient = [
@@ -615,7 +615,7 @@ recipient_header_map =
 {
     1 => int,         ; algorithm identifier for key wrap
     4 => bstr,        ; key identifier
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 
 COSE_recipient_inner = [
@@ -627,7 +627,7 @@ COSE_recipient_inner = [
 inner_recipient_header_pr_map = 
 {
     1 => int,         ; algorithm identifier for ES-DH
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 
 inner_recipient_header_unpr_map = 
@@ -635,7 +635,7 @@ inner_recipient_header_unpr_map =
     1 => int,         ; algorithm identifier
    -1 => COSE_Key,    ; ephemeral public key for the sender
     4 => bstr,        ; identifier of the recipient public key
-  * label =values     ; extension point
+  * label => values   ; extension point
 }
 ~~~
 {: #cddl-esdh title="CDDL for ES-DH-based Content Key Distribution"}
