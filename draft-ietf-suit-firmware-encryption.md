@@ -1,10 +1,10 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-12
+docname: draft-ietf-suit-firmware-encryption-13
 category: std
 
-ipr: pre5378Trust200902
+ipr: trust200902
 area: Security
 workgroup: SUIT
 keyword: Internet-Draft
@@ -237,32 +237,25 @@ supported:
 For both variants the key distribution data, which is embedded inside the
 COSE_Encrypt structure, is included in the SUIT manifest.
 
-# New Extensions {#parameters}
+# Encryption Extensions {#parameters}
 
-This specification introduces two extensions to the SUIT_Parameters structure.
+This specification introduces a new extension to the SUIT_Parameters structure.
 
-- A SUIT encryption info parameter (called suit-parameter-encryption-info),
-see {{parameter-fig}}, which contains key distribution information. It is carried
-within the suit-directive-override-parameters or the suit-directive-set-parameters
+The SUIT encryption info parameter (called suit-parameter-encryption-info),
+see {{parameter-fig}}, contains key distribution information. It is carried
+inside the suit-directive-override-parameters or the suit-directive-set-parameters
 structure. The content of the SUIT_Encryption_Info structure is explained in
 {{AES-KW}} (for AES-KW) and {{ES-DH}} (for ECDH-ES). An implementation claiming
 conformance with this specification must implement support for this parameter.
 A device may, however, support only one of the available key distribution techniques.
 
-- A CEK verification parameter (called suit-parameter-cek-verification), see
-{{parameter-fig}}, is utilized in environments where battery exhaustion attacks
-are a concern. Details about the CEK verification can be found in
-{{cek-verification}}. This parameter is optional to implement and use.
-
 ~~~
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
-SUIT_Parameters //= (suit-parameter-cek-verification => bstr)
 
 suit-parameter-encryption-info   = [TBD1: Proposed 19]
-suit-parameter-cek-verification  = [TBD2: Proposed 20]
 ~~~
-{: #parameter-fig title="Extended SUIT_Parameters CDDL."}
+{: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
 
 # Extended Directives
 
@@ -273,6 +266,9 @@ suit-parameter-content with suit-parameter-encryption-info.
 - Directive Copy (suit-directive-copy) to decrypt the content of the component
 specified by suit-parameter-source-component with suit-parameter-encryption-info.
 
+Examples of the two extensioned directives are shown in {{encryption-info-consumed-with-write}}
+and in {{encryption-info-consumed-with-copy}}.
+
 ~~~
 / directive-override-parameters / 20, {
   / parameter-content / 18: h'EA1CED',
@@ -282,7 +278,7 @@ specified by suit-parameter-source-component with suit-parameter-encryption-info
 / NOTE: decrypt h'EA1CED' using h'D860E1A1F0' /
 / NOTE: plaintext payload is stored into component #0 /
 ~~~
-{: #encryption-info-consumed-with-write title="Extended suit-directive-write example."}
+{: #encryption-info-consumed-with-write title="Example showing the Extended suit-directive-write."}
 
 ~~~
 / directive-set-component-index / 12, 1,
@@ -300,7 +296,7 @@ specified by suit-parameter-source-component with suit-parameter-encryption-info
 / NOTE: decrypt component #1 using h'D860E1A1F0' /
 / NOTE: plaintext payload is stored into component #0 /
 ~~~
-{: #encryption-info-consumed-with-copy title="Extended suit-directive-copy example."}
+{: #encryption-info-consumed-with-copy title="Example showing the Extended suit-directive-copy."}
 
 # Content Key Distribution Methods
 
@@ -710,32 +706,6 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
-# CEK Verification {#cek-verification}
-
-While the SUIT manifest is integrity protected and authenticated, the SUIT envelope
-is not protected cryptographically. Hence, an adversary located along the communication
-path between the sender and the recipient could modify the COSE_Encrypt structure
-(assuming that no other communication security mechanism is in use).
-
-For example, if the attacker alters the key distribution data then a recipient will
-decrypt the firmware image with an incorrect key. This will lead to expending
-energy and flash cycles until the failure is detected.
-
-To mitigate this attack, a new parameter, called suit-cek-verification, is added
-to the manifest. The suit-cek-verification parameter is optional to implement and
-optional to use. When used, it reduces the risk of a battery exhaustion attack against
-the IoT device.
-
-Since the manifest is protected by a digital signature or a MAC, an adversary cannot
-successfully modify this value. This parameter allows the recipient to verify
-whether the CEK has successfully been derived.
-
-The suit-cek-verification parameter contains a byte string resulting from the
-encryption of 8 bytes of 0xA5 using the CEK with a nonce of all zeros and empty
-additional data using the cipher algorithm and mode also used to encrypt the
-plaintext. The same nonce used for CEK verification MUST NOT be used to
-encrypt plaintext with the same CEK.
-
 # Firmware Updates on IoT Devices with Flash Memory.
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
@@ -920,9 +890,6 @@ Legend:
 
 # Complete Examples 
 
-[[Editor's Note: Add examples for a complete manifest here (including a digital signature), 
-multiple recipients, encryption of manifests (in comparison to firmware images).]]
-
 The following manifests examplify how to deliver encrypted firmware and its
 encryption info to devices.
 
@@ -1019,12 +986,10 @@ IANA is asked to add two values to the SUIT_Parameters registry established by
 Label      Name                 Reference
 -----------------------------------------
 TBD1       Encryption Info      Section 4
-TBD2       CEK Verification     Section 4
 ~~~
 
 [Editor's Note: 
  - TBD1: Proposed 19
- - TBD2: Proposed 20
 ]
 
 --- back
