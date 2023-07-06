@@ -63,6 +63,7 @@ normative:
   RFC8174:
   I-D.ietf-suit-manifest:
   I-D.ietf-cose-aes-ctr-and-cbc:
+  I-D.isobe-cose-key-thumbprint:
 
 informative:
   RFC9019:
@@ -429,11 +430,11 @@ recipient_header_map =
 
 Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}},
 does not have public parameters that vary on a per-invocation basis. Hence,
-the protected parameter in the COSE_recipient structure is a byte string
+the protected header in the COSE_recipient structure is a byte string
 of zero length.
 
 The COSE specification requires a consistent byte stream for the authenticated
-data structure to be created. This structure is replaced in {{cddl-enc-aeskw}}.
+data structure to be created. This structure is shown in {{cddl-enc-aeskw}}.
 
 ~~~
        Enc_structure = [
@@ -521,15 +522,15 @@ encryption given a recipient's public key. There are multiple variants
 of this scheme; this document re-uses the variant specified in Section 8.5.5
 of {{RFC9052}}.
 
-The following three layer structure is used:
+The following two layer structure is used:
 
 - Layer 0: Has a content encrypted with the CEK. The content may be detached.
 - Layer 1: Uses the AES Key Wrap algorithm to encrypt a randomly generated
-CEK with the KEK derived by layer 2.
-- Layer 2: Uses ECDH Ephemeral-Static direct to generate the KEK for layer 1.
+CEK with the KEK derived with ECDH Ephemeral-Static whereby the resulting symmetric
+key is fed into the HKDF-based key derivation function.
 
-As a result, the three layers combine ECDH-ES with AES-KW. An example is
-given in Appendix B of RFC 9052 and in {{esdh-example}}.
+As a result, the two layers combine ECDH-ES with AES-KW and HKDF. An example is
+given in {{esdh-example}}.
 
 ### Deployment Options
 
@@ -601,34 +602,19 @@ outer_header_map_unprotected =
 }
 
 COSE_recipient = [
-  protected   : bstr .size 0,
-  unprotected : recipient_header_map,
+  protected   : bstr .cbor recipient_header_pr_map,
+  unprotected : recipient_header_unpr_map,
   ciphertext  : bstr        ; CEK encrypted with KEK
-  recipients : [ + COSE_recipient_inner ]  
 ]
 
-recipient_header_map = 
+recipient_header_pr_map = 
 {
     1 => int,         ; algorithm identifier for key wrap
-    4 => bstr,        ; key identifier
   * label => values   ; extension point
 }
 
-COSE_recipient_inner = [
-  protected   : bstr .cbor inner_recipient_header_pr_map,
-  unprotected : inner_recipient_header_unpr_map,
-  ciphertext  : nil
-]
-
-inner_recipient_header_pr_map = 
+recipient_header_unpr_map = 
 {
-    1 => int,         ; algorithm identifier for ES-DH
-  * label => values   ; extension point
-}
-
-inner_recipient_header_unpr_map = 
-{
-    1 => int,         ; algorithm identifier
    -1 => COSE_Key,    ; ephemeral public key for the sender
     4 => bstr,        ; identifier of the recipient public key
   * label => values   ; extension point
@@ -636,15 +622,81 @@ inner_recipient_header_unpr_map =
 ~~~
 {: #cddl-esdh title="CDDL for ES-DH-based Content Key Distribution"}
 
+### Context Information Structure
+
+The context information structure is used to ensure that the derived keying material 
+is "bound" to the context of the transaction. This specification re-uses the structure
+defined in Section 5.2 of RFC 9053 and tailors it accordingly.
+
+The following information elements are bound to the context:
+
+* the hash of the public key of the sender, 
+* the hash of the public key of the recipient,
+* the protocol employing the key-derivation method,
+* information about the utilized algorithms
+  (including the payload encryption algorithms,
+   the content key encryption algorithm,
+   and the key length).
+
+The following fields require an explaination:
+
+- The identity fields in the PartyInfoSender and the PartyInfoRecipient structures
+contain the COSE_Key Thumbprint of the public keys of the sender and the recipient,
+respectively. The details for computing these thumbprints are described in 
+{{I-D.isobe-cose-key-thumbprint}}.
+
+- The COSE_KDF_Context.AlgorithmID field contains the value found in the
+alg field of the protected header in the COSE_Encrypt structure. This is the content
+encryption algorithm identifier.
+
+- The COSE_KDF_Context.SuppPubInfo.keyDataLength field contains the key length
+of the algorithm in the alg field of the protected header in the COSE_Encrypt structure 
+expressed as the number of bits.
+
+- The COSE_KDF_Context.SuppPubInfo.other field captures the protocol in
+which the ES-DH content key distribution algorithm is used and it is set to
+the constant string "SUIT Payload Encryption".
+
+- The COSE_KDF_Context.SuppPubInfo.protected field serializes the content 
+of the recipient_header_pr_map field, which contains the content key distribution
+algorithm identifier.
+
+~~~
+PartyInfoSender = (
+    identity : bstr,
+    nonce : nil,
+    other : bstr .size 0
+)
+
+PartyInfoRecipient = (
+    identity : bstr,
+    nonce : nil,
+    other : bstr .size 0
+)
+
+COSE_KDF_Context = [
+    AlgorithmID : int,
+    PartyUInfo : [ PartyInfoSender ],
+    PartyVInfo : [ PartyInfoRecipient ],
+    SuppPubInfo : [
+        keyDataLength : uint,
+        protected : bstr .cbor recipient_header_pr_map,
+        other: bstr "SUIT Payload Encryption"
+    ],
+    SuppPrivInfo : bstr .size 0
+]
+~~~
+{: #cddl-esdh title="CDDL for COSE_KDF_Context Structure"}
+
+ 
 ### Example
 
 This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-GCM-128
-- Algorithm id for key wrap: A128KW
-- Algorithm for ES-DH: ECDH-ES + HKDF-256
 - IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb,
       0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
+- Algorithm for content key distribution: ECDH-ES + A128KW
 - KID: "kid-1"
 - Plaintext: "This is a real firmware image."
 - Firmware (hex):
@@ -653,56 +705,50 @@ This example uses the following parameters:
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
 ~~~
-D8608443A10101A1054C26682306D4FB28CA01B43B80F6818440A101225
-818DBD43C4E9D719C27C6275C67D628D493F090593DB8218F11818344A1
-013818A220A401022001215820B2ADD44368EA6D641F9CA9AF308B4079A
-EB519F11E9B8A55A600B21233E86E6822F404456B69642D3140
+D8608443A10101A1054C26682306D4FB28CA01B43B805823F21AC5881CD6FC45754
+C65790F806C81A57B8D96C1988233BF40F670172405B5F107FD8444A101381C44A1
+01381CA220A401022001215820415A8ED270C4B1F10B0A2D42B28EE6028CE25D745
+52CB4291A4069A2E989B0F6225820CCC9AAF60514B9420C80619A4FF068BC1D7762
+5BA8C90200882F7D5B73659E7604456B69642D315818B37CCD582696E5E62E5D93A
+555E9072687D6170B122322EE
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in 
 {{aeskw-example}}. 
 
 ~~~
-  96(
-     [
-       / protected / h'a10101' / {
-           \ alg \ 1:1 \ AES-GCM-128 \
+96(
+  [
+   / protected / h'a10101' / {
+       \ alg \ 1:1 \ AES-GCM-128 \
+     } / ,
+   / unprotected / {
+     / iv / 5:h'26682306D4FB28CA01B43B80'
+     },
+   / encrypted firmware /
+    h'F21AC5881CD6FC45754C65790F806C81A57
+      B8D96C1988233BF40F670172405B5F107FD',
+    [
+       / protected / h'A101381C' / {
+           \ alg \ 1:-29 \ ECDH-ES + A128KW \
          } / ,
+         h'A101381C',
        / unprotected / {
-         / iv / 5:h'26682306D4FB28CA01B43B80'
-         },
-       / null value due to detached ciphertext /
-         null,
-       / recipients / [
-         [
-           / protected / h'',
-           / unprotected / {
-             / alg / 1:-3 / A128KW /
-           },
-           / ciphertext - CEK encrypted with KEK /
-           h'dbd43c4e9d719c27c6275c67d628d493f090593db8218f11',
-           / recipients-inner / [
-             [
-               / protected / h'a1013818' / {
-                   \ alg \ 1:-25 \ ECDH-ES + HKDF-256 \
-                 } / ,
-               / unprotected / {
-                 / ephemeral / -1:{
+             / ephemeral / -1: {
                    / kty / 1:2,
                    / crv / -1:1,
-                   / x / -2:h'b2add44368ea6d641f9ca9af308b4079
-                              aeb519f11e9b8a55a600b21233e86e68',
-                   / y / -3:false
+                   / x / -2:h'415A8ED270C4B1F10B0A2D42B28EE602
+                              8CE25D74552CB4291A4069A2E989B0F6',
+                   / y / -3:h'CCC9AAF60514B9420C80619A4FF068BC
+                              1D77625BA8C90200882F7D5B73659E76'
                  },
                  / kid / 4:'kid-1'
-               },
-               / ciphertext / h''
-             ]
-           ]
-         ]
-       ]
-     ]
-   )
+        },
+        / ciphertext - CEK encrypted with KEK /
+        h'B37CCD582696E5E62E5D93A555E9072687D6170B122322EE'
+    ]
+  ]
+)
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
@@ -961,9 +1007,9 @@ The algorithms described in this document assume that the party performing paylo
 - is in possession of the public key of the recipient (for use with ECDH-ES).
 
 Both cases require some upfront communication interaction. This interaction is likely provided by
-an IoT device management solution, as described in {{RFC9019}}.
+an device management solution, as described in {{RFC9019}}.
 
-For AES Key Wrap to provide high security it is important that the KEK is of high entropy,
+To provide high security for AES Key Wrap it is important that the KEK is of high entropy,
 and that implementations protect the KEK from disclosure. Compromise of the KEK may result
 in the disclosure of all key data protected with that KEK.
 
@@ -997,8 +1043,8 @@ TBD1       Encryption Info      Section 4
 # Acknowledgements
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
-Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, and
-Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
+Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
+Lundblade, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
 making us aware of the challenges firmware encryption imposes on binary analysis.
 
 
