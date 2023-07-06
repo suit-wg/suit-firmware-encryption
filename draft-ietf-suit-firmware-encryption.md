@@ -638,7 +638,7 @@ The following information elements are bound to the context:
    the content key encryption algorithm,
    and the key length).
 
-The following fields require an explaination:
+The following fields in {{cddl-context-info}} require an explantation:
 
 - The identity fields in the PartyInfoSender and the PartyInfoRecipient structures
 contain the COSE_Key Thumbprint of the public keys of the sender and the recipient,
@@ -686,7 +686,7 @@ COSE_KDF_Context = [
     SuppPrivInfo : bstr .size 0
 ]
 ~~~
-{: #cddl-esdh title="CDDL for COSE_KDF_Context Structure"}
+{: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 
  
 ### Example
@@ -714,7 +714,7 @@ C65790F806C81A57B8D96C1988233BF40F670172405B5F107FD8444A101381C44A1
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in 
-{{aeskw-example}}. 
+{{esdh-example}}. 
 
 ~~~
 96(
@@ -752,7 +752,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
-# Firmware Updates on IoT Devices with Flash Memory.
+# Firmware Updates on IoT Devices with Flash Memory
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
 data in units called blocks, pages or sectors and re-writes data at byte level
