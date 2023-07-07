@@ -233,10 +233,23 @@ supported:
   of devices that need to receive encrypted payloads changes dynamically
   or when updates to KEKs or recipient public keys are necessary. As a downside,
   the author needs to trust the distribution system with performing the
-  re-encryption of the payload.
+  re-encryption of the payload. Further, the author must provide the recipients
+  with a public key for the distribution system.
 
 For both variants the key distribution data, which is embedded inside the
 COSE_Encrypt structure, is included in the SUIT manifest.
+
+If the author chooses to delegate encryption to the distribution system, they
+must decide between two distribution models:
+
+1. The distributor replaces the COSE_Encrypt in the manifest and then signs the
+ manifest again.
+
+2. The distributor constructs a new manifest containing the COSE_Encrypt, and
+ a dependency on the Author's manifest, then signs the new manifest.
+
+The first option gives the distributor de-facto code signing authority, while
+the second option requires two manifests to be distributed. 
 
 # Encryption Extensions {#parameters}
 
@@ -1022,6 +1035,39 @@ companies either need to be given access to the plaintext binary before encrypti
 to become authorized recipients of the encrypted payloads. In either case, it is necessary to
 explicitly consider those third parties in the software supply chain when such a binary analysis
 is desired.
+
+If the author and distributor are separate entities, then the author must delegate encryption
+rights to the distributor. By the principle of least privilege, this should only grant the
+distributor decryption and re-encryption rights. However, the COSE_Encrypt structure is contained
+within a signed container, which presents a problem: replacing the COSE_Encrypt with a new one
+will cause the digest of the manifest to change, thereby changing the signature. This means that
+the distributor must be able to sign the new manifest. If this is the case, then the distributor
+gains the ability to construct and sign manifests, which allows the distributor the authority
+to sign code, effectively presenting the distributor with full control over the recipient.
+
+The alternative to this approach is to use a 2-manifest system, where the distributor constructs
+a new manifest that overrides the COSE_Encrypt using the dependency system defined in
+{{I-D.ietf-suit-trust-domains}}. This incurrs additional overhead: one additional signature
+verification and one additional manifest, as well as the additional machinery in the recipient
+needed for dependency processing.
+
+These two alternatives also present different threat profiles for the distributor. If the
+distributor only has code signing rights, then an attacker who breaches the distributor can only
+mount a limited attack: they can encrypt a modified binary, but the recipients will identify
+the attack as soon as they perform the required image digest check and revert back to a correct
+image immediately.
+
+However, if the distributor has the authority to sign a single manifest, this threat profile is
+substantially degraded: a successful breach of the distributor grants the attacker the ability
+to distribute whatever code they like to recipient devices. The recipient will validate the
+signature of the code and run it without identifying the attack. Because distributors typically
+must perform their re-encryption online in order to handle a large number of devices in a timely
+fashion, it is not possible to air-gap the distributor's signing operations. This degrades
+the recommendations in {{RFC9124}}, Section 4.3.17.
+
+It is STRONGLY RECOMMENDED that distributors are implemented using a 2-manifest system in order
+to distribute encryption keys without requiring re-signing of the manifest, despite the increase
+in complexity and greater number of signature verifications that this imposes on the recipient.
 
 #  IANA Considerations
 
