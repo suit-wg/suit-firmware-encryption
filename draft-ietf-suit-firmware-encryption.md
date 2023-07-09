@@ -1065,7 +1065,8 @@ must perform their re-encryption online in order to handle a large number of dev
 fashion, it is not possible to air-gap the distributor's signing operations. This degrades
 the recommendations in {{RFC9124}}, Section 4.3.17.
 
-It is STRONGLY RECOMMENDED that distributors are implemented using a two-manifest system in order
+It is strongly RECOMMENDED that distributors are implemented using a two-manifest system in order
+
 
 to distribute encryption keys without requiring re-signing of the manifest, despite the increase
 in complexity and greater number of signature verifications that this imposes on the recipient.
