@@ -64,6 +64,7 @@ normative:
   I-D.ietf-suit-manifest:
   I-D.ietf-cose-aes-ctr-and-cbc:
   I-D.isobe-cose-key-thumbprint:
+  I-D.ietf-suit-trust-domains:
 
 informative:
   RFC9019:
@@ -125,16 +126,17 @@ A symmetric key can be established using a variety of mechanisms; this document
 defines two approaches for use with the IETF SUIT manifest, namely:
 
 - Ephemeral-Static (ES) Diffie-Hellman (DH), and
-- AES Key Wrap (AES-KW) using a pre-shared key-encryption key (KEK).
+- AES Key Wrap (AES-KW) with a pre-shared key-encryption key (KEK).
 
-OPEN ISSUE: Should KEM algorithms also be supported?
+The former relies on asymmetric key cryptography while the latter uses symmetric key
+cryptography for content key distribution.
 
-These choices reduce the number of possible key establishment options and thereby
-help increase interoperability between different SUIT manifest parser implementations.
+Our goal was to reduce the number of content key distribution options and thereby
+increase interoperability between different SUIT manifest parser implementations.
 
-While the original motivating use case of this document was firmware encryption, SUIT manifests
-may require payloads other than firmware images to experience confidentiality
-protection, such as
+While the original motivating use case of this document was firmware encryption,
+SUIT manifests may require payloads other than firmware images to experience
+confidentiality protection, such as
 
 - software packages,
 - personalization data,
@@ -159,7 +161,15 @@ The terms sender and recipient have the following meaning:
 * Sender: Role of the entity that sends an encrypted payload.
 * Recipient: Role of the entity that receives an encrypted payload.
 
-Additionally, the following abbreviations are used in this document:
+Additionally, we introduce the term "distribution system" (or distributor)
+to refer to an entity that knows the recipients of the firmware images.
+For use of encryption it therefore either knows the public key of the
+recipient (for ES-DH), or the KEK (for AES-KW). The author on the other
+hand does not know the recipients, which is responsible for creating the
+firmware image. It is important to note that the distribution system is
+far more than a file server.
+
+Finally, the following abbreviations are used in this document:
 
 * Key Wrap (KW), defined in {{RFC3394}} (for use with AES)
 * Key-Encryption Key (KEK) {{RFC3394}}
@@ -178,37 +188,39 @@ roles are separated in different physical entities and in others they are
 co-located.
 
 {{arch-fig}} shows the distribution system, which represents the firmware
-server and the device management infrastructure. The distribution system is
-aware of the individual devices to which a payload has to be delivered. The
-author is typically unaware which devices need to receive these payloads.
+server and the device management infrastructure.
 
-To apply encryption the sender needs to know the recipient. For AES-KW the
-KEK needs to be known and, in case of ES-DH, the sender needs to be in possession
-of the public key of the recipient. The DH public key and parameters may be in
-the recipient's X.509 certificate {{RFC5280}}.
+To apply encryption the sender (author) needs to know the recipient (device).
+For AES-KW the KEK needs to be known and, in case of ES-DH, the sender needs
+to be in possession of the public key of the recipient. The public key and
+parameters may be in the recipient's X.509 certificate {{RFC5280}}.
+Furthermore, for ES-DH the recipients must be provisioned with a public key
+(or certificate) for digital signature verification of the manifest.
 
-If the author delegates the task of identifying the recipients of the payloads
-to the distribution system, it needs to trust it with the appropriate
-protection of the plaintext firmware image before encryption is performed.
+With encryption the author cannot just create a manifest for the firmware
+image and sign it since the subsequent encryption step by the distribution
+system would invalidate the signature over the manifest. (The content key
+distribution information is embedded inside the COSE_Encrypt structure,
+which is included in the SUIT manifest.) Hence, the author has to
+collaborate with the distribution system. The varying degree of
+collaboration is discussed below.
 
 ~~~
                                            +----------+
-                                           |          |
                                            |  Author  |
-                                           |          |
  +----------+                              +----------+
  |  Device  |---+                               |
  |          |   |                               | Firmware +
  |          |   |                               | Manifest
  +----------+   |                               |
                 |                               |
+                |                               |
                 |                        +--------------+
-                |                        |              |
  +----------+   |  Firmware + Manifest   | Distribution |
  |  Device  |---+------------------------|    System    |
- |          |   |                        |              |
- |          |   |                        |              |
- +----------+   |                        +--------------+
+ |          |   |                        +--------------+
+ |          |   |
+ +----------+   |
                 |
                 |
  +----------+   |
@@ -219,12 +231,12 @@ protection of the plaintext firmware image before encryption is performed.
 ~~~
 {: #arch-fig title="Firmware Encryption Architecture."}
 
-To offer confidentiality protection two deployment variants need to be
-supported:
+The author has several deployment options, namely
 
-* The author, as the sender, transmits the encrypted payload to a single
-  device, or to multiple devices. The device(s) perform decryption and
-  act as recipients.
+* The author, as the sender, obtains information about the recipients
+  and their keys from the distribution system. Then, it performs the necessary
+  steps to encrypt the payload. As a last step it creates one or more manifests.
+  The device(s)perform decryption and act as recipients.
 
 * The author treats the distribution system as the initial recipient. Then,
   the distribution system decrypts and re-encrypts the payload for consumption
@@ -233,23 +245,44 @@ supported:
   of devices that need to receive encrypted payloads changes dynamically
   or when updates to KEKs or recipient public keys are necessary. As a downside,
   the author needs to trust the distribution system with performing the
-  re-encryption of the payload. Further, the author must provide the recipients
-  with a public key for the distribution system.
+  re-encryption of the payload.
 
-For both variants the key distribution data, which is embedded inside the
-COSE_Encrypt structure, is included in the SUIT manifest.
-
-If the author chooses to delegate encryption to the distribution system, they
-must decide between two distribution models:
+If the author and distributor are separate entities, then the author must delegate
+encryption rights to the distributor. By the principle of least privilege, this
+should only grant the distributor decryption and re-encryption rights. There are
+two models:
 
 1. The distributor replaces the COSE_Encrypt in the manifest and then signs the
- manifest again.
+manifest again. However, the COSE_Encrypt structure is contained
+within a signed container, which presents a problem: replacing the COSE_Encrypt with a new one
+will cause the digest of the manifest to change, thereby changing the signature. This means that
+the distributor must be able to sign the new manifest. If this is the case, then the distributor
+gains the ability to construct and sign manifests, which allows the distributor the authority
+to sign code, effectively presenting the distributor with full control over the recipient.
 
-2. The distributor constructs a new manifest containing the COSE_Encrypt, and
- a dependency on the Author's manifest, then signs the new manifest.
+2. The alternative is to use a two-manifest system, where the distributor constructs
+a new manifest that overrides the COSE_Encrypt using the dependency system defined in
+{{I-D.ietf-suit-trust-domains}}. This incurrs additional overhead: one additional signature
+verification and one additional manifest, as well as the additional machinery in the recipient
+needed for dependency processing.
 
-The first option gives the distributor de-facto code signing authority, while
-the second option requires two manifests to be distributed. 
+These two models also present different threat profiles for the distributor. If the
+distributor only has code signing rights, then an attacker who breaches the distributor can only
+mount a limited attack: they can encrypt a modified binary, but the recipients will identify
+the attack as soon as they perform the required image digest check and revert back to a correct
+image immediately.
+
+However, if the distributor has the authority to sign a single manifest, this threat profile is
+substantially degraded: a successful breach of the distributor grants the attacker the ability
+to distribute whatever code they like to recipient devices. The recipient will validate the
+signature of the code and run it without identifying the attack. Because distributors typically
+must perform their re-encryption online in order to handle a large number of devices in a timely
+fashion, it is not possible to air-gap the distributor's signing operations. This degrades
+the recommendations in {{RFC9124}}, Section 4.3.17.
+
+It is strongly RECOMMENDED that distributors are implemented using a two-manifest system in order
+to distribute encryption keys without requiring re-signing of the manifest, despite the increase
+in complexity and greater number of signature verifications that this imposes on the recipient.
 
 # Encryption Extensions {#parameters}
 
@@ -1035,42 +1068,6 @@ companies either need to be given access to the plaintext binary before encrypti
 to become authorized recipients of the encrypted payloads. In either case, it is necessary to
 explicitly consider those third parties in the software supply chain when such a binary analysis
 is desired.
-
-If the author and distributor are separate entities, then the author must delegate encryption
-rights to the distributor. By the principle of least privilege, this should only grant the
-distributor decryption and re-encryption rights. However, the COSE_Encrypt structure is contained
-within a signed container, which presents a problem: replacing the COSE_Encrypt with a new one
-will cause the digest of the manifest to change, thereby changing the signature. This means that
-the distributor must be able to sign the new manifest. If this is the case, then the distributor
-gains the ability to construct and sign manifests, which allows the distributor the authority
-to sign code, effectively presenting the distributor with full control over the recipient.
-
-The alternative to this approach is to use a two-manifest system, where the distributor constructs
-
-a new manifest that overrides the COSE_Encrypt using the dependency system defined in
-{{I-D.ietf-suit-trust-domains}}. This incurrs additional overhead: one additional signature
-verification and one additional manifest, as well as the additional machinery in the recipient
-needed for dependency processing.
-
-These two alternatives also present different threat profiles for the distributor. If the
-distributor only has code signing rights, then an attacker who breaches the distributor can only
-mount a limited attack: they can encrypt a modified binary, but the recipients will identify
-the attack as soon as they perform the required image digest check and revert back to a correct
-image immediately.
-
-However, if the distributor has the authority to sign a single manifest, this threat profile is
-substantially degraded: a successful breach of the distributor grants the attacker the ability
-to distribute whatever code they like to recipient devices. The recipient will validate the
-signature of the code and run it without identifying the attack. Because distributors typically
-must perform their re-encryption online in order to handle a large number of devices in a timely
-fashion, it is not possible to air-gap the distributor's signing operations. This degrades
-the recommendations in {{RFC9124}}, Section 4.3.17.
-
-It is strongly RECOMMENDED that distributors are implemented using a two-manifest system in order
-
-
-to distribute encryption keys without requiring re-signing of the manifest, despite the increase
-in complexity and greater number of signature verifications that this imposes on the recipient.
 
 #  IANA Considerations
 
