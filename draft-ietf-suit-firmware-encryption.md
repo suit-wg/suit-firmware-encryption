@@ -1045,7 +1045,8 @@ the distributor must be able to sign the new manifest. If this is the case, then
 gains the ability to construct and sign manifests, which allows the distributor the authority
 to sign code, effectively presenting the distributor with full control over the recipient.
 
-The alternative to this approach is to use a 2-manifest system, where the distributor constructs
+The alternative to this approach is to use a two-manifest system, where the distributor constructs
+
 a new manifest that overrides the COSE_Encrypt using the dependency system defined in
 {{I-D.ietf-suit-trust-domains}}. This incurrs additional overhead: one additional signature
 verification and one additional manifest, as well as the additional machinery in the recipient
