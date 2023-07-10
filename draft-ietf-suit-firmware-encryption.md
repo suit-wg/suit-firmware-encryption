@@ -267,7 +267,7 @@ verification and one additional manifest, as well as the additional machinery in
 needed for dependency processing.
 
 These two models also present different threat profiles for the distributor. If the
-distributor only has code signing rights, then an attacker who breaches the distributor can only
+distributor only has encryption rights, then an attacker who breaches the distributor can only
 mount a limited attack: they can encrypt a modified binary, but the recipients will identify
 the attack as soon as they perform the required image digest check and revert back to a correct
 image immediately.
