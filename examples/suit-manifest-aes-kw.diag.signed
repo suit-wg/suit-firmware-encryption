@@ -2,9 +2,8 @@
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: /
-      h'65576167AF903B981C419CDAC9B5F63C
-        3A697927CC7FBF81CD6E34F4A70BCB60'
+      / digest-bytes: / h'C6A66263CCF4C6FF5992AE4074B30DDD
+                          34520AA099F6BAD96B2F60FE79F07EC4'
     ] >>,
     << / COSE_Sign1_Tagged / 18([
       / protected: / << {
@@ -12,11 +11,10 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: /
-      h'A8C807FF03015088492C9C3B0779A771
-        502639676E7D27C3D33E8432037FA9D1
-        FE948D3C4C82778A6E2B1ADA74287809
-        526014A2BACFDC64600F63847956AE6F'
+      / signature: / h'DA08C3A6455FF30865A97A7F4FBC3BA1
+                       5F954E39B57167DEA9FE16EBA12CFE33
+                       D58790DB64CB70A08F89513B15CFF995
+                       1222868195224E1AB87D46FA37F58864'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -24,30 +22,30 @@
     / manifest-sequence-number / 2: 1,
     / common / 3: << {
       / components / 2: [
-        [h'00'] / to be decrypted payload /,
-        [h'01'] / encrypted payload /
+        ['plaintext-firmware'],
+        ['encrypted-firmware']
       ]
     } >>,
     / install / 17: << [
       / fetch encrypted firmware /
-      / directive-set-component-index / 12, 1 / [h'01'] /,
+      / directive-set-component-index / 12, 1
+        / ['encrypted-firmware'] /,
       / directive-override-parameters / 20, {
-        / parameter-uri / 21:
-        "https://author.example.com/encrypted-firmware.bin",
-        / parameter-image-size / 14: 47
+        / parameter-image-size / 14: 46,
+        / parameter-uri / 21: "https://example.com/encrypted-firmware"
       },
       / directive-fetch / 21, 15,
 
       / decrypt encrypted firmware /
-      / directive-set-component-index / 12, 0 / [h'00'] /,
+      / directive-set-component-index / 12, 0
+        / ['plaintext-firmware'] /,
       / directive-override-parameters / 20, {
-        / parameter-source-component / 22: 1 / [h'01'] /,
         / parameter-encryption-info / 19: << 96([
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
           } >>,
           / unprotected: / {
-            / IV / 5: h'1de460e8b5b68d7222c0d6f20484d8ab'
+            / IV / 5: h'11D40BB56C3836AD44B39835B3ABC7FC'
           },
           / payload: / null / detached ciphertext /,
           / recipients: / [
@@ -59,27 +57,15 @@
                 / kid / 4: 'kid-1'
               },
               / payload: /
-              h'a86200e4754733e4c00fc08c
-                6a72cc1996e129922eab504f'
-              / CEK encrypted with KEK /
+                h'E01F4443C88CA89DF93A9C7E6D79D1C9BC330757C7D2D75A'
+                / CEK encrypted with KEK /
             ]
           ]
-        ]) >>
+        ]) >>,
+        / parameter-source-component / 22: 1 / ['encrypted-firmware'] /
       },
       / directive-copy / 22, 15
-      / consumes the SUIT_Encryption_Info above /,
-
-      / verify decrypted firmware /
-      / directive-override-parameters / 20, {
-        / parameter-image-digest / 3: << [
-          / digest-algorithm-id: / -16 / SHA-256 /,
-          / digest-bytes: /
-          h'efe16b6a486ff25e9fb5fabf515e2bfc
-            3f38b405de377477b23275b53049b46b'
-        ] >>,
-        / parameter-image-size / 14: 31
-      },
-      / condition-image-match / 3, 15
+        / consumes the SUIT_Encryption_Info above /
     ] >>
   } >>
 })

@@ -436,39 +436,24 @@ and transmitting payloads only once.
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-aeskw}}.
 
 ~~~
-COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
- 
-SUIT_Encryption_Info = COSE_Encrypt_Tagged
-
-COSE_Encrypt = [
+SUIT_Encryption_Info_AESKW = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
   ciphertext  : bstr / nil,
-  recipients  : [ + COSE_recipient ]
+  recipients  : [ + COSE_recipient_AESKW .within COSE_recipient ]
 ]
 
-outer_header_map_protected =
-{
-    1 => int,         ; algorithm identifier
-  * label => values   ; extension point
-}
-
-outer_header_map_unprotected = 
-{
-    5 => bstr,        ; IV
-  * label => values   ; extension point
-}
-
-COSE_recipient = [
-  protected   : bstr .size 0,
-  unprotected : recipient_header_map,
+COSE_recipient_AESKW = [
+  protected   : bstr .size 0 / bstr .cbor empty_map,
+  unprotected : recipient_header_unpr_map_aeskw,
   ciphertext  : bstr        ; CEK encrypted with KEK
 ]
+empty_map = {}
 
-recipient_header_map = 
+recipient_header_unpr_map_aeskw =
 {
     1 => int,         ; algorithm identifier
-    4 => bstr,        ; key identifier
+  ? 4 => bstr,        ; identifier of the recipient public key
   * label => values   ; extension point
 }
 ~~~
@@ -510,7 +495,7 @@ This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-GCM-128
 - Algorithm id for key wrap: A128KW
-- IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
+- IV: h'11D40BB56C3836AD44B39835B3ABC7FC'
 - KEK: "aaaaaaaaaaaaaaaa"
 - KID: "kid-1"
 - Plaintext firmware (txt): "This is a real firmware image."
@@ -519,44 +504,21 @@ This example uses the following parameters:
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
 ~~~
-D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
-315818AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D
+{::include examples/suit-encryption-info-aes-kw.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-example}}. 
+{{aeskw-example}}.
 
 ~~~
-96([
-  / protected: / << {
-    / alg / 1: 1 / AES-GCM-128 /
-  } >>,
-  / unprotected: / {
-    / IV / 5: h'1de460e8b5b68d7222c0d6f20484d8ab'
-  },
-  / payload: / null / detached ciphertext /,
-  / recipients: / [
-    [
-      / protected: / << {
-      } >>,
-      / unprotected: / {
-        / alg / 1: -3 / A128KW /,
-        / kid / 4: 'kid-1'
-      },
-      / payload: CEK encrypted with KEK /
-      h'a86200e4754733e4c00fc08c6a72cc1996e129922eab504f'
-    ]
-  ]
-])
+{::include examples/suit-encryption-info-aes-kw.diag}
 ~~~
 {: #aeskw-example title="COSE_Encrypt Example for AES Key Wrap"}
 
-The CEK, in hex format, was "4C805F1587D624ED5E0DBB7A7F7FA7EB".
 The encrypted firmware (with a line feed added) was:
 
-~~~ 
-A8B6E61EF17FBAD1F1BF3235B3C64C06098EA512223260
-F9425105F67F0FB6C92248AE289A025258F06C2AD70415
+~~~
+{::include examples/encrypted-payload-aes-kw.hex}
 ~~~
 
 ## Content Key Distribution with Ephemeral-Static Diffie-Hellman {#ES-DH}
@@ -624,45 +586,29 @@ ENC(payload_i,CEK_i).
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-esdh}}.
 
 ~~~
-COSE_Encrypt_Tagged = #6.96(COSE_Encrypt)
- 
-SUIT_Encryption_Info = COSE_Encrypt_Tagged
-
-COSE_Encrypt = [
+SUIT_Encryption_Info_ESDH = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
   ciphertext  : bstr / nil,
-  recipients  : [ + COSE_recipient ]
+  recipients  : [ + COSE_recipient_ESDH .within COSE_recipient ]
 ]
 
-outer_header_map_protected =
+COSE_recipient_ESDH = [
+  protected   : bstr .cbor recipient_header_map_esdh,
+  unprotected : recipient_header_unpr_map_esdh,
+  ciphertext  : bstr        ; CEK encrypted with KEK
+]
+
+recipient_header_map_esdh =
 {
     1 => int,         ; algorithm identifier
   * label => values   ; extension point
 }
 
-outer_header_map_unprotected = 
-{
-    5 => bstr,        ; IV
-  * label => values   ; extension point
-}
-
-COSE_recipient = [
-  protected   : bstr .cbor recipient_header_pr_map,
-  unprotected : recipient_header_unpr_map,
-  ciphertext  : bstr        ; CEK encrypted with KEK
-]
-
-recipient_header_pr_map = 
-{
-    1 => int,         ; algorithm identifier for key wrap
-  * label => values   ; extension point
-}
-
-recipient_header_unpr_map = 
+recipient_header_unpr_map_esdh =
 {
    -1 => COSE_Key,    ; ephemeral public key for the sender
-    4 => bstr,        ; identifier of the recipient public key
+  ? 4 => bstr,        ; identifier of the recipient public key
   * label => values   ; extension point
 }
 ~~~
@@ -740,10 +686,9 @@ COSE_KDF_Context = [
 This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-GCM-128
-- IV: 0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb,
-      0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80
+- IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
-- KID: "kid-1"
+- KID: "kid-2"
 - Plaintext: "This is a real firmware image."
 - Firmware (hex):
   546869732069732061207265616C206669726D7761726520696D6167652E
@@ -751,52 +696,21 @@ This example uses the following parameters:
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
 ~~~
-D8608443A10101A1054C26682306D4FB28CA01B43B805823F21AC5881CD6FC45754
-C65790F806C81A57B8D96C1988233BF40F670172405B5F107FD8444A101381C44A1
-01381CA220A401022001215820415A8ED270C4B1F10B0A2D42B28EE6028CE25D745
-52CB4291A4069A2E989B0F6225820CCC9AAF60514B9420C80619A4FF068BC1D7762
-5BA8C90200882F7D5B73659E7604456B69642D315818B37CCD582696E5E62E5D93A
-555E9072687D6170B122322EE
+{::include examples/suit-encryption-info-es-ecdh.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in 
 {{esdh-example}}. 
 
 ~~~
-96(
-  [
-   / protected / h'a10101' / {
-       \ alg \ 1:1 \ AES-GCM-128 \
-     } / ,
-   / unprotected / {
-     / iv / 5:h'26682306D4FB28CA01B43B80'
-     },
-   / encrypted firmware /
-    h'F21AC5881CD6FC45754C65790F806C81A57
-      B8D96C1988233BF40F670172405B5F107FD',
-    [
-       / protected / h'A101381C' / {
-           \ alg \ 1:-29 \ ECDH-ES + A128KW \
-         } / ,
-         h'A101381C',
-       / unprotected / {
-             / ephemeral / -1: {
-                   / kty / 1:2,
-                   / crv / -1:1,
-                   / x / -2:h'415A8ED270C4B1F10B0A2D42B28EE602
-                              8CE25D74552CB4291A4069A2E989B0F6',
-                   / y / -3:h'CCC9AAF60514B9420C80619A4FF068BC
-                              1D77625BA8C90200882F7D5B73659E76'
-                 },
-                 / kid / 4:'kid-1'
-        },
-        / ciphertext - CEK encrypted with KEK /
-        h'B37CCD582696E5E62E5D93A555E9072687D6170B122322EE'
-    ]
-  ]
-)
+{::include examples/suit-manifest-es-ecdh-content.diag.signed}
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
+
+The encrypted firmware (with a line feed added) was:
+~~~
+{::include examples/encrypted-payload-es-ecdh.hex}
+~~~
 
 # Firmware Updates on IoT Devices with Flash Memory
 
@@ -1093,6 +1007,11 @@ Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, D
 Lundblade, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
 making us aware of the challenges firmware encryption imposes on binary analysis.
 
+# A. Full CDDL {#full-cddl}
+The following CDDL MUST be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in Appendix A of {{I-D.ietf-suit-manifest}}
 
- 
+~~~ CDDL
+{::include draft-ietf-suit-firmware-encryption.cddl}
+~~~
+
 
