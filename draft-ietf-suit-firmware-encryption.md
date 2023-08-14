@@ -1088,11 +1088,6 @@ to become authorized recipients of the encrypted payloads. In either case, it is
 explicitly consider those third parties in the software supply chain when such a binary analysis
 is desired.
 
-
-If an attacker alters the key distribution data then a recipient will decrypt the firmware image with an incorrect key. This will lead to expending energy and flash cycles until the failure is detected.
-
-To mitigate this attack, a new parameter, called suit-cek-verification, is added to the manifest. The suit-cek-verification parameter is optional to implement and optional to use. When used, it reduces the risk of a battery exhaustion attack against the IoT device.
-
 #  IANA Considerations
 
 IANA is asked to add two values to the SUIT_Parameters registry established by 
@@ -1114,5 +1109,5 @@ TBD1       Encryption Info      Section 4
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
 Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Russ Housley, and Carsten Bormann for their review feedback. Finally, we would like to
+Lundblade, and Carsten Bormann for their review feedback. Finally, we would like to
 thank Dick Brooks for making us aware of the challenges firmware encryption imposes on binary analysis.

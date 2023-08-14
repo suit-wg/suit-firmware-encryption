@@ -1419,16 +1419,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
    consider those third parties in the software supply chain when such a
    binary analysis is desired.
 
-   If an attacker alters the key distribution data then a recipient will
-   decrypt the firmware image with an incorrect key.  This will lead to
-   expending energy and flash cycles until the failure is detected.
-
-   To mitigate this attack, a new parameter, called suit-cek-
-   verification, is added to the manifest.  The suit-cek-verification
-   parameter is optional to implement and optional to use.  When used,
-   it reduces the risk of a battery exhaustion attack against the IoT
-   device.
-
 10.  IANA Considerations
 
    IANA is asked to add two values to the SUIT_Parameters registry
@@ -1451,13 +1441,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
               2023, <https://datatracker.ietf.org/doc/html/draft-ietf-
               cose-aes-ctr-and-cbc-06>.
 
-
-
-Tschofenig, et al.      Expires 15 February 2024               [Page 26]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
-
-
    [I-D.ietf-suit-manifest]
               Moran, B., Tschofenig, H., Birkholz, H., Zandberg, K., and
               O. Rønningstad, "A Concise Binary Object Representation
@@ -1466,6 +1449,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
               Internet-Draft, draft-ietf-suit-manifest-22, 27 February
               2023, <https://datatracker.ietf.org/doc/html/draft-ietf-
               suit-manifest-22>.
+
+
+
+
+Tschofenig, et al.      Expires 15 February 2024               [Page 26]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
+
 
    [I-D.ietf-suit-trust-domains]
               Moran, B. and K. Takayama, "SUIT Manifest Extensions for
@@ -1502,6 +1493,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
               Internet Assigned Numbers Authority, "IANA SUIT Manifest
               Registry", 2023, <TBD>.
 
+   [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
+              Housley, R., and W. Polk, "Internet X.509 Public Key
+              Infrastructure Certificate and Certificate Revocation List
+              (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
+              <https://www.rfc-editor.org/rfc/rfc5280>.
+
+   [RFC5652]  Housley, R., "Cryptographic Message Syntax (CMS)", STD 70,
+              RFC 5652, DOI 10.17487/RFC5652, September 2009,
+              <https://www.rfc-editor.org/rfc/rfc5652>.
 
 
 
@@ -1513,16 +1513,6 @@ Tschofenig, et al.      Expires 15 February 2024               [Page 27]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
 
-
-   [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
-              Housley, R., and W. Polk, "Internet X.509 Public Key
-              Infrastructure Certificate and Certificate Revocation List
-              (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
-              <https://www.rfc-editor.org/rfc/rfc5280>.
-
-   [RFC5652]  Housley, R., "Cryptographic Message Syntax (CMS)", STD 70,
-              RFC 5652, DOI 10.17487/RFC5652, September 2009,
-              <https://www.rfc-editor.org/rfc/rfc5652>.
 
    [RFC8937]  Cremers, C., Garratt, L., Smyshlyaev, S., Sullivan, N.,
               and C. Wood, "Randomness Improvements for Security
@@ -1548,10 +1538,9 @@ Appendix A.  Acknowledgements
    We would like to thank Henk Birkholz for his feedback on the CDDL
    description in this document.  Additionally, we would like to thank
    Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-   Lundblade, Russ Housley, and Carsten Bormann for their review
-   feedback.  Finally, we would like to thank Dick Brooks for making us
-   aware of the challenges firmware encryption imposes on binary
-   analysis.
+   Lundblade, and Carsten Bormann for their review feedback.  Finally,
+   we would like to thank Dick Brooks for making us aware of the
+   challenges firmware encryption imposes on binary analysis.
 
 Authors' Addresses
 
@@ -1564,12 +1553,6 @@ Authors' Addresses
    Email: housley@vigilsec.com
 
 
-
-Tschofenig, et al.      Expires 15 February 2024               [Page 28]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
-
-
    Brendan Moran
    Arm Limited
    Email: Brendan.Moran@arm.com
@@ -1580,9 +1563,26 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
    Email: david.brown@linaro.org
 
 
+
+
+Tschofenig, et al.      Expires 15 February 2024               [Page 28]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests       August 2023
+
+
    Ken Takayama
    SECOM CO., LTD.
    Email: ken.takayama.ietf@gmail.com
+
+
+
+
+
+
+
+
+
+
 
 
 
