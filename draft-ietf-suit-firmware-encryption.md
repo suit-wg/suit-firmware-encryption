@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-13
+docname: draft-ietf-suit-firmware-encryption-14
 category: std
 
 ipr: trust200902
@@ -54,7 +54,6 @@ author:
       organization: SECOM CO., LTD.
       email: ken.takayama.ietf@gmail.com
 
-
 normative:
   RFC2119:
   RFC3394:
@@ -63,7 +62,6 @@ normative:
   RFC8174:
   I-D.ietf-suit-manifest:
   I-D.ietf-cose-aes-ctr-and-cbc:
-  I-D.isobe-cose-key-thumbprint:
   I-D.ietf-suit-trust-domains:
 
 informative:
@@ -292,7 +290,7 @@ The SUIT encryption info parameter (called suit-parameter-encryption-info),
 see {{parameter-fig}}, contains key distribution information. It is carried
 inside the suit-directive-override-parameters or the suit-directive-set-parameters
 structure. The content of the SUIT_Encryption_Info structure is explained in
-{{AES-KW}} (for AES-KW) and {{ES-DH}} (for ECDH-ES). An implementation claiming
+{{AES-KW}} (for AES-KW) and {{ES-DH}} (for ES-DH). An implementation claiming
 conformance with this specification must implement support for this parameter.
 A device may, however, support only one of the available key distribution techniques.
 
@@ -313,8 +311,9 @@ suit-parameter-content with suit-parameter-encryption-info.
 - Directive Copy (suit-directive-copy) to decrypt the content of the component
 specified by suit-parameter-source-component with suit-parameter-encryption-info.
 
-Examples of the two extensioned directives are shown in {{encryption-info-consumed-with-write}}
-and in {{encryption-info-consumed-with-copy}}.
+Examples of the two directives are shown below.
+
+{{encryption-info-consumed-with-write}} illustrates the Directive Write.
 
 ~~~
 / directive-override-parameters / 20, {
@@ -326,6 +325,8 @@ and in {{encryption-info-consumed-with-copy}}.
 / NOTE: plaintext payload is stored into component #0 /
 ~~~
 {: #encryption-info-consumed-with-write title="Example showing the Extended suit-directive-write."}
+
+{{encryption-info-consumed-with-copy}} illustrates the Directive Copy.
 
 ~~~
 / directive-set-component-index / 12, 1,
@@ -344,6 +345,23 @@ and in {{encryption-info-consumed-with-copy}}.
 / NOTE: plaintext payload is stored into component #0 /
 ~~~
 {: #encryption-info-consumed-with-copy title="Example showing the Extended suit-directive-copy."}
+
+The payload to be encrypted may be detached and, in that case, it is not covered by a digital
+signature or a MAC of the manifest. (To be more precise, the suit-authentication-wrapper found in
+the envelope contains a digest of the manifest in the SUIT Digest Container.) The lack of
+authentication and integrity protection of the payload is particularly a concern when a cipher
+without integrity protection is used. To authenticate the payload in the attached payload case a
+SUIT Digest Container with the digest of the encrypted and/or plaintext payload MUST be included
+in the manifest.
+
+An attacker may, of example, swaps detached payloads and thereby force the device to process a
+wrong payload. This can lead to battery exhaustion attacks where an adversary expends energy and
+flash cycles of the device.
+
+Including the digest of the encrypted payload allows the device to detect incorrectly encrypted
+before decryption took place. Including the digest of the plaintext payload is adequate when
+battery exhaustion attacks are not a concern.
+
 
 # Content Key Distribution Methods
 
@@ -534,10 +552,10 @@ The following two layer structure is used:
 
 - Layer 0: Has a content encrypted with the CEK. The content may be detached.
 - Layer 1: Uses the AES Key Wrap algorithm to encrypt a randomly generated
-CEK with the KEK derived with ECDH Ephemeral-Static whereby the resulting symmetric
+CEK with the KEK derived with ES-DH whereby the resulting symmetric
 key is fed into the HKDF-based key derivation function.
 
-As a result, the two layers combine ECDH-ES with AES-KW and HKDF. An example is
+As a result, the two layers combine ES-DH with AES-KW and HKDF. An example is
 given in {{esdh-example}}.
 
 ### Deployment Options
@@ -616,52 +634,45 @@ recipient_header_unpr_map_esdh =
 
 ### Context Information Structure
 
-The context information structure is used to ensure that the derived keying material 
+The context information structure is used to ensure that the derived keying material
 is "bound" to the context of the transaction. This specification re-uses the structure
 defined in Section 5.2 of RFC 9053 and tailors it accordingly.
 
 The following information elements are bound to the context:
 
-* the hash of the public key of the sender, 
-* the hash of the public key of the recipient,
 * the protocol employing the key-derivation method,
-* information about the utilized algorithms
-  (including the payload encryption algorithms,
-   the content key encryption algorithm,
-   and the key length).
+* information about the utilized AES Key Wrap algorithm,and the key length.
+* the protected header field, which contains the content key encryption algorithm.
+
+The sender and recipient identities are left empty in
 
 The following fields in {{cddl-context-info}} require an explantation:
 
-- The identity fields in the PartyInfoSender and the PartyInfoRecipient structures
-contain the COSE_Key Thumbprint of the public keys of the sender and the recipient,
-respectively. The details for computing these thumbprints are described in 
-{{I-D.isobe-cose-key-thumbprint}}.
-
-- The COSE_KDF_Context.AlgorithmID field contains the value found in the
-alg field of the protected header in the COSE_Encrypt structure. This is the content
-encryption algorithm identifier.
+- The COSE_KDF_Context.AlgorithmID field contains the algorithm identifier for
+A128KW (value -4), A192KW (value -4), or A256KW (value -5).
 
 - The COSE_KDF_Context.SuppPubInfo.keyDataLength field contains the key length
-of the algorithm in the alg field of the protected header in the COSE_Encrypt structure 
-expressed as the number of bits.
+of the algorithm in the COSE_KDF_Context.AlgorithmID field expressed as the number
+of bits. For A128KW the value is 128, for A192KW the value is 192, and for A256KW
+the value 256.
 
 - The COSE_KDF_Context.SuppPubInfo.other field captures the protocol in
-which the ES-DH content key distribution algorithm is used and it is set to
+which the ES-DH content key distribution algorithm is used and MUST be set to
 the constant string "SUIT Payload Encryption".
 
-- The COSE_KDF_Context.SuppPubInfo.protected field serializes the content 
-of the recipient_header_pr_map field, which contains the content key distribution
-algorithm identifier.
+- The COSE_KDF_Context.SuppPubInfo.protected field serializes the content
+of the recipient_header_pr_map field, which (among other fields) contains the
+content key distribution algorithm identifier.
 
 ~~~
 PartyInfoSender = (
-    identity : bstr,
+    identity : bstr .size 0,
     nonce : nil,
     other : bstr .size 0
 )
 
 PartyInfoRecipient = (
-    identity : bstr,
+    identity : bstr .size 0,
     nonce : nil,
     other : bstr .size 0
 )
@@ -680,6 +691,9 @@ COSE_KDF_Context = [
 ~~~
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 
+Profiles of this specification MAY specify an extended version of the
+context information structure or MAY utilize a different context information
+structure.
  
 ### Example
 
@@ -699,8 +713,9 @@ The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 {::include examples/suit-encryption-info-es-ecdh.hex}
 ~~~
 
-The resulting COSE_Encrypt structure in a diagnostic format is shown in 
-{{esdh-example}}. 
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{esdh-example}}. Note that the COSE_Encrypt structure also needs to
+protected by a COSE_Sign1, which is not shown below.
 
 ~~~
 {::include examples/suit-manifest-es-ecdh-content.diag.signed}
@@ -964,10 +979,14 @@ In hex format, the SUIT manifest is this:
 The algorithms described in this document assume that the party performing payload encryption
 
 - shares a key-encryption key (KEK) with the recipient (for use with the AES Key Wrap scheme), or
-- is in possession of the public key of the recipient (for use with ECDH-ES).
+- is in possession of the public key of the recipient (for use with ES-DH).
 
-Both cases require some upfront communication interaction. This interaction is likely provided by
-an device management solution, as described in {{RFC9019}}.
+Both cases require some upfront communication interaction to distribute these keys to the involved
+communication parties. This interaction may be provided by an device management solution,
+as described in {{RFC9019}}, or may be executed earlier in the lifecycle of the device, for example
+during manufacturing or during commissioning. In addition to the keying material key identifiers
+and algorithm information needs to be provisioned. This specification places no requirements
+on the structure of the key identifier.
 
 To provide high security for AES Key Wrap it is important that the KEK is of high entropy,
 and that implementations protect the KEK from disclosure. Compromise of the KEK may result
@@ -1013,5 +1032,3 @@ The following CDDL MUST be appended to the SUIT Manifest CDDL. The SUIT CDDL is 
 ~~~ CDDL
 {::include draft-ietf-suit-firmware-encryption.cddl}
 ~~~
-
-
