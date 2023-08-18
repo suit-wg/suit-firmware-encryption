@@ -70,6 +70,7 @@ informative:
   RFC8937:
   RFC5652:
   RFC5280:
+  RFC5869:
   iana-suit:
     author:
       org: Internet Assigned Numbers Authority
@@ -82,7 +83,13 @@ informative:
     title: Return-Oriented Programming
     date: 06.03.2023
     target: https://en.wikipedia.org/wiki/Return-oriented_programming
-  
+  SP800-56:
+    author:
+      org: NIST
+    title: Recommendation for Pair-Wise Key Establishment Schemes Using Discrete Logarithm Cryptography, NIST Special Publication 800-56A Revision 3
+    date: April 2018
+    target: http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Ar3.pdf
+
 --- abstract
 
 This document specifies techniques for encrypting software, firmware
@@ -452,8 +459,12 @@ and transmitting payloads only once.
 ### CDDL
 
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-aeskw}}.
+empty_or_serialized_map and header_map are structures defined in {{RFC9052}}.
 
 ~~~
+outer_header_map_protected = empty_or_serialized_map
+outer_header_map_unprotected = header_map
+
 SUIT_Encryption_Info_AESKW = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
@@ -482,15 +493,16 @@ does not have public parameters that vary on a per-invocation basis. Hence,
 the protected header in the COSE_recipient structure is a byte string
 of zero length.
 
-The COSE specification requires a consistent byte stream for the authenticated
-data structure to be created. This structure is shown in {{cddl-enc-aeskw}}.
+For use with AEAD ciphers the COSE specification requires a consistent byte
+stream for the authenticated data structure to be created. This structure
+is shown in {{cddl-enc-aeskw}} and defined in Section 5.3 of {{RFC9052}}.
 
 ~~~
-       Enc_structure = [
-         context : "Encrypt",
-         protected : empty_or_serialized_map,
-         external_aad : bstr
-       ]
+ Enc_structure = [
+   context : "Encrypt",
+   protected : empty_or_serialized_map,
+   external_aad : bstr
+ ]
 ~~~
 {: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
 
@@ -506,6 +518,13 @@ in {{cddl-aeskw}}:
 
 The value of the external_aad MUST be set to a null value (major type 7,
 value 22).
+
+For use with ciphers that do not provide integrity protection, such as
+AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}} ),
+Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
+because the Enc_structure represents the Additional Authenticated Data
+(AAD) byte string consumable only by AEAD ciphers. The protected header
+in the SUIT_Encryption_Info_AESKW structure MUST be a zero-length byte string.
 
 ### Example
 
@@ -602,8 +621,13 @@ ENC(payload_i,CEK_i).
 ### CDDL
 
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-esdh}}.
+Only the minimum number of parameters are shown. empty_or_serialized_map
+and header_map are structures defined in {{RFC9052}}.
 
 ~~~
+outer_header_map_protected = empty_or_serialized_map
+outer_header_map_unprotected = header_map
+
 SUIT_Encryption_Info_ESDH = [
   protected   : bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
@@ -644,7 +668,7 @@ The following information elements are bound to the context:
 * information about the utilized AES Key Wrap algorithm,and the key length.
 * the protected header field, which contains the content key encryption algorithm.
 
-The sender and recipient identities are left empty in
+The sender and recipient identities are left empty.
 
 The following fields in {{cddl-context-info}} require an explantation:
 
@@ -691,10 +715,26 @@ COSE_KDF_Context = [
 ~~~
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 
+The HKDF-based key derivaction function may optionally contain a salt value,
+as described in Section 5.1 of {{RFC9053}}. This optional value is used to
+change the key generation process. This specification does not mandate the
+use of a salt value. If the salt is public and carried in the message, then
+the "salt" algorithm header parameter is used. See discussion in {{RFC5869}}
+and NIST SP800-56 {{SP800-56}} for reasons for sending or not sending a salt.
+The purpose of the salt is to provide extra randomness in the KDF context.
+If the salt sent in the "salt" algorithm header parameter, then the receiver
+MUST be able to process a salt and MUST pass it into the key derivation
+function.
+
 Profiles of this specification MAY specify an extended version of the
 context information structure or MAY utilize a different context information
 structure.
- 
+
+For use with ciphers that do not provide integrity protection, such as
+AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), Enc_structure
+MUST NOT be used and the protected header in the SUIT_Encryption_Info_ESDH
+structure MUST be a zero-length byte string.
+
 ### Example
 
 This example uses the following parameters:
