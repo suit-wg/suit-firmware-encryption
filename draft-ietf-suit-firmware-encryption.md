@@ -866,7 +866,7 @@ AES Cipher Block Chaining (AES-CBC) ciphers that do not offer integrity protecti
 These ciphers are useful for the use cases that require firmware encryption on IoT
 devices. For many other use cases where software packages, configuration information
 or personalization data needs to be encrypted, the use of Authenticated Encryption
-with Additional Data (AEAD) ciphers is preferred.
+with Associated Data (AEAD) ciphers is preferred.
 
 The following sub-sections provide further information about the initialization vector
 (IV) selection for use with AES-CBC and AES-CTR in the firmware encryption context. An
