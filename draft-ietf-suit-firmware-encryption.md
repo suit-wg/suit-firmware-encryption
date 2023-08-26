@@ -780,6 +780,7 @@ protected by a COSE_Sign1, which is not shown below.
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
 The encrypted firmware (with a line feed added) was:
+
 ~~~
 {::include examples/encrypted-payload-es-ecdh.hex}
 ~~~
