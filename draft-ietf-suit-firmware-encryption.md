@@ -808,9 +808,16 @@ data in units called blocks, pages or sectors and re-writes data at byte level
 Flash memory is furthermore segmented into different memory regions, which store
 the bootloader, different versions of firmware images (in so-called slots),
 and configuration data. {{image-layout}} shows an example layout of a
-microcontroller flash area. The primary slot contains the firmware image to be
-executed by the bootloader, which is a common deployment on devices that do
-not offer the concept of position independent code.
+microcontroller flash area. The primary slot typically contains the firmware image
+to be executed by the bootloader, which is a common deployment on devices that do
+not offer the concept of position independent code. Position independent code
+is not a feature frequently found in real-time operating systems used on
+microcontrollers. There are many flavors of embedded devices, the market
+is large and fragmented. Hence, it is likely that some implementations and deployments
+implement their firmware update procedure different than described below.
+On a positive note, the SUIT manifest allows different deployment scenarios
+to be supported easily thanks to the "scripting" functionality offered by
+the commands.
 
 When the encrypted firmware image has been transferred to the device, it will
 typically be stored in a staging area, in the secondary slot in our example.
