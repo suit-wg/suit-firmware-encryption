@@ -391,10 +391,12 @@ payload is adequate when battery exhaustion attacks are not a concern.
 
 # Content Key Distribution
 
-The sub-sections below describe two content key distribution algorithms,
+The sub-sections below describe two content key distribution methods,
 namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
-Other algorithms are supported by COSE and may be supported via enhancements
-to this specification.
+Many other methods are specified in the literature, and even supported
+by COSE. New methods can be added via enhancements to this specification.
+The two specified methods were selected to their maturity, different
+security properties, and to ensure interoperability in deployments.
 
 When an encrypted firmware image is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
@@ -402,7 +404,7 @@ following notation:
 
 ~~~
 - KEK(R1,S) refers to a KEK shared between recipient R1 and the sender S.
-  The KEK, as a concept, is used by AES Key Wrap.
+  The KEK, as a concept, is used by AES Key Wrap but not by ES-DH.
 - CEK(R1,S) refers to a CEK shared between R1 and S.
 - CEK(*,S) or KEK(*,S) are used when a single CEK or a single KEK is shared
   with all authorized recipients by a given sender S in a certain context.
@@ -464,7 +466,7 @@ obtain the plaintext. The steps taken by the sender are:
 
 - The third option is to use different CEKs encrypted with KEKs of
 authorized recipients. Assume there are n recipients with their unique KEKs -
-KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to make the following steps:
+KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to execute the following steps:
 
 ~~~
     1.  for i=1 to n
@@ -476,7 +478,7 @@ KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to make the following steps:
     2.  }
 ~~~
 
-This approach is appropriate when no benefits can be gained from encrypting
+The third approach is appropriate when no benefits can be gained from encrypting
 and transmitting payloads only once.
 
 ### CDDL
@@ -548,7 +550,8 @@ Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
 because the Enc_structure represents the Additional Authenticated Data
 (AAD) byte string consumable only by AEAD ciphers. Hence, the 
 Additional Authenticated Data structure is not supplied to the 
-API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW structure MUST be a zero-length byte string.
+API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW
+structure MUST be a zero-length byte string.
 
 ### Example
 
