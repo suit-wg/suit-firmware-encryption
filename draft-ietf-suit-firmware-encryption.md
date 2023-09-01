@@ -536,11 +536,12 @@ The value of the external_aad MUST be set to a null value (major type 7,
 value 22).
 
 For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}} ),
+AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}),
 Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
 because the Enc_structure represents the Additional Authenticated Data
-(AAD) byte string consumable only by AEAD ciphers. The protected header
-in the SUIT_Encryption_Info_AESKW structure MUST be a zero-length byte string.
+(AAD) byte string consumable only by AEAD ciphers. Hence, the 
+Additional Authenticated Data structure is not supplied to the 
+API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW structure MUST be a zero-length byte string.
 
 ### Example
 
@@ -749,8 +750,10 @@ structure.
 
 For use with ciphers that do not provide integrity protection, such as
 AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the 
-Enc_structure MUST NOT be used and the protected header in the
-SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string.
+Enc_structure MUST NOT be used. Hence, the Additional Authenticated
+Data structure is not supplied to the API of the cipher. The protected
+header in the SUIT_Encryption_Info_ESDH structure MUST be a zero-length
+byte string.
 
 ### Example
 
@@ -789,7 +792,7 @@ The encrypted firmware (with a line feed added) was:
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
 data in units called blocks, pages or sectors and re-writes data at byte level
-(often 4-bytes).
+(often 4-bytes) or larger units.
 Flash memory is furthermore segmented into different memory regions, which store
 the bootloader, different versions of firmware images (in so-called slots),
 and configuration data. {{image-layout}} shows an example layout of a
@@ -1088,7 +1091,7 @@ TBD1       Encryption Info      Section 4
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
 Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
+Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
 making us aware of the challenges firmware encryption imposes on binary analysis.
 
 # A. Full CDDL {#full-cddl}
