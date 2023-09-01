@@ -438,10 +438,10 @@ COSE\_recipient structure contains the encrypted CEK. The sender executes
 the following steps:
 
 ~~~
-      Fetch KEK(*,S)
-      Generate CEK
-      ENC(CEK,KEK)
-      ENC(payload,CEK)
+     1. Fetch KEK(*,S)
+     2. Generate CEK
+     3. ENC(CEK,KEK)
+     4. ENC(payload,CEK)
 ~~~
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures
@@ -453,12 +453,13 @@ recipients still use their individual KEK to decrypt the CEK and to subsequently
 obtain the plaintext. The steps taken by the sender are:
 
 ~~~
-      Generate CEK
-      for i=1 to n {
-         Fetch KEK_i(Ri, S)
-         ENC(CEK, KEK_i)
-      }
-      ENC(payload,CEK)
+    1.  Generate CEK
+    2.  for i=1 to n
+        {
+    2a.    Fetch KEK_i(Ri, S)
+    2b.    ENC(CEK, KEK_i)
+        }
+    3.  ENC(payload,CEK)
 ~~~
 
 - The third option is to use different CEKs encrypted with KEKs of
@@ -466,12 +467,13 @@ authorized recipients. Assume there are n recipients with their unique KEKs -
 KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to make the following steps:
 
 ~~~
-      for i=1 to n {
-         Fetch KEK_i(Ri, S)
-         Generate CEK_i
-         ENC(CEK_i, KEK_i)
-         ENC(payload,CEK_i)
-      }
+    1.  for i=1 to n
+        {
+    1a.    Fetch KEK_i(Ri, S)
+    1b.    Generate CEK_i
+    1c.    ENC(CEK_i, KEK_i)
+    1d.    ENC(payload,CEK_i)
+    2.  }
 ~~~
 
 This approach is appropriate when no benefits can be gained from encrypting
@@ -614,12 +616,13 @@ and an identifier for the recipients public key.
 The steps taken by the sender are:
 
 ~~~
-      Generate CEK
-      for i=1 to n {
-         Generate KEK_i(Ri, S) using ES-DH
-         ENC(CEK, KEK_i)
-      }
-      ENC(payload,CEK)
+    1.  Generate CEK
+    2.  for i=1 to n
+        {
+    2a.     Generate KEK_i(Ri, S) using ES-DH
+    2b.     ENC(CEK, KEK_i)
+        }
+    3.  ENC(payload,CEK)
 ~~~
 
 - The alternative is to encrypt a payload with a different CEK for each
@@ -628,12 +631,13 @@ for the different recipients using ES-DH. The following steps needs to be made
 by the sender:
 
 ~~~
-      for i=1 to n {
-         Generate KEK_i(Ri, S) using ES-DH
-         Generate CEK_i
-         ENC(CEK_i, KEK_i)
-         ENC(payload,CEK_i)
-      }
+    1.  for i=1 to n
+        {
+    1a.     Generate KEK_i(Ri, S) using ES-DH
+    1b.     Generate CEK_i
+    1c.     ENC(CEK_i, KEK_i)
+    1d.     ENC(payload,CEK_i)
+        }
 ~~~
 
 This results in n-manifests. This approach is useful when payloads contain
