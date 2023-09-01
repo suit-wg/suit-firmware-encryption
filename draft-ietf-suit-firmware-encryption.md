@@ -309,9 +309,12 @@ algorithm for a constrained device also reduces the code size.
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 
-suit-parameter-encryption-info   = [TBD1: Proposed 19]
+suit-parameter-encryption-info   = 19
 ~~~
 {: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
+
+RFC Editor's Note (TBD1): The value for the suit-parameter-encryption-info
+parameter is set to 19, as the proposed value.]
 
 # Extended Directives
 
@@ -397,13 +400,15 @@ When an encrypted firmware image is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
 following notation:
 
+~~~
 - KEK(R1,S) refers to a KEK shared between recipient R1 and the sender S.
-The KEK, as a concept, is used by AES Key Wrap.
+  The KEK, as a concept, is used by AES Key Wrap.
 - CEK(R1,S) refers to a CEK shared between R1 and S.
 - CEK(*,S) or KEK(*,S) are used when a single CEK or a single KEK is shared
-with all authorized recipients by a given sender S in a certain context.
+  with all authorized recipients by a given sender S in a certain context.
 - ENC(plaintext, k) refers to the encryption of plaintext with a key k.
 - KEK_i or CEK_i refers to the i-th instance of the KEK or CEK, respectively.
+~~~
 
 ## Content Key Distribution with AES Key Wrap {#AES-KW}
 
