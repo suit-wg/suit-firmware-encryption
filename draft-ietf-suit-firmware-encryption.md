@@ -144,8 +144,8 @@ The former method relies on asymmetric key cryptography while the
 latter uses symmetric key cryptography.
 
 Our goal was to reduce the number of content key distribution methods
-and thereby increase interoperability between different SUIT manifest
-parser implementations.
+for use with payload encryption and thereby increase interoperability
+between different SUIT manifest parser implementations.
 
 # Conventions and Terminology
 
@@ -157,30 +157,30 @@ when, and only when, they appear in all capitals, as shown here.
 This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}},
 the SUIT information model {{RFC9124}}, and the SUIT architecture {{RFC9019}}.
 
+The following abbreviations are used in this document:
+
+* Key Wrap (KW), defined in {{RFC3394}} (for use with AES)
+* Key-Encryption Key (KEK) {{RFC3394}}
+* Content-Encryption Key (CEK) {{RFC5652}}
+* Ephemeral-Static (ES) Diffie-Hellman (DH) {{RFC9052}}
+
 The terms sender and recipient have the following meaning:
 
 * Sender: Entity that sends an encrypted payload.
 * Recipient: Entity that receives an encrypted payload.
 
 Additionally, we introduce the term "distribution system" (or distributor)
-to refer to an entity that knows the recipients of payloads.
-For use of encryption the distribution system either knows the public key
+to refer to an entity that knows the recipients of payloads. It is important
+to note that the distribution system is far more than a file server. For
+use of encryption the distribution system either knows the public key
 of the recipient (for ES-DH), or the KEK (for AES-KW).
 
 The author, which is responsible for creating the payload, does not
-know the recipients. It is important to note that the distribution system is
-far more than a file server.
+know the recipients.
 
 The author and the distribution system are logical roles. In some
 deployments these roles are separated in different physical entities
 and in others they are co-located.
-
-Finally, the following abbreviations are used in this document:
-
-* Key Wrap (KW), defined in {{RFC3394}} (for use with AES)
-* Key-Encryption Key (KEK) {{RFC3394}}
-* Content-Encryption Key (CEK) {{RFC5652}}
-* Ephemeral-Static (ES) Diffie-Hellman (DH) {{RFC9052}}
 
 # Architecture {#arch}
 
@@ -192,12 +192,14 @@ support encryption.
 {{arch-fig}} shows the distribution system, which represents a file
 server and the device management infrastructure.
 
-To apply encryption the sender (author) needs to know the recipient (device).
+The sender (author) needs to know the recipient (device) to use encryption.
 For AES-KW the KEK needs to be known and, in case of ES-DH, the sender needs
 to be in possession of the public key of the recipient. The public key and
 parameters may be in the recipient's X.509 certificate {{RFC5280}}. For
-ES-DH the recipients must be provisioned with a public key (or a
-certificate) for verifying the digital signature covering the manifest.
+authentication of the sender and for integrity protection the recipients
+must be provisioned with a trust anchor when a manifest is protected using
+a digital signature. When a MAC is used to protect the manifest then a
+symmetric key must be shared by the recipient and the sender.
 
 With encryption the author cannot just create a manifest for the payload
 and sign it since the subsequent encryption step by the distribution
@@ -293,6 +295,10 @@ The SUIT_Encryption_Info structure (called suit-parameter-encryption-info in
 content of the SUIT_Encryption_Info structure is explained in {{AES-KW}}
 (for AES-KW) and in {{ES-DH}} (for ES-DH). 
 
+Once a CEK is available, the steps described in {{content-enc}} are applicable.
+These steps apply to both content key distribution methods described in this
+section.
+
 The SUIT_Encryption_Info structure is either carried inside the
 suit-directive-override-parameters or the suit-directive-set-parameters
 parameters used in the "Directive Write" and "Directive Copy" directives.
@@ -365,16 +371,23 @@ payload will be stored into component #0.
 {: #encryption-info-consumed-with-copy title="Example showing the extended suit-directive-copy."}
 
 The payload to be encrypted may be detached and, in that case, it is
-not covered by a digital signature or a MAC of the manifest. (To be
-more precise, the suit-authentication-wrapper found in the envelope
-contains a digest of the manifest in the SUIT Digest Container.) The
+not covered by the digital signature or the MAC protecting the manifest.
+(To be more precise, the suit-authentication-wrapper found in the envelope
+contains a digest of the manifest in the SUIT Digest Container.) 
+
+The
 lack of authentication and integrity protection of the payload is
 particularly a concern when a cipher without integrity protection is
 used.
 
-To authenticate the payload in the detached payload case a SUIT Digest
-Container with the digest of the encrypted and/or plaintext payload
-MUST be included in the manifest.
+To provide authentication and integrity protection of the payload
+in the detached payload case a SUIT Digest Container with the hash
+of the encrypted and/or plaintext payload MUST be included in the
+manifest. See suit-parameter-image-digest parameter in Section
+8.4.8.6 of {{I-D.ietf-suit-manifest}}.
+
+Once a CEK is available, the steps described in {{content-enc}} are applicable.
+These steps apply to both content key distribution methods.
 
 Another attack concerns battery exhaustion. An attacker may swap
 detached payloads and thereby force the device to process a wrong
@@ -402,13 +415,12 @@ are different deployment options. To explain these options we use the
 following notation:
 
 ~~~
-- KEK(R1,S) refers to a KEK shared between recipient R1 and the sender S.
+- KEK(R1, S) refers to a KEK shared between recipient R1 and the sender S.
   The KEK, as a concept, is used by AES Key Wrap but not by ES-DH.
-- CEK(R1,S) refers to a CEK shared between R1 and S.
-- CEK(*,S) or KEK(*,S) are used when a single CEK or a single KEK is shared
+- CEK(R1, S) refers to a CEK shared between R1 and S.
+- CEK(*, S) or KEK(*, S) are used when a single CEK or a single KEK is shared
   with all authorized recipients by a given sender S in a certain context.
 - ENC(plaintext, k) refers to the encryption of plaintext with a key k.
-- KEK_i or CEK_i refers to the i-th instance of the KEK or CEK, respectively.
 ~~~
 
 ## Content Key Distribution with AES Key Wrap {#AES-KW}
@@ -439,10 +451,10 @@ COSE\_recipient structure contains the encrypted CEK. The sender executes
 the following steps:
 
 ~~~
-     1. Fetch KEK(*,S)
+     1. Fetch KEK(*, S)
      2. Generate CEK
-     3. ENC(CEK,KEK)
-     4. ENC(payload,CEK)
+     3. ENC(CEK, KEK)
+     4. ENC(payload, CEK)
 ~~~
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures
@@ -457,23 +469,23 @@ obtain the plaintext. The steps taken by the sender are:
     1.  Generate CEK
     2.  for i=1 to n
         {
-    2a.    Fetch KEK_i(Ri, S)
-    2b.    ENC(CEK, KEK_i)
+    2a.    Fetch KEK(Ri, S)
+    2b.    ENC(CEK, KEK(Ri, S))
         }
-    3.  ENC(payload,CEK)
+    3.  ENC(payload, CEK)
 ~~~
 
 - The third option is to use different CEKs encrypted with KEKs of
 authorized recipients. Assume there are n recipients with their unique KEKs -
-KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to execute the following steps:
+KEK(R1, S), ..., KEK(Rn, S). The sender needs to execute the following steps:
 
 ~~~
     1.  for i=1 to n
         {
-    1a.    Fetch KEK_i(Ri, S)
-    1b.    Generate CEK_i
-    1c.    ENC(CEK_i, KEK_i)
-    1d.    ENC(payload,CEK_i)
+    1a.    Fetch KEK(Ri, S)
+    1b.    Generate CEK(Ri, S)
+    1c.    ENC(CEK(Ri, S), KEK(Ri, S))
+    1d.    ENC(payload, CEK(Ri, S))
     2.  }
 ~~~
 
@@ -506,7 +518,7 @@ empty_map = {}
 recipient_header_unpr_map_aeskw =
 {
     1 => int,         ; algorithm identifier
-  ? 4 => bstr,        ; identifier of the recipient public key
+  ? 4 => bstr,        ; identifier of the KEK pre-shared with the recipient
   * label => values   ; extension point
 }
 ~~~
@@ -516,41 +528,6 @@ Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}},
 does not have public parameters that vary on a per-invocation basis. Hence,
 the protected header in the COSE_recipient structure is a byte string
 of zero length.
-
-For use with AEAD ciphers the COSE specification requires a consistent byte
-stream for the authenticated data structure to be created. This structure
-is shown in {{cddl-enc-aeskw}} and defined in Section 5.3 of {{RFC9052}}.
-
-~~~
- Enc_structure = [
-   context : "Encrypt",
-   protected : empty_or_serialized_map,
-   external_aad : bstr
- ]
-~~~
-{: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
-
-This Enc_structure needs to be populated as follows:
-
-The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
-to the content of the protected field from the COSE_Encrypt structure.
-It is important to note that there are two protected fields shown
-in {{cddl-aeskw}}:
-
-- one in the COSE_Encrypt structure, and
-- a second one in the COSE_recipient structure.
-
-The value of the external_aad MUST be set to a null value (major type 7,
-value 22).
-
-For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
-Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
-because the Enc_structure represents the Additional Authenticated Data
-(AAD) byte string consumable only by AEAD ciphers. Hence, the 
-Additional Authenticated Data structure is not supplied to the 
-API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW
-structure MUST be a zero-length byte string.
 
 ### Example
 
@@ -621,24 +598,24 @@ The steps taken by the sender are:
     1.  Generate CEK
     2.  for i=1 to n
         {
-    2a.     Generate KEK_i(Ri, S) using ES-DH
-    2b.     ENC(CEK, KEK_i)
+    2a.     Generate KEK(Ri, S) using ES-DH
+    2b.     ENC(CEK, KEK(Ri, S))
         }
     3.  ENC(payload,CEK)
 ~~~
 
 - The alternative is to encrypt a payload with a different CEK for each
-recipient. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S) have been generated
+recipient. Assume there are KEK(R1, S),..., KEK(Rn, S) have been generated
 for the different recipients using ES-DH. The following steps needs to be made
 by the sender:
 
 ~~~
     1.  for i=1 to n
         {
-    1a.     Generate KEK_i(Ri, S) using ES-DH
-    1b.     Generate CEK_i
-    1c.     ENC(CEK_i, KEK_i)
-    1d.     ENC(payload,CEK_i)
+    1a.     Generate KEK(Ri, S) using ES-DH
+    1b.     Generate CEK(Ri, S)
+    1c.     ENC(CEK(Ri, S), KEK(Ri, S))
+    1d.     ENC(payload, CEK(Ri, S))
         }
 ~~~
 
@@ -683,6 +660,8 @@ recipient_header_unpr_map_esdh =
 }
 ~~~
 {: #cddl-esdh title="CDDL for ES-DH-based Content Key Distribution"}
+
+See {{content-enc}} for a description on how to encrypt the payload.
 
 ### Context Information Structure
 
@@ -759,13 +738,6 @@ Profiles of this specification MAY specify an extended version of the
 context information structure or MAY utilize a different context information
 structure.
 
-For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the 
-Enc_structure MUST NOT be used. Hence, the Additional Authenticated
-Data structure is not supplied to the API of the cipher. The protected
-header in the SUIT_Encryption_Info_ESDH structure MUST be a zero-length
-byte string.
-
 ### Example
 
 This example uses the following parameters:
@@ -798,6 +770,42 @@ The encrypted payload (with a line feed added) was:
 ~~~
 {::include examples/encrypted-payload-es-ecdh.hex}
 ~~~
+
+## Content Encryption
+
+This section summarizes the steps taken for content encryption, which
+applies to both content key distribution methods.
+
+For use with AEAD ciphers the COSE specification requires a consistent byte
+stream for the authenticated data structure to be created. This structure
+is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
+
+~~~
+ Enc_structure = [
+   context : "Encrypt",
+   protected : empty_or_serialized_map,
+   external_aad : bstr
+ ]
+~~~
+{: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
+
+This Enc_structure needs to be populated as follows:
+
+The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
+to the content of the protected field from the COSE_Encrypt structure.
+
+The value of the external_aad MUST be set to nil (major type 7,
+value 22) {{RFC8610}}.
+
+For use with ciphers that do not provide integrity protection, such as
+AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
+Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
+because the Enc_structure represents the Additional Authenticated Data
+(AAD) byte string consumable only by AEAD ciphers. Hence, the 
+Additional Authenticated Data structure is not supplied to the 
+API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW
+or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
+respectively.
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
@@ -1107,13 +1115,6 @@ TBD1       Encryption Info      Section 4
 
 --- back
 
-# Acknowledgements
-
-We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
-Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like
-to thank Dick Brooks for making us aware of the challenges encryption imposes on binary analysis.
-
 # A. Full CDDL {#full-cddl}
 
 The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
@@ -1122,3 +1123,12 @@ Appendix A of {{I-D.ietf-suit-manifest}}
 ~~~ CDDL
 {::include draft-ietf-suit-firmware-encryption.cddl}
 ~~~
+
+
+# Acknowledgements
+{: numbered="no"}
+
+We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
+Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
+Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like
+to thank Dick Brooks for making us aware of the challenges encryption imposes on binary analysis.
