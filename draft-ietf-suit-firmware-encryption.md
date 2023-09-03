@@ -116,7 +116,7 @@ via a digital signature or a message authentication code, the firmware
 image may also be afforded confidentiality using encryption.
 
 Encryption prevents third parties, including attackers, from gaining
-access to the firmware binary. Hackers typically need intimate knowledge
+access to the firmware binary. Attackers typically need intimate knowledge
 of the target firmware to mount their attacks. For example,
 return-oriented programming (ROP) {{ROP}} requires access to the binary
 and encryption makes it much more difficult to write exploits.
