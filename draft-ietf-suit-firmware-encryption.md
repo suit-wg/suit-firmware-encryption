@@ -92,12 +92,12 @@ informative:
 
 --- abstract
 
-This document specifies techniques for encrypting software, firmware
-and personalization data by utilizing the IETF SUIT manifest. Key
-agreement is provided by ephemeral-static (ES) Diffie-Hellman (DH)
-and AES Key Wrap (AES-KW). ES-DH uses public key cryptography while
-AES-KW uses a pre-shared key. Encryption of the plaintext is
-accomplished with conventional symmetric key cryptography.
+This document specifies techniques for encrypting software, firmware,
+machine learning models, and personalization data by utilizing the IETF
+SUIT manifest. Key agreement is provided by ephemeral-static (ES)
+Diffie-Hellman (DH) and AES Key Wrap (AES-KW). ES-DH uses public key
+cryptography while AES-KW uses a pre-shared key. Encryption of the
+plaintext is accomplished with conventional symmetric key cryptography.
 
 --- middle
 
@@ -107,46 +107,45 @@ Vulnerabilities with Internet of Things (IoT) devices have raised the
 need for a reliable and secure firmware update mechanism that is also
 suitable for constrained devices. To protect firmware images the SUIT manifest
 format was developed {{I-D.ietf-suit-manifest}}. It provides a bundle of
-metadata about the firmware for an IoT device, including where to find
-the firmware image, the devices to which it applies and a security wrapper.
+metadata, including where to find the payload, the devices to which it
+applies and a security wrapper.
 
 {{RFC9124}} details the information that has to be provided by the SUIT
 manifest format. In addition to offering protection against modification,
-via a digital signature or a message authentication code, the firmware
-image may also be afforded confidentiality using encryption.
+via a digital signature or a message authentication code,
+confidentiality may also be afforded.
 
 Encryption prevents third parties, including attackers, from gaining
-access to the firmware binary. Attackers typically need intimate knowledge
-of the target firmware to mount their attacks. For example,
-return-oriented programming (ROP) {{ROP}} requires access to the binary
-and encryption makes it much more difficult to write exploits.
-
-The firmware image is encrypted using a symmetric content encryption
-key, which can be established using a variety of mechanisms; this
-document defines two content key distribution algorithms for use with
-the IETF SUIT manifest, namely:
-
-- Ephemeral-Static (ES) Diffie-Hellman (DH), and
-- AES Key Wrap (AES-KW).
-
-The former algorithm relies on asymmetric key cryptography while the
-latter uses symmetric key cryptography.
-
-Our goal was to reduce the number of content key distribution algorithms
-and thereby increase interoperability between different SUIT manifest
-parser implementations.
+access to the payload. Attackers typically need intimate knowledge
+of a binary, such as a firmware image, to mount their attacks.
+For example, return-oriented programming (ROP) {{ROP}} requires access
+to the binary and encryption makes it much more difficult to write exploits.
 
 While the original motivating use case of this document was firmware
-encryption, SUIT manifests may require payloads other than firmware
-images to experience confidentiality protection, such as
+encryption, the use of SUIT manifests has been extended to other use cases
+requiring integrity and confidentiality protection, such as
 
 - software packages,
 - personalization data,
 - configuration data, and
 - machine learning models.
  
-Hence, the term payload is used to generically refer to those objects
-that may be subject to encryption.
+Hence, we use the term payload to generically refer to all those objects.
+
+The payload is encrypted using a symmetric content encryption
+key, which can be established using a variety of mechanisms; this
+document defines two content key distribution methods for use with
+the IETF SUIT manifest, namely:
+
+- Ephemeral-Static (ES) Diffie-Hellman (DH), and
+- AES Key Wrap (AES-KW).
+
+The former method relies on asymmetric key cryptography while the
+latter uses symmetric key cryptography.
+
+Our goal was to reduce the number of content key distribution methods
+and thereby increase interoperability between different SUIT manifest
+parser implementations.
 
 # Conventions and Terminology
 
@@ -164,11 +163,11 @@ The terms sender and recipient have the following meaning:
 * Recipient: Entity that receives an encrypted payload.
 
 Additionally, we introduce the term "distribution system" (or distributor)
-to refer to an entity that knows the recipients of the firmware images.
+to refer to an entity that knows the recipients of payloads.
 For use of encryption the distribution system either knows the public key
 of the recipient (for ES-DH), or the KEK (for AES-KW).
 
-The author, which is responsible for creating the firmware image, does not
+The author, which is responsible for creating the payload, does not
 know the recipients. It is important to note that the distribution system is
 far more than a file server.
 
@@ -190,7 +189,7 @@ manifests from an author to devices. It does, however, not detail the
 use of payload encryption. This document enhances the architecture to
 support encryption.
 
-{{arch-fig}} shows the distribution system, which represents the firmware
+{{arch-fig}} shows the distribution system, which represents a file
 server and the device management infrastructure.
 
 To apply encryption the sender (author) needs to know the recipient (device).
@@ -200,8 +199,8 @@ parameters may be in the recipient's X.509 certificate {{RFC5280}}. For
 ES-DH the recipients must be provisioned with a public key (or a
 certificate) for verifying the digital signature covering the manifest.
 
-With encryption the author cannot just create a manifest for the firmware
-image and sign it since the subsequent encryption step by the distribution
+With encryption the author cannot just create a manifest for the payload
+and sign it since the subsequent encryption step by the distribution
 system would invalidate the signature over the manifest. (The content key
 distribution information is embedded inside the COSE_Encrypt structure,
 which is included in the SUIT manifest.) Hence, the author has to
@@ -213,13 +212,13 @@ collaboration is discussed below.
                                            |  Author  |
  +----------+                              +----------+
  |  Device  |---+                               |
- |          |   |                               | Firmware +
+ |          |   |                               | Payload +
  |          |   |                               | Manifest
  +----------+   |                               |
                 |                               |
                 |                               |
                 |                        +--------------+
- +----------+   |  Firmware + Manifest   | Distribution |
+ +----------+   |  Payload + Manifest    | Distribution |
  |  Device  |---+------------------------|    System    |
  |          |   |                        +--------------+
  |          |   |
@@ -232,7 +231,7 @@ collaboration is discussed below.
  |          |
  +----------+
 ~~~
-{: #arch-fig title="Firmware Encryption Architecture."}
+{: #arch-fig title="Payload Encryption Architecture."}
 
 The author has several deployment options, namely
 
@@ -398,7 +397,7 @@ by COSE. New methods can be added via enhancements to this specification.
 The two specified methods were selected to their maturity, different
 security properties, and to ensure interoperability in deployments.
 
-When an encrypted firmware image is sent to multiple recipients, there
+When an encrypted payload is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
 following notation:
 
@@ -562,7 +561,7 @@ This example uses the following parameters:
 - IV: h'11D40BB56C3836AD44B39835B3ABC7FC'
 - KEK: "aaaaaaaaaaaaaaaa"
 - KID: "kid-1"
-- Plaintext firmware (txt): "This is a real firmware image."
+- Plaintext (txt): "This is a real firmware image."
   (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -579,7 +578,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 ~~~
 {: #aeskw-example title="COSE_Encrypt Example for AES Key Wrap"}
 
-The encrypted firmware (with a line feed added) was:
+The encrypted payload (with a line feed added) was:
 
 ~~~
 {::include examples/encrypted-payload-aes-kw.hex}
@@ -776,7 +775,7 @@ This example uses the following parameters:
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KID: "kid-2"
 - Plaintext: "This is a real firmware image."
-- Firmware (hex):
+- Plaintext (in hex encoding):
   546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -794,13 +793,16 @@ protected by a COSE_Sign1, which is not shown below.
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
-The encrypted firmware (with a line feed added) was:
+The encrypted payload (with a line feed added) was:
 
 ~~~
 {::include examples/encrypted-payload-es-ecdh.hex}
 ~~~
 
 # Firmware Updates on IoT Devices with Flash Memory
+
+Note: This section is specific to firmware images and does not apply to
+generic software, configuration data, and machine learning models.
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
 data in units called blocks, pages or sectors and re-writes data at byte level
@@ -991,7 +993,7 @@ Legend:
 
 # Complete Examples 
 
-The following manifests examplify how to deliver encrypted firmware and its
+The following manifests examplify how to deliver encrypted payload and its
 encryption info to devices.
 
 The examples are signed using the following ECDSA secp256r1 key:
@@ -1110,11 +1112,13 @@ TBD1       Encryption Info      Section 4
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
 Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
-making us aware of the challenges firmware encryption imposes on binary analysis.
+Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like
+to thank Dick Brooks for making us aware of the challenges encryption imposes on binary analysis.
 
 # A. Full CDDL {#full-cddl}
-The following CDDL MUST be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in Appendix A of {{I-D.ietf-suit-manifest}}
+
+The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
+Appendix A of {{I-D.ietf-suit-manifest}}
 
 ~~~ CDDL
 {::include draft-ietf-suit-firmware-encryption.cddl}
