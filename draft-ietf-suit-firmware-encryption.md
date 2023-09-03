@@ -208,30 +208,29 @@ collaborate with the distribution system. The varying degree of
 collaboration is discussed below.
 
 ~~~
-                                           +----------+
-                                           |  Author  |
- +----------+                              +----------+
- |  Device  |---+                               |
- |          |   |                               | Payload +
- |          |   |                               | Manifest
+ +----------+
+ |  Device  |                              +----------+
+ |    1     |---+                          |  Author  |
+ |          |   |                          +----------+
  +----------+   |                               |
+                |                               | Payload +
+                |                               | Manifest
                 |                               |
-                |                               |
-                |                        +--------------+
- +----------+   |  Payload + Manifest    | Distribution |
- |  Device  |---+------------------------|    System    |
+ +----------+   |                        +--------------+
+ |  Device  |   |  Payload + Manifest    | Distribution |
+ |    2     |---+------------------------|    System    |
  |          |   |                        +--------------+
- |          |   |
  +----------+   |
                 |
+      ...       |
                 |
  +----------+   |
- |  Device  +---+
- |          |
+ |  Device  |   |
+ |    n     |---+
  |          |
  +----------+
 ~~~
-{: #arch-fig title="Payload Encryption Architecture."}
+{: #arch-fig title="Architecture for the distribution of Encrypted Payloads."}
 
 The author has several deployment options, namely
 
