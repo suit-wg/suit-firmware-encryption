@@ -795,8 +795,8 @@ This Enc_structure needs to be populated as follows:
 The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
 to the content of the protected field from the COSE_Encrypt structure.
 
-The value of the external_aad MUST be set to nil (major type 7,
-value 22) {{RFC8610}}.
+The value of the external_aad MUST be set to a zero-length byte string,
+i.e., h'' in diagnostic notation and encoded as 0x40.
 
 For use with ciphers that do not provide integrity protection, such as
 AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
