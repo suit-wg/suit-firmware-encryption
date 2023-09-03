@@ -269,7 +269,7 @@ Section 4.3.17 of {{RFC9124}}.
 
 2. The alternative is to use a two-manifest system, where the distributor
 constructs a new manifest that overrides the COSE_Encrypt using the dependency
-system defined in {{I-D.ietf-suit-trust-domains}}. This incurrs additional
+system defined in {{I-D.ietf-suit-trust-domains}}. This incurs additional
 overhead: one additional signature verification and one additional manifest,
 as well as the additional machinery in the recipient needed for dependency
 processing.
@@ -329,7 +329,7 @@ Examples of the two directives are shown below.
 {{encryption-info-consumed-with-write}} illustrates the Directive Write.
 The encrypted payload specified with parameter-content, namely
 h'EA1...CED' in the example, is decrypted using the SUIT_Encryption_Info
-structure referred to by parameter-encryption-info, i.e. h'D86...1F0'.
+structure referred to by parameter-encryption-info, i.e., h'D86...1F0'.
 The resulting plaintext payload is stored into component #0.
 
 ~~~
@@ -379,9 +379,10 @@ MUST be included in the manifest.
 
 Another attack concerns battery exhaustion. An attacker may swap
 detached payloads and thereby force the device to process a wrong
-payload. While this attack will be detected the device has performed
+payload. While this attack will be detected, a device may have performed
 energy-expensive flash operations already. These operations may reduce
-the lifetime of devices when they are battery powered.
+the lifetime of devices when they are battery powered Iot devices. See
+{{flash}} for further discussion about IoT devices using flash memory.
 
 Including the digest of the encrypted payload allows the device to
 detect a battery exhaustion attack before energy consuming decryption
@@ -426,7 +427,7 @@ encrypted by the KEK.
 
 The COSE\_Encrypt structure conveys information for encrypting the payload,
 which includes information like the algorithm and the IV, even though the
-payload may not embedded in the COSE_Encrypt.ciphertext if it is
+payload may not be embedded in the COSE_Encrypt.ciphertext if it is
 conveyed as detached content.
 
 ### Deployment Options
@@ -544,7 +545,7 @@ The value of the external_aad MUST be set to a null value (major type 7,
 value 22).
 
 For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}),
+AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
 Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
 because the Enc_structure represents the Additional Authenticated Data
 (AAD) byte string consumable only by AEAD ciphers. Hence, the 
@@ -693,7 +694,7 @@ defined in Section 5.2 of RFC 9053 and tailors it accordingly.
 The following information elements are bound to the context:
 
 * the protocol employing the key-derivation method,
-* information about the utilized AES Key Wrap algorithm,and the key length.
+* information about the utilized AES Key Wrap algorithm, and the key length.
 * the protected header field, which contains the content key encryption algorithm.
 
 The sender and recipient identities are left empty.
@@ -749,10 +750,10 @@ as described in Section 5.1 of {{RFC9053}}. This optional value is used to
 influence the key generation process. This specification does not mandate the
 use of a salt value. If the salt is public and carried in the message, then
 the "salt" algorithm header parameter MUST be used. The purpose of the salt
-value is to provide extra randomness in the KDF context. If the salt sent
-in the "salt" algorithm header parameter, then the receiver MUST be able to
-process a salt and MUST pass it into the key derivation function.
-For more information about the salt value, see {{RFC5869}} and NIST
+is to provide extra randomness in the KDF context. If the salt is sent
+in the 'salt' algorithm header parameter, then the receiver MUST be able to
+process the salt and MUST pass it into the key derivation function.
+For more information about the salt, see {{RFC5869}} and NIST
 SP800-56 {{SP800-56}}.
 
 Profiles of this specification MAY specify an extended version of the
@@ -799,13 +800,13 @@ The encrypted payload (with a line feed added) was:
 {::include examples/encrypted-payload-es-ecdh.hex}
 ~~~
 
-# Firmware Updates on IoT Devices with Flash Memory
+# Firmware Updates on IoT Devices with Flash Memory {#flash}
 
 Note: This section is specific to firmware images and does not apply to
 generic software, configuration data, and machine learning models.
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
-data in units called blocks, pages or sectors and re-writes data at byte level
+data in units called blocks, pages or sectors and re-writes data at the byte level
 (often 4-bytes) or larger units.
 Flash memory is furthermore segmented into different memory regions, which store
 the bootloader, different versions of firmware images (in so-called slots),
@@ -828,7 +829,7 @@ At the next boot, the bootloader will recognize a new firmware image in the
 secondary slot and will start decrypting the downloaded image sector-by-sector
 and will swap it with the image found in the primary slot.
 
-The swap should only take place after the signature on the plaintext is verified.
+The swap will only take place after the signature on the plaintext is verified.
 Note that the plaintext firmware image is available in the primary slot only after
 the swap has been completed, unless "dummy decrypt" is used to compute the hash
 over the plaintext prior to executing the decrypt operation during a swap.
@@ -840,8 +841,7 @@ each sector in the manifest rather than a hash of the entire firmware image,
 such optimizations are not described in this specification.
 
 This approach of swapping the newly downloaded image with the previously valid
-image is often referred as A/B approach. A/B refers to the two slots involved.
-Two slots are used to allow the update to be reversed in case the newly obtained
+image requires two slots to allow the update to be reversed in case the newly obtained
 firmware image fails to boot. This approach adds robustness to the firmware
 update procedure.
 
@@ -907,7 +907,7 @@ provided and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
 AES Cipher Block Chaining (AES-CBC) ciphers that do not offer integrity protection.
 These ciphers are useful for use cases that require firmware encryption on IoT
 devices. For many other use cases where software packages, configuration information
-or personalization data needs to be encrypted, the use of Authenticated Encryption
+or personalization data need to be encrypted, the use of Authenticated Encryption
 with Associated Data (AEAD) ciphers is RECOMMENDED.
 
 The following sub-sections provide further information about the initialization vector
@@ -921,7 +921,7 @@ need to be decrypted until an entire sector is completed.
 ## AES-CBC
 
 In AES-CBC a single IV is used for encryption of firmware belonging to a single sector
-since individual AES blocks are chained toghether, as shown in {{aes-cbc-fig}}. The
+since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
 numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
 every sector till the end of the slot is reached. The IV follows this numbering.
 
@@ -993,7 +993,7 @@ Legend:
 
 # Complete Examples 
 
-The following manifests examplify how to deliver encrypted payload and its
+The following manifests exemplify how to deliver encrypted payload and its
 encryption info to devices.
 
 The examples are signed using the following ECDSA secp256r1 key:
@@ -1039,7 +1039,7 @@ In hex format, the SUIT manifest is this:
 ## AES Key Wrap Example with Fetch + Copy Directives {#example-AES-KW-copy}
 
 The following SUIT manifest requests a parser to fetch the encrypted
-payload and to stores it. Then, the payload is decrypt and stored into
+payload and to stores it. Then, the payload is decrypted and stored into
 another component with the suit-directive-copy directive. This approach
 works well on constrained devices with execute-in-place flash memory.
 
@@ -1068,11 +1068,11 @@ performing payload encryption
 
 Both cases require some upfront communication interaction
 to distribute these keys to the involved communication parties.
-This interaction may be provided by an device management protocol,
+This interaction may be provided by a device management protocol,
 as described in {{RFC9019}}, or may be executed earlier in
 the lifecycle of the device, for example during manufacturing
 or during commissioning. In addition to the keying material
-key identifiers and algorithm information needs to be provisioned.
+key identifiers and algorithm information need to be provisioned.
 This specification places no requirements on the structure of the
 key identifier.
 
