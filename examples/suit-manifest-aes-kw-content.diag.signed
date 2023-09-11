@@ -2,7 +2,8 @@
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: / h'6117ACE74E900E65C560D609BBC34C90E4A33E340B12444D525C427E4AD9FF10'
+      / digest-bytes: / h'6117ACE74E900E65C560D609BBC34C90
+                          E4A33E340B12444D525C427E4AD9FF10'
     ] >>,
     << / COSE_Mac0_Tagged / 17([
       / protected: / << {
@@ -10,7 +11,8 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'02B4BCA870F62D6A351C13A52B622D2C3779D43823A2FD20C08147A8A337A391'
+      / signature: / h'02B4BCA870F62D6A351C13A52B622D2C
+                       3779D43823A2FD20C08147A8A337A391'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -24,7 +26,9 @@
     / install / 17: << [
       / fetch encrypted firmware /
       / directive-override-parameters / 20, {
-        / parameter-content / 18: h'9890D8DC740A2E82C2BEA9BAB13E0BFA0FB4EB2BA3C0BCA4B23A0D660C5B3038F8634933921B3C2D1A84EE6C2779',
+        / parameter-content / 18:
+          h'9890D8DC740A2E82C2BEA9BAB13E0BFA0FB4EB2BA3C0BC
+            A4B23A0D660C5B3038F8634933921B3C2D1A84EE6C2779',
         / parameter-encryption-info / 19: << 96([
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
@@ -41,7 +45,9 @@
                 / alg / 1: -3 / A128KW /,
                 / kid / 4: 'kid-1'
               },
-              / payload: / h'CA0DF4EE01796D12FE379165602E0AC2476391A4EF122A64' / CEK encrypted with KEK /
+              / payload: /
+                h'CA0DF4EE01796D12FE379165602E0AC2476391A4EF122A64'
+                / CEK encrypted with KEK /
             ]
           ]
         ]) >>
