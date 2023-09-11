@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-15
+docname: draft-ietf-suit-firmware-encryption-16
 category: std
 
 ipr: trust200902
@@ -212,15 +212,15 @@ collaboration is discussed below.
 ~~~
  +----------+
  |  Device  |                              +----------+
- |    1     |---+                          |  Author  |
+ |    1     |<--+                          |  Author  |
  |          |   |                          +----------+
  +----------+   |                               |
                 |                               | Payload +
                 |                               | Manifest
-                |                               |
+                |                               v
  +----------+   |                        +--------------+
  |  Device  |   |  Payload + Manifest    | Distribution |
- |    2     |---+------------------------|    System    |
+ |    2     |<--+------------------------|    System    |
  |          |   |                        +--------------+
  +----------+   |
                 |
@@ -228,7 +228,7 @@ collaboration is discussed below.
                 |
  +----------+   |
  |  Device  |   |
- |    n     |---+
+ |    n     |<--+
  |          |
  +----------+
 ~~~
@@ -250,10 +250,7 @@ The author has several deployment options, namely:
   the author needs to trust the distribution system with performing the
   re-encryption of the payload.
 
-If the author and distributor are separate entities, then the author must delegate
-encryption rights to the distributor. By the principle of least privilege, this
-delegation should only grant the distributor decryption and re-encryption rights.
-There are two models:
+If the author delegates encryption rights to the distributor two models are possible:
 
 1. The distributor replaces the COSE_Encrypt in the manifest and then signs the
 manifest again. However, the COSE_Encrypt structure is contained within a signed
@@ -268,7 +265,7 @@ a large number of devices in a timely fashion, it is not possible to air-gap
 the distributor's signing operations. This impacts the recommendations in
 Section 4.3.17 of {{RFC9124}}.
 
-2. The alternative is to use a two-manifest system, where the distributor
+2. The distributor uses a two-manifest system. More precisely, the distributor
 constructs a new manifest that overrides the COSE_Encrypt using the dependency
 system defined in {{I-D.ietf-suit-trust-domains}}. This incurs additional
 overhead: one additional signature verification and one additional manifest,
@@ -304,20 +301,20 @@ suit-directive-override-parameters or the suit-directive-set-parameters
 parameters used in the "Directive Write" and "Directive Copy" directives.
 An implementation claiming conformance with this specification
 must implement support for these two parameters. Since a device will
-typically only support one of the content key distribution algorithms,
-the distribution system needs to know about the properties of the
-deployed devices. Mandating only a single content key distribution
-algorithm for a constrained device also reduces the code size.
+typically only support one of the content key distribution methods,
+the distribution system needs to know which of two specified methods
+wis supported. Mandating only a single content key distribution
+method for a constrained device also reduces the code size.
 
 ~~~
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 
-suit-parameter-encryption-info   = 19
+suit-parameter-encryption-info = 19
 ~~~
 {: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
 
-RFC Editor's Note (TBD1): The value for the suit-parameter-encryption-info
+RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
 parameter is set to 19, as the proposed value.]
 
 # Extended Directives
@@ -389,18 +386,6 @@ manifest. See suit-parameter-image-digest parameter in Section
 Once a CEK is available, the steps described in {{content-enc}} are applicable.
 These steps apply to both content key distribution methods.
 
-Another attack concerns battery exhaustion. An attacker may swap
-detached payloads and thereby force the device to process a wrong
-payload. While this attack will be detected, a device may have performed
-energy-expensive flash operations already. These operations may reduce
-the lifetime of devices when they are battery powered Iot devices. See
-{{flash}} for further discussion about IoT devices using flash memory.
-
-Including the digest of the encrypted payload allows the device to
-detect a battery exhaustion attack before energy consuming decryption
-and flash operations took place. Including the digest of the plaintext
-payload is adequate when battery exhaustion attacks are not a concern.
-
 # Content Key Distribution
 
 The sub-sections below describe two content key distribution methods,
@@ -409,6 +394,10 @@ Many other methods are specified in the literature, and even supported
 by COSE. New methods can be added via enhancements to this specification.
 The two specified methods were selected to their maturity, different
 security properties, and to ensure interoperability in deployments.
+
+The two content key distribution methods require the CEKs to be
+randomly generated. It must be ensured that the guidelines for random
+number generation in {{RFC8937}} are followed.
 
 When an encrypted payload is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
@@ -437,7 +426,12 @@ AES-KW are specified in Section 8.5.2 of {{RFC9052}} and in Section 6.2.1 of
 {{RFC9053}}. The encrypted CEK is carried in the COSE\_recipient structure
 alongside the information needed for AES-KW. The COSE\_recipient structure,
 which is a substructure of the COSE\_Encrypt structure, contains the CEK
-encrypted by the KEK. 
+encrypted by the KEK.
+
+To provide high security for AES Key Wrap, it is important that the
+KEK is of high entropy, and that implementations protect the KEK
+from disclosure. Compromise of the KEK may result in the disclosure
+of all data protected with that KEK, including binaries, and configuration data.
 
 The COSE\_Encrypt structure conveys information for encrypting the payload,
 which includes information like the algorithm and the IV, even though the
@@ -449,8 +443,8 @@ conveyed as detached content.
 There are three deployment options for use with AES Key Wrap for payload
 encryption:
 
-- If all authorized recipients have access to the KEK, a single
-COSE\_recipient structure contains the encrypted CEK. The sender executes
+- If all recipients (typically of the same product family) share the same KEK,
+a single COSE\_recipient structure contains the encrypted CEK. The sender executes
 the following steps:
 
 ~~~
@@ -459,6 +453,10 @@ the following steps:
      3. ENC(CEK, KEK)
      4. ENC(payload, CEK)
 ~~~
+
+This deployment option is stronly discouraged. An attacker gaining access to
+the KEK will be able to encrypt and send payloads to all recipients configured
+to use this KEK.
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures
 are included but only a single CEK is used. Each COSE\_recipient structure
@@ -1002,6 +1000,22 @@ Legend:
 ~~~
 {: #aes-ctr-fig title="AES-CTR Operation"}
 
+## Battery Exhaustion Attacks
+
+The use of flash memory opens up for another attack. An attacker may swap
+detached payloads and thereby force the device to process a wrong
+payload. While this attack will be detected, a device may have performed
+energy-expensive flash operations already. These operations may reduce
+the lifetime of devices when they are battery powered Iot devices. See
+{{flash}} for further discussion about IoT devices using flash memory.
+
+Including the digest of the encrypted payload allows the device to
+detect a battery exhaustion attack before energy consuming decryption
+and flash operations took place. Including the digest of the plaintext
+payload is adequate when battery exhaustion attacks are not a concern.
+
+
+
 # Complete Examples 
 
 The following manifests exemplify how to deliver encrypted payload and its
@@ -1067,7 +1081,8 @@ In hex format, the SUIT manifest is this:
 {::include examples/suit-manifest-aes-kw.hex.signed}
 ~~~
 
-# Security Considerations {#sec-cons}
+
+## Operational Considerations
 
 The algorithms described in this document assume that the party
 performing payload encryption
@@ -1087,13 +1102,6 @@ key identifiers and algorithm information need to be provisioned.
 This specification places no requirements on the structure of the
 key identifier.
 
-To provide high security for AES Key Wrap, it is important that the
-KEK is of high entropy, and that implementations protect the KEK
-from disclosure. Compromise of the KEK may result in the disclosure
-of all key data protected with that KEK.
-
-Since the CEK is randomly generated, it must be ensured that the
-guidelines for random number generation in {{RFC8937}} are followed.
 
 In some cases third party companies analyse binaries for known
 security vulnerabilities. With encrypted payloads, this type of
@@ -1101,8 +1109,27 @@ analysis is prevented. Consequently, these third party companies
 either need to be given access to the plaintext binary before
 encryption or they need to become authorized recipients of the
 encrypted payloads. In either case, it is necessary to explicitly
-consider those third parties in the software supply chain when such a binary analysis
-is desired.
+consider those third parties in the software supply chain when
+such a binary analysis is desired.
+
+
+# Security Considerations {#sec-cons}
+
+This entire document is about security.
+
+Note that it is good security practise to use different long-term
+keys for different purpose. For example, the KEK used with an
+AES-KW-based content key distribution method for encryption should
+be different from the long-term symmetric key used for authentication
+and integrity protection when uses with COSE_Mac0.
+
+The design of this specification allows to use different long-term
+keys for encrypting payloads. For example, KEK_1 may be used with
+an AES-KW content key distribution method to encrypt a firmware
+image while KEK_2 would be used to encrypt configuration data. This
+approach reduces the attack surface since permissions of authors to
+these long-term keys may vary based on their privileges.
+
 
 #  IANA Considerations
 
@@ -1112,10 +1139,10 @@ registry established by Section 11.5 of {{I-D.ietf-suit-manifest}}:
 ~~~
 Label      Name                 Reference
 -----------------------------------------
-TBD1       Encryption Info      Section 4
+TBD19      Encryption Info      Section 4
 ~~~
 
-[Editor's Note: TBD1: Proposed 19]
+[Editor's Note: TBD19: Proposed 19]
 
 --- back
 
