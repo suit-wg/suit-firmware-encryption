@@ -92,12 +92,12 @@ informative:
 
 --- abstract
 
-This document specifies techniques for encrypting software, firmware
-and personalization data by utilizing the IETF SUIT manifest. Key
-agreement is provided by ephemeral-static (ES) Diffie-Hellman (DH)
-and AES Key Wrap (AES-KW). ES-DH uses public key cryptography while
-AES-KW uses a pre-shared key. Encryption of the plaintext is
-accomplished with conventional symmetric key cryptography.
+This document specifies techniques for encrypting software, firmware,
+machine learning models, and personalization data by utilizing the IETF
+SUIT manifest. Key agreement is provided by ephemeral-static (ES)
+Diffie-Hellman (DH) and AES Key Wrap (AES-KW). ES-DH uses public key
+cryptography while AES-KW uses a pre-shared key. Encryption of the
+plaintext is accomplished with conventional symmetric key cryptography.
 
 --- middle
 
@@ -105,48 +105,47 @@ accomplished with conventional symmetric key cryptography.
 
 Vulnerabilities with Internet of Things (IoT) devices have raised the
 need for a reliable and secure firmware update mechanism that is also
-suitable for constrained devices. To protect firmware images the SUIT manifest
+suitable for constrained devices. To protect firmware images, the SUIT manifest
 format was developed {{I-D.ietf-suit-manifest}}. It provides a bundle of
-metadata about the firmware for an IoT device, including where to find
-the firmware image, the devices to which it applies and a security wrapper.
+metadata, including where to find the payload, the devices to which it
+applies and a security wrapper.
 
 {{RFC9124}} details the information that has to be provided by the SUIT
 manifest format. In addition to offering protection against modification,
-via a digital signature or a message authentication code, the firmware
-image may also be afforded confidentiality using encryption.
+via a digital signature or a message authentication code,
+confidentiality may also be afforded.
 
 Encryption prevents third parties, including attackers, from gaining
-access to the firmware binary. Hackers typically need intimate knowledge
-of the target firmware to mount their attacks. For example,
-return-oriented programming (ROP) {{ROP}} requires access to the binary
-and encryption makes it much more difficult to write exploits.
-
-The firmware image is encrypted using a symmetric content encryption
-key, which can be established using a variety of mechanisms; this
-document defines two content key distribution algorithms for use with
-the IETF SUIT manifest, namely:
-
-- Ephemeral-Static (ES) Diffie-Hellman (DH), and
-- AES Key Wrap (AES-KW).
-
-The former algorithm relies on asymmetric key cryptography while the
-latter uses symmetric key cryptography.
-
-Our goal was to reduce the number of content key distribution algorithms
-and thereby increase interoperability between different SUIT manifest
-parser implementations.
+access to the payload. Attackers typically need intimate knowledge
+of a binary, such as a firmware image, to mount their attacks.
+For example, return-oriented programming (ROP) {{ROP}} requires access
+to the binary and encryption makes it much more difficult to write exploits.
 
 While the original motivating use case of this document was firmware
-encryption, SUIT manifests may require payloads other than firmware
-images to experience confidentiality protection, such as
+encryption, the use of SUIT manifests has been extended to other use cases
+requiring integrity and confidentiality protection, such as:
 
 - software packages,
 - personalization data,
 - configuration data, and
 - machine learning models.
  
-Hence, the term payload is used to generically refer to those objects
-that may be subject to encryption.
+Hence, we use the term payload to generically refer to all those objects.
+
+The payload is encrypted using a symmetric content encryption
+key, which can be established using a variety of mechanisms; this
+document defines two content key distribution methods for use with
+the IETF SUIT manifest, namely:
+
+- Ephemeral-Static (ES) Diffie-Hellman (DH), and
+- AES Key Wrap (AES-KW).
+
+The former method relies on asymmetric key cryptography while the
+latter uses symmetric key cryptography.
+
+Our goal was to reduce the number of content key distribution methods
+for use with payload encryption and thereby increase interoperability
+between different SUIT manifest parser implementations.
 
 # Conventions and Terminology
 
@@ -158,30 +157,30 @@ when, and only when, they appear in all capitals, as shown here.
 This document assumes familiarity with the IETF SUIT manifest {{I-D.ietf-suit-manifest}},
 the SUIT information model {{RFC9124}}, and the SUIT architecture {{RFC9019}}.
 
+The following abbreviations are used in this document:
+
+* Key Wrap (KW), defined in {{RFC3394}} (for use with AES)
+* Key-Encryption Key (KEK) {{RFC3394}}
+* Content-Encryption Key (CEK) {{RFC5652}}
+* Ephemeral-Static (ES) Diffie-Hellman (DH) {{RFC9052}}
+
 The terms sender and recipient have the following meaning:
 
 * Sender: Entity that sends an encrypted payload.
 * Recipient: Entity that receives an encrypted payload.
 
 Additionally, we introduce the term "distribution system" (or distributor)
-to refer to an entity that knows the recipients of the firmware images.
-For use of encryption the distribution system either knows the public key
+to refer to an entity that knows the recipients of payloads. It is important
+to note that the distribution system is far more than a file server. For
+use of encryption, the distribution system either knows the public key
 of the recipient (for ES-DH), or the KEK (for AES-KW).
 
-The author, which is responsible for creating the firmware image, does not
-know the recipients. It is important to note that the distribution system is
-far more than a file server.
+The author, which is responsible for creating the payload, does not
+know the recipients.
 
 The author and the distribution system are logical roles. In some
 deployments these roles are separated in different physical entities
 and in others they are co-located.
-
-Finally, the following abbreviations are used in this document:
-
-* Key Wrap (KW), defined in {{RFC3394}} (for use with AES)
-* Key-Encryption Key (KEK) {{RFC3394}}
-* Content-Encryption Key (CEK) {{RFC5652}}
-* Ephemeral-Static (ES) Diffie-Hellman (DH) {{RFC9052}}
 
 # Architecture {#arch}
 
@@ -190,18 +189,20 @@ manifests from an author to devices. It does, however, not detail the
 use of payload encryption. This document enhances the architecture to
 support encryption.
 
-{{arch-fig}} shows the distribution system, which represents the firmware
+{{arch-fig}} shows the distribution system, which represents a file
 server and the device management infrastructure.
 
-To apply encryption the sender (author) needs to know the recipient (device).
-For AES-KW the KEK needs to be known and, in case of ES-DH, the sender needs
+The sender (author) needs to know the recipient (device) to use encryption.
+For AES-KW, the KEK needs to be known and, in case of ES-DH, the sender needs
 to be in possession of the public key of the recipient. The public key and
 parameters may be in the recipient's X.509 certificate {{RFC5280}}. For
-ES-DH the recipients must be provisioned with a public key (or a
-certificate) for verifying the digital signature covering the manifest.
+authentication of the sender and for integrity protection the recipients
+must be provisioned with a trust anchor when a manifest is protected using
+a digital signature. When a MAC is used to protect the manifest then a
+symmetric key must be shared by the recipient and the sender.
 
-With encryption the author cannot just create a manifest for the firmware
-image and sign it since the subsequent encryption step by the distribution
+With encryption, the author cannot just create a manifest for the payload
+and sign it, since the subsequent encryption step by the distribution
 system would invalidate the signature over the manifest. (The content key
 distribution information is embedded inside the COSE_Encrypt structure,
 which is included in the SUIT manifest.) Hence, the author has to
@@ -209,32 +210,31 @@ collaborate with the distribution system. The varying degree of
 collaboration is discussed below.
 
 ~~~
-                                           +----------+
-                                           |  Author  |
- +----------+                              +----------+
- |  Device  |---+                               |
- |          |   |                               | Firmware +
- |          |   |                               | Manifest
+ +----------+
+ |  Device  |                              +----------+
+ |    1     |---+                          |  Author  |
+ |          |   |                          +----------+
  +----------+   |                               |
+                |                               | Payload +
+                |                               | Manifest
                 |                               |
-                |                               |
-                |                        +--------------+
- +----------+   |  Firmware + Manifest   | Distribution |
- |  Device  |---+------------------------|    System    |
+ +----------+   |                        +--------------+
+ |  Device  |   |  Payload + Manifest    | Distribution |
+ |    2     |---+------------------------|    System    |
  |          |   |                        +--------------+
- |          |   |
  +----------+   |
                 |
+      ...       |
                 |
  +----------+   |
- |  Device  +---+
- |          |
+ |  Device  |   |
+ |    n     |---+
  |          |
  +----------+
 ~~~
-{: #arch-fig title="Firmware Encryption Architecture."}
+{: #arch-fig title="Architecture for the distribution of Encrypted Payloads."}
 
-The author has several deployment options, namely
+The author has several deployment options, namely:
 
 * The author, as the sender, obtains information about the recipients
   and their keys from the distribution system. Then, it performs the necessary
@@ -244,7 +244,7 @@ The author has several deployment options, namely
 * The author treats the distribution system as the initial recipient. Then,
   the distribution system decrypts and re-encrypts the payload for consumption
   by the device (or the devices). Delegating the task of re-encrypting
-  the payload to the distribution system offers flexiblity when the number
+  the payload to the distribution system offers flexibility when the number
   of devices that need to receive encrypted payloads changes dynamically
   or when updates to KEKs or recipient public keys are necessary. As a downside,
   the author needs to trust the distribution system with performing the
@@ -270,7 +270,7 @@ Section 4.3.17 of {{RFC9124}}.
 
 2. The alternative is to use a two-manifest system, where the distributor
 constructs a new manifest that overrides the COSE_Encrypt using the dependency
-system defined in {{I-D.ietf-suit-trust-domains}}. This incurrs additional
+system defined in {{I-D.ietf-suit-trust-domains}}. This incurs additional
 overhead: one additional signature verification and one additional manifest,
 as well as the additional machinery in the recipient needed for dependency
 processing.
@@ -295,6 +295,10 @@ The SUIT_Encryption_Info structure (called suit-parameter-encryption-info in
 content of the SUIT_Encryption_Info structure is explained in {{AES-KW}}
 (for AES-KW) and in {{ES-DH}} (for ES-DH). 
 
+Once a CEK is available, the steps described in {{content-enc}} are applicable.
+These steps apply to both content key distribution methods described in this
+section.
+
 The SUIT_Encryption_Info structure is either carried inside the
 suit-directive-override-parameters or the suit-directive-set-parameters
 parameters used in the "Directive Write" and "Directive Copy" directives.
@@ -309,9 +313,12 @@ algorithm for a constrained device also reduces the code size.
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 
-suit-parameter-encryption-info   = [TBD1: Proposed 19]
+suit-parameter-encryption-info   = 19
 ~~~
 {: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
+
+RFC Editor's Note (TBD1): The value for the suit-parameter-encryption-info
+parameter is set to 19, as the proposed value.]
 
 # Extended Directives
 
@@ -327,7 +334,7 @@ Examples of the two directives are shown below.
 {{encryption-info-consumed-with-write}} illustrates the Directive Write.
 The encrypted payload specified with parameter-content, namely
 h'EA1...CED' in the example, is decrypted using the SUIT_Encryption_Info
-structure referred to by parameter-encryption-info, i.e. h'D86...1F0'.
+structure referred to by parameter-encryption-info, i.e., h'D86...1F0'.
 The resulting plaintext payload is stored into component #0.
 
 ~~~
@@ -364,22 +371,30 @@ payload will be stored into component #0.
 {: #encryption-info-consumed-with-copy title="Example showing the extended suit-directive-copy."}
 
 The payload to be encrypted may be detached and, in that case, it is
-not covered by a digital signature or a MAC of the manifest. (To be
-more precise, the suit-authentication-wrapper found in the envelope
-contains a digest of the manifest in the SUIT Digest Container.) The
+not covered by the digital signature or the MAC protecting the manifest.
+(To be more precise, the suit-authentication-wrapper found in the envelope
+contains a digest of the manifest in the SUIT Digest Container.) 
+
+The
 lack of authentication and integrity protection of the payload is
 particularly a concern when a cipher without integrity protection is
 used.
 
-To authenticate the payload in the detached payload case a SUIT Digest
-Container with the digest of the encrypted and/or plaintext payload
-MUST be included in the manifest.
+To provide authentication and integrity protection of the payload
+in the detached payload case a SUIT Digest Container with the hash
+of the encrypted and/or plaintext payload MUST be included in the
+manifest. See suit-parameter-image-digest parameter in Section
+8.4.8.6 of {{I-D.ietf-suit-manifest}}.
+
+Once a CEK is available, the steps described in {{content-enc}} are applicable.
+These steps apply to both content key distribution methods.
 
 Another attack concerns battery exhaustion. An attacker may swap
 detached payloads and thereby force the device to process a wrong
-payload. While this attack will be detected the device has performed
+payload. While this attack will be detected, a device may have performed
 energy-expensive flash operations already. These operations may reduce
-the lifetime of devices when they are battery powered.
+the lifetime of devices when they are battery powered Iot devices. See
+{{flash}} for further discussion about IoT devices using flash memory.
 
 Including the digest of the encrypted payload allows the device to
 detect a battery exhaustion attack before energy consuming decryption
@@ -388,28 +403,31 @@ payload is adequate when battery exhaustion attacks are not a concern.
 
 # Content Key Distribution
 
-The sub-sections below describe two content key distribution algorithms,
+The sub-sections below describe two content key distribution methods,
 namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
-Other algorithms are supported by COSE and may be supported via enhancements
-to this specification.
+Many other methods are specified in the literature, and even supported
+by COSE. New methods can be added via enhancements to this specification.
+The two specified methods were selected to their maturity, different
+security properties, and to ensure interoperability in deployments.
 
-When an encrypted firmware image is sent to multiple recipients, there
+When an encrypted payload is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
 following notation:
 
-- KEK(R1,S) refers to a KEK shared between recipient R1 and the sender S.
-The KEK, as a concept, is used by AES Key Wrap.
-- CEK(R1,S) refers to a CEK shared between R1 and S.
-- CEK(*,S) or KEK(*,S) are used when a single CEK or a single KEK is shared
-with all authorized recipients by a given sender S in a certain context.
+~~~
+- KEK(R1, S) refers to a KEK shared between recipient R1 and the sender S.
+  The KEK, as a concept, is used by AES Key Wrap but not by ES-DH.
+- CEK(R1, S) refers to a CEK shared between R1 and S.
+- CEK(*, S) or KEK(*, S) are used when a single CEK or a single KEK is shared
+  with all authorized recipients by a given sender S in a certain context.
 - ENC(plaintext, k) refers to the encryption of plaintext with a key k.
-- KEK_i or CEK_i refers to the i-th instance of the KEK or CEK, respectively.
+~~~
 
 ## Content Key Distribution with AES Key Wrap {#AES-KW}
 
 ### Introduction
 
-The AES Key Wrap (AES-KW) algorithm is described in RFC 3394 {{RFC3394}}, and
+The AES Key Wrap (AES-KW) algorithm is described in {{RFC3394}}, and
 can be used to encrypt a randomly generated content-encryption key (CEK)
 with a pre-shared key-encryption key (KEK). The COSE conventions for using
 AES-KW are specified in Section 8.5.2 of {{RFC9052}} and in Section 6.2.1 of
@@ -420,7 +438,7 @@ encrypted by the KEK.
 
 The COSE\_Encrypt structure conveys information for encrypting the payload,
 which includes information like the algorithm and the IV, even though the
-payload may not embedded in the COSE_Encrypt.ciphertext if it is
+payload may not be embedded in the COSE_Encrypt.ciphertext if it is
 conveyed as detached content.
 
 ### Deployment Options
@@ -433,10 +451,10 @@ COSE\_recipient structure contains the encrypted CEK. The sender executes
 the following steps:
 
 ~~~
-      Fetch KEK(*,S)
-      Generate CEK
-      ENC(CEK,KEK)
-      ENC(payload,CEK)
+     1. Fetch KEK(*, S)
+     2. Generate CEK
+     3. ENC(CEK, KEK)
+     4. ENC(payload, CEK)
 ~~~
 
 - If recipients have different KEKs, then multiple COSE\_recipient structures
@@ -448,29 +466,31 @@ recipients still use their individual KEK to decrypt the CEK and to subsequently
 obtain the plaintext. The steps taken by the sender are:
 
 ~~~
-      Generate CEK
-      for i=1 to n {
-         Fetch KEK_i(Ri, S)
-         ENC(CEK, KEK_i)
-      }
-      ENC(payload,CEK)
+    1.  Generate CEK
+    2.  for i=1 to n
+        {
+    2a.    Fetch KEK(Ri, S)
+    2b.    ENC(CEK, KEK(Ri, S))
+        }
+    3.  ENC(payload, CEK)
 ~~~
 
 - The third option is to use different CEKs encrypted with KEKs of
-authorized recipients. Assume there are n recipients with their unique KEKs -
-KEK_1(R1, S),..., KEK_n(Rn, S). The sender needs to make the following steps:
+authorized recipients. This approach is appropriate when no benefits can
+be gained from encrypting and transmitting payloads only once. Assume there
+are n recipients with their unique KEKs - KEK(R1, S), ..., KEK(Rn, S).
+The sender needs to execute the following steps:
 
 ~~~
-      for i=1 to n {
-         Fetch KEK_i(Ri, S)
-         Generate CEK_i
-         ENC(CEK_i, KEK_i)
-         ENC(payload,CEK_i)
-      }
+    1.  for i=1 to n
+        {
+    1a.    Fetch KEK(Ri, S)
+    1b.    Generate CEK(Ri, S)
+    1c.    ENC(CEK(Ri, S), KEK(Ri, S))
+    1d.    ENC(payload, CEK(Ri, S))
+    2.  }
 ~~~
 
-This approach is appropriate when no benefits can be gained from encrypting
-and transmitting payloads only once.
 
 ### CDDL
 
@@ -493,12 +513,13 @@ COSE_recipient_AESKW = [
   unprotected : recipient_header_unpr_map_aeskw,
   ciphertext  : bstr        ; CEK encrypted with KEK
 ]
+
 empty_map = {}
 
 recipient_header_unpr_map_aeskw =
 {
     1 => int,         ; algorithm identifier
-  ? 4 => bstr,        ; identifier of the recipient public key
+  ? 4 => bstr,        ; identifier of the KEK pre-shared with the recipient
   * label => values   ; extension point
 }
 ~~~
@@ -509,39 +530,6 @@ does not have public parameters that vary on a per-invocation basis. Hence,
 the protected header in the COSE_recipient structure is a byte string
 of zero length.
 
-For use with AEAD ciphers the COSE specification requires a consistent byte
-stream for the authenticated data structure to be created. This structure
-is shown in {{cddl-enc-aeskw}} and defined in Section 5.3 of {{RFC9052}}.
-
-~~~
- Enc_structure = [
-   context : "Encrypt",
-   protected : empty_or_serialized_map,
-   external_aad : bstr
- ]
-~~~
-{: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
-
-This Enc_structure needs to be populated as follows:
-
-The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
-to the content of the protected field from the COSE_Encrypt structure.
-It is important to note that there are two protected fields shown
-in {{cddl-aeskw}}:
-
-- one in the COSE_Encrypt structure, and
-- a second one in the COSE_recipient structure.
-
-The value of the external_aad MUST be set to a null value (major type 7,
-value 22).
-
-For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}} ),
-Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
-because the Enc_structure represents the Additional Authenticated Data
-(AAD) byte string consumable only by AEAD ciphers. The protected header
-in the SUIT_Encryption_Info_AESKW structure MUST be a zero-length byte string.
-
 ### Example
 
 This example uses the following parameters:
@@ -551,7 +539,7 @@ This example uses the following parameters:
 - IV: h'11D40BB56C3836AD44B39835B3ABC7FC'
 - KEK: "aaaaaaaaaaaaaaaa"
 - KID: "kid-1"
-- Plaintext firmware (txt): "This is a real firmware image."
+- Plaintext (txt): "This is a real firmware image."
   (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -568,7 +556,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 ~~~
 {: #aeskw-example title="COSE_Encrypt Example for AES Key Wrap"}
 
-The encrypted firmware (with a line feed added) was:
+The encrypted payload (with a line feed added) was:
 
 ~~~
 {::include examples/encrypted-payload-aes-kw.hex}
@@ -587,7 +575,7 @@ The following two layer structure is used:
 
 - Layer 0: Has a content encrypted with the CEK. The content may be detached.
 - Layer 1: Uses the AES Key Wrap algorithm to encrypt the randomly generated
-CEK with the KEK derived with ES-DH whereby the resulting symmetric
+CEK with the KEK derived with ES-DH, whereby the resulting symmetric
 key is fed into the HKDF-based key derivation function.
 
 As a result, the two layers combine ES-DH with AES-KW and HKDF. An example is
@@ -602,42 +590,44 @@ are always configured with a device-unique public / private key pair.
 shall receive the same encrypted payload, i.e. the same CEK is used.
 One COSE\_recipient structure per recipient is used and it contains the
 CEK encrypted with the KEK. To generate the KEK each COSE\_recipient structure
-contains a COSE_recipient_inner structure to carry the sender's emphemeral key
+contains a COSE_recipient_inner structure to carry the sender's ephemeral key
 and an identifier for the recipients public key.
 
 The steps taken by the sender are:
 
 ~~~
-      Generate CEK
-      for i=1 to n {
-         Generate KEK_i(Ri, S) using ES-DH
-         ENC(CEK, KEK_i)
-      }
-      ENC(payload,CEK)
+    1.  Generate CEK
+    2.  for i=1 to n
+        {
+    2a.     Generate KEK(Ri, S) using ES-DH
+    2b.     ENC(CEK, KEK(Ri, S))
+        }
+    3.  ENC(payload,CEK)
 ~~~
 
 - The alternative is to encrypt a payload with a different CEK for each
-recipient. Assume there are KEK_1(R1, S),..., KEK_n(Rn, S) have been generated
-for the different recipients using ES-DH. The following steps needs to be made
+recipient. This results in n-manifests. This approach is useful when payloads contain
+information unique to a device. The encryption operation then effectively becomes
+ENC(payload_i, CEK(Ri, S)). Assume that KEK(R1, S),..., KEK(Rn, S) have been generated
+for the different recipients using ES-DH. The following steps need to be made
 by the sender:
 
 ~~~
-      for i=1 to n {
-         Generate KEK_i(Ri, S) using ES-DH
-         Generate CEK_i
-         ENC(CEK_i, KEK_i)
-         ENC(payload,CEK_i)
-      }
+    1.  for i=1 to n
+        {
+    1a.     Generate KEK(Ri, S) using ES-DH
+    1b.     Generate CEK(Ri, S)
+    1c.     ENC(CEK(Ri, S), KEK(Ri, S))
+    1d.     ENC(payload, CEK(Ri, S))
+        }
 ~~~
 
-This results in n-manifests. This approach is useful when payloads contain
-information unique to a device. The encryption operation effectively becomes
-ENC(payload_i,CEK_i).
+
 
 ### CDDL
 
 The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-esdh}}.
-Only the minimum number of parameters are shown. empty_or_serialized_map
+Only the minimum number of parameters is shown. empty_or_serialized_map
 and header_map are structures defined in {{RFC9052}}.
 
 ~~~
@@ -672,6 +662,8 @@ recipient_header_unpr_map_esdh =
 ~~~
 {: #cddl-esdh title="CDDL for ES-DH-based Content Key Distribution"}
 
+See {{content-enc}} for a description on how to encrypt the payload.
+
 ### Context Information Structure
 
 The context information structure is used to ensure that the derived keying material
@@ -702,8 +694,8 @@ which the ES-DH content key distribution algorithm is used and MUST be set to
 the constant string "SUIT Payload Encryption".
 
 - The COSE_KDF_Context.SuppPubInfo.protected field MUST contain the serialized
-content of the recipient_header_pr_map field, which contains (among other fields)
-the content key distribution algorithm identifier.
+content of the recipient_header_map_esdh field, which contains (among other fields)
+the identifier of the content key distribution method.
 
 ~~~
 PartyInfoSender = (
@@ -724,7 +716,7 @@ COSE_KDF_Context = [
     PartyVInfo : [ PartyInfoRecipient ],
     SuppPubInfo : [
         keyDataLength : uint,
-        protected : bstr .cbor recipient_header_pr_map,
+        protected : bstr .cbor recipient_header_map_esdh,
         other: bstr "SUIT Payload Encryption"
     ],
     SuppPrivInfo : bstr .size 0
@@ -737,20 +729,15 @@ as described in Section 5.1 of {{RFC9053}}. This optional value is used to
 influence the key generation process. This specification does not mandate the
 use of a salt value. If the salt is public and carried in the message, then
 the "salt" algorithm header parameter MUST be used. The purpose of the salt
-value is to provide extra randomness in the KDF context. If the salt sent
-in the "salt" algorithm header parameter, then the receiver MUST be able to
-process a salt and MUST pass it into the key derivation function.
-For more information about the salt value, see {{RFC5869}} and NIST
+is to provide extra randomness in the KDF context. If the salt is sent
+in the 'salt' algorithm header parameter, then the receiver MUST be able to
+process the salt and MUST pass it into the key derivation function.
+For more information about the salt, see {{RFC5869}} and NIST
 SP800-56 {{SP800-56}}.
 
 Profiles of this specification MAY specify an extended version of the
 context information structure or MAY utilize a different context information
 structure.
-
-For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the 
-Enc_structure MUST NOT be used and the protected header in the
-SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string.
 
 ### Example
 
@@ -761,7 +748,7 @@ This example uses the following parameters:
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KID: "kid-2"
 - Plaintext: "This is a real firmware image."
-- Firmware (hex):
+- Plaintext (in hex encoding):
   546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -779,23 +766,69 @@ protected by a COSE_Sign1, which is not shown below.
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
-The encrypted firmware (with a line feed added) was:
+The encrypted payload (with a line feed added) was:
 
 ~~~
 {::include examples/encrypted-payload-es-ecdh.hex}
 ~~~
 
-# Firmware Updates on IoT Devices with Flash Memory
+## Content Encryption
+
+This section summarizes the steps taken for content encryption, which
+applies to both content key distribution methods.
+
+For use with AEAD ciphers, the COSE specification requires a consistent byte
+stream for the authenticated data structure to be created. This structure
+is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
+
+~~~
+ Enc_structure = [
+   context : "Encrypt",
+   protected : empty_or_serialized_map,
+   external_aad : bstr
+ ]
+~~~
+{: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
+
+This Enc_structure needs to be populated as follows:
+
+The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
+to the content of the protected field from the COSE_Encrypt structure.
+
+The value of the external_aad MUST be set to a zero-length byte string,
+i.e., h'' in diagnostic notation and encoded as 0x40.
+
+For use with ciphers that do not provide integrity protection, such as
+AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
+Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
+because the Enc_structure represents the Additional Authenticated Data
+(AAD) byte string consumable only by AEAD ciphers. Hence, the 
+Additional Authenticated Data structure is not supplied to the 
+API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW
+or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
+respectively.
+
+# Firmware Updates on IoT Devices with Flash Memory {#flash}
+
+Note: This section is specific to firmware images and does not apply to
+generic software, configuration data, and machine learning models.
 
 Flash memory on microcontrollers is a type of non-volatile memory that erases
-data in units called blocks, pages or sectors and re-writes data at byte level
-(often 4-bytes).
+data in units called blocks, pages, or sectors and re-writes data at the byte level
+(often 4-bytes) or larger units.
 Flash memory is furthermore segmented into different memory regions, which store
 the bootloader, different versions of firmware images (in so-called slots),
 and configuration data. {{image-layout}} shows an example layout of a
-microcontroller flash area. The primary slot contains the firmware image to be
-executed by the bootloader, which is a common deployment on devices that do
-not offer the concept of position independent code.
+microcontroller flash area. The primary slot typically contains the firmware image
+to be executed by the bootloader, which is a common deployment on devices that do
+not offer the concept of position independent code. Position independent code
+is not a feature frequently found in real-time operating systems used on
+microcontrollers. There are many flavors of embedded devices, the market
+is large and fragmented. Hence, it is likely that some implementations and deployments
+implement their firmware update procedure different than described below.
+On a positive note, the SUIT manifest allows different deployment scenarios
+to be supported easily thanks to the "scripting" functionality offered by
+the commands.
 
 When the encrypted firmware image has been transferred to the device, it will
 typically be stored in a staging area, in the secondary slot in our example.
@@ -804,7 +837,7 @@ At the next boot, the bootloader will recognize a new firmware image in the
 secondary slot and will start decrypting the downloaded image sector-by-sector
 and will swap it with the image found in the primary slot.
 
-The swap should only take place after the signature on the plaintext is verified.
+The swap will only take place after the signature on the plaintext is verified.
 Note that the plaintext firmware image is available in the primary slot only after
 the swap has been completed, unless "dummy decrypt" is used to compute the hash
 over the plaintext prior to executing the decrypt operation during a swap.
@@ -816,13 +849,12 @@ each sector in the manifest rather than a hash of the entire firmware image,
 such optimizations are not described in this specification.
 
 This approach of swapping the newly downloaded image with the previously valid
-image is often referred as A/B approach. A/B refers to the two slots involved.
-Two slots are used to allow the update to be reversed in case the newly obtained
+image requires two slots to allow the update to be reversed in case the newly obtained
 firmware image fails to boot. This approach adds robustness to the firmware
 update procedure.
 
-Since the image in primary slot is available in cleartext it may need to
-re-encrypted it before copying it to the secondary slot. This may be necessary
+Since the image in primary slot is available in cleartext, it may need to be
+re-encrypted before copying it to the secondary slot. This may be necessary
 when the secondary slot has different access permissions or when the staging
 area is located in off-chip flash memory and is therefore more vulnerable to
 physical attacks. Note that this description assumes that the processor does
@@ -874,7 +906,7 @@ When an update gets aborted while the bootloader is decrypting the newly obtaine
 image and swapping the sectors, the bootloader can restart where it left off. This
 technique offers robustness and better performance.
 
-For this purpose ciphers without integrity protection are used to encrypt the
+For this purpose, ciphers without integrity protection are used to encrypt the
 firmware image. Integrity protection of the firmware image MUST be
 provided and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
 {{I-D.ietf-suit-manifest}}, MUST be used.
@@ -883,28 +915,28 @@ provided and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
 AES Cipher Block Chaining (AES-CBC) ciphers that do not offer integrity protection.
 These ciphers are useful for use cases that require firmware encryption on IoT
 devices. For many other use cases where software packages, configuration information
-or personalization data needs to be encrypted, the use of Authenticated Encryption
+or personalization data need to be encrypted, the use of Authenticated Encryption
 with Associated Data (AEAD) ciphers is RECOMMENDED.
 
 The following sub-sections provide further information about the initialization vector
 (IV) selection for use with AES-CBC and AES-CTR in the firmware encryption context. An
 IV MUST NOT be re-used when the same key is used. For this application, the IVs are
 not random but rather based on the slot/sector-combination in flash memory. The
-text below assumes that the block-size of AES is (much) smaller than sector size. The
+text below assumes that the block-size of AES is (much) smaller than the sector size. The
 typical sector-size of flash memory is in the order of KiB. Hence, multiple AES blocks
 need to be decrypted until an entire sector is completed.
 
 ## AES-CBC
 
-In AES-CBC a single IV is used for encryption of firmware belonging to a single sector
-since individual AES blocks are chained toghether, as shown in {{aes-cbc-fig}}. The
+In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
+since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
 numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
 every sector till the end of the slot is reached. The IV follows this numbering.
 
 For example, let us assume the slot size of a specific flash controller on an IoT device
 is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
 128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
-If the firmware image fills the entire slot then that slot contains 16 sectors, i.e. IVs
+If the firmware image fills the entire slot, then that slot contains 16 sectors, i.e. IVs
 ranging from 0 to 15.
 
 ~~~
@@ -969,7 +1001,7 @@ Legend:
 
 # Complete Examples 
 
-The following manifests examplify how to deliver encrypted firmware and its
+The following manifests exemplify how to deliver encrypted payload and its
 encryption info to devices.
 
 The examples are signed using the following ECDSA secp256r1 key:
@@ -1015,7 +1047,7 @@ In hex format, the SUIT manifest is this:
 ## AES Key Wrap Example with Fetch + Copy Directives {#example-AES-KW-copy}
 
 The following SUIT manifest requests a parser to fetch the encrypted
-payload and to stores it. Then, the payload is decrypt and stored into
+payload and to stores it. Then, the payload is decrypted and stored into
 another component with the suit-directive-copy directive. This approach
 works well on constrained devices with execute-in-place flash memory.
 
@@ -1044,15 +1076,15 @@ performing payload encryption
 
 Both cases require some upfront communication interaction
 to distribute these keys to the involved communication parties.
-This interaction may be provided by an device management protocol,
+This interaction may be provided by a device management protocol,
 as described in {{RFC9019}}, or may be executed earlier in
 the lifecycle of the device, for example during manufacturing
 or during commissioning. In addition to the keying material
-key identifiers and algorithm information needs to be provisioned.
+key identifiers and algorithm information need to be provisioned.
 This specification places no requirements on the structure of the
 key identifier.
 
-To provide high security for AES Key Wrap it is important that the
+To provide high security for AES Key Wrap, it is important that the
 KEK is of high entropy, and that implementations protect the KEK
 from disclosure. Compromise of the KEK may result in the disclosure
 of all key data protected with that KEK.
@@ -1061,7 +1093,7 @@ Since the CEK is randomly generated, it must be ensured that the
 guidelines for random number generation in {{RFC8937}} are followed.
 
 In some cases third party companies analyse binaries for known
-security vulnerabilities. With encrypted payloads this type of
+security vulnerabilities. With encrypted payloads, this type of
 analysis is prevented. Consequently, these third party companies
 either need to be given access to the plaintext binary before
 encryption or they need to become authorized recipients of the
@@ -1084,16 +1116,20 @@ TBD1       Encryption Info      Section 4
 
 --- back
 
-# Acknowledgements
-
-We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
-Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, and Carsten Bormann for their review feedback. Finally, we would like to thank Dick Brooks for
-making us aware of the challenges firmware encryption imposes on binary analysis.
-
 # A. Full CDDL {#full-cddl}
-The following CDDL MUST be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in Appendix A of {{I-D.ietf-suit-manifest}}
+
+The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
+Appendix A of {{I-D.ietf-suit-manifest}}
 
 ~~~ CDDL
 {::include draft-ietf-suit-firmware-encryption.cddl}
 ~~~
+
+
+# Acknowledgements
+{: numbered="no"}
+
+We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
+Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
+Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like
+to thank Dick Brooks for making us aware of the challenges encryption imposes on binary analysis.
