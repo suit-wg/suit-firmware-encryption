@@ -669,7 +669,7 @@ See {{content-enc}} for a description on how to encrypt the payload.
 
 The context information structure is used to ensure that the derived keying material
 is "bound" to the context of the transaction. This specification re-uses the structure
-defined in Section 5.2 of RFC 9053 and tailors it accordingly.
+defined in Section 5.2 of {{RFC9053}} and tailors it accordingly.
 
 The following information elements are bound to the context:
 
