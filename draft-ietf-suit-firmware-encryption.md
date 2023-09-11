@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-14
+docname: draft-ietf-suit-firmware-encryption-15
 category: std
 
 ipr: trust200902
@@ -415,12 +415,15 @@ are different deployment options. To explain these options we use the
 following notation:
 
 ~~~
-- KEK(R1, S) refers to a KEK shared between recipient R1 and the sender S.
-  The KEK, as a concept, is used by AES Key Wrap but not by ES-DH.
-- CEK(R1, S) refers to a CEK shared between R1 and S.
-- CEK(*, S) or KEK(*, S) are used when a single CEK or a single KEK is shared
-  with all authorized recipients by a given sender S in a certain context.
-- ENC(plaintext, k) refers to the encryption of plaintext with a key k.
+   - KEK(R1, S) refers to a KEK shared between recipient R1 and
+     the sender S. The KEK, as a concept, is used by AES Key Wrap
+     but not by ES-DH.
+   - CEK(R1, S) refers to a CEK shared between R1 and S.
+   - CEK(*, S) or KEK(*, S) are used when a single CEK or a single
+     KEK is shared with all authorized recipients by a given sender
+     S in a certain context.
+   - ENC(plaintext, k) refers to the encryption of plaintext with
+     a key k.
 ~~~
 
 ## Content Key Distribution with AES Key Wrap {#AES-KW}
@@ -772,7 +775,7 @@ The encrypted payload (with a line feed added) was:
 {::include examples/encrypted-payload-es-ecdh.hex}
 ~~~
 
-## Content Encryption
+## Content Encryption {#content-enc}
 
 This section summarizes the steps taken for content encryption, which
 applies to both content key distribution methods.
