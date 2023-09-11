@@ -535,11 +535,12 @@ of zero length.
 
 This example uses the following parameters:
 
+- Algorithm for authentication: COSE_Mac0 with HMAC-256
 - Algorithm for payload encryption: AES-GCM-128
 - Algorithm id for key wrap: A128KW
-- IV: h'11D40BB56C3836AD44B39835B3ABC7FC'
-- KEK: "aaaaaaaaaaaaaaaa"
-- KID: "kid-1"
+- IV: h'93702C81590F845D9EC866CCAC767BD1'
+- KEK: 'aaaaaaaaaaaaaaaa'
+- KID: 'kid-1'
 - Plaintext (txt): "This is a real firmware image."
   (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
@@ -1021,7 +1022,12 @@ payload is adequate when battery exhaustion attacks are not a concern.
 The following manifests exemplify how to deliver encrypted payload and its
 encryption info to devices.
 
-The examples are signed using the following ECDSA secp256r1 key:
+HMAC-256 MAC are added in AES-KW examples using the following secret key:
+~~~
+'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' (0x616161... in hex, and its length is 32)
+~~~
+
+ES-DH examples are signed using the following ECDSA secp256r1 key:
 
 ~~~
 -----BEGIN PRIVATE KEY-----
@@ -1044,7 +1050,9 @@ Each example uses SHA-256 as the digest function.
 
 ## AES Key Wrap Example with Write Directive {#example-AES-KW-write}
 
-The following SUIT manifest requests a parser to write and to decrypt the
+The following SUIT manifest requests a parser
+to authenticate the manifest with COSE_Mac0 HMAC256,
+and to write and to decrypt the
 encrypted payload into a component with the suit-directive-write
 directive.
 

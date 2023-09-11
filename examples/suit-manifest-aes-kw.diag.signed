@@ -2,19 +2,17 @@
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: / h'C6A66263CCF4C6FF5992AE4074B30DDD
-                          34520AA099F6BAD96B2F60FE79F07EC4'
+      / digest-bytes: / h'9300AD376FE65C505593C82B78F14299
+                          BD0125A477720C044AD0552ABD27AAF6'
     ] >>,
-    << / COSE_Sign1_Tagged / 18([
+    << / COSE_Mac0_Tagged / 17([
       / protected: / << {
-        / algorithm-id / 1: -7 / ES256 /
+        / algorithm-id / 1: 5 / HMAC256 /
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'DA08C3A6455FF30865A97A7F4FBC3BA1
-                       5F954E39B57167DEA9FE16EBA12CFE33
-                       D58790DB64CB70A08F89513B15CFF995
-                       1222868195224E1AB87D46FA37F58864'
+      / tag: / h'F48509F3027EEAA2C40473212C3A12F2
+                 5A9C8BE6699E5E7936816836E91A9003'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -28,8 +26,7 @@
     } >>,
     / install / 17: << [
       / fetch encrypted firmware /
-      / directive-set-component-index / 12, 1
-        / ['encrypted-firmware'] /,
+      / directive-set-component-index / 12, 1 / ['encrypted-firmware'] /,
       / directive-override-parameters / 20, {
         / parameter-image-size / 14: 46,
         / parameter-uri / 21: "https://example.com/encrypted-firmware"
@@ -37,15 +34,14 @@
       / directive-fetch / 21, 15,
 
       / decrypt encrypted firmware /
-      / directive-set-component-index / 12, 0
-        / ['plaintext-firmware'] /,
+      / directive-set-component-index / 12, 0 / ['plaintext-firmware'] /,
       / directive-override-parameters / 20, {
         / parameter-encryption-info / 19: << 96([
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
           } >>,
           / unprotected: / {
-            / IV / 5: h'11D40BB56C3836AD44B39835B3ABC7FC'
+            / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
           },
           / payload: / null / detached ciphertext /,
           / recipients: / [
@@ -57,15 +53,14 @@
                 / kid / 4: 'kid-1'
               },
               / payload: /
-                h'E01F4443C88CA89DF93A9C7E6D79D1C9BC330757C7D2D75A'
+                h'CA0DF4EE01796D12FE379165602E0AC2476391A4EF122A64'
                 / CEK encrypted with KEK /
             ]
           ]
         ]) >>,
         / parameter-source-component / 22: 1 / ['encrypted-firmware'] /
       },
-      / directive-copy / 22, 15
-        / consumes the SUIT_Encryption_Info above /
+      / directive-copy / 22, 15 / consumes the SUIT_Encryption_Info above /
     ] >>
   } >>
 })
