@@ -534,11 +534,12 @@ of zero length.
 
 This example uses the following parameters:
 
+- Algorithm for authentication: COSE_Mac0 with HMAC-256
 - Algorithm for payload encryption: AES-GCM-128
 - Algorithm id for key wrap: A128KW
-- IV: h'11D40BB56C3836AD44B39835B3ABC7FC'
-- KEK: "aaaaaaaaaaaaaaaa"
-- KID: "kid-1"
+- IV: h'93702C81590F845D9EC866CCAC767BD1'
+- KEK: 'aaaaaaaaaaaaaaaa'
+- KID: 'kid-1'
 - Plaintext (txt): "This is a real firmware image."
   (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
 
