@@ -1005,7 +1005,12 @@ Legend:
 The following manifests exemplify how to deliver encrypted payload and its
 encryption info to devices.
 
-The examples are signed using the following ECDSA secp256r1 key:
+HMAC-256 MAC are added in AES-KW examples using the following secret key:
+~~~
+'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' (0x616161... in hex, and its length is 32)
+~~~
+
+ES-DH examples are signed using the following ECDSA secp256r1 key:
 
 ~~~
 -----BEGIN PRIVATE KEY-----
@@ -1028,7 +1033,9 @@ Each example uses SHA-256 as the digest function.
 
 ## AES Key Wrap Example with Write Directive {#example-AES-KW-write}
 
-The following SUIT manifest requests a parser to write and to decrypt the
+The following SUIT manifest requests a parser
+to authenticate the manifest with COSE_Mac0 HMAC256,
+and to write and to decrypt the
 encrypted payload into a component with the suit-directive-write
 directive.
 
