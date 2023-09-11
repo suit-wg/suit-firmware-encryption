@@ -746,6 +746,7 @@ This example uses the following parameters:
 - Algorithm for payload encryption: AES-GCM-128
 - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
+- SuppPubInfo.other = 'SUIT Payload Encryption'
 - KID: 'kid-2'
 - Plaintext: "This is a real firmware image."
 - Plaintext (in hex encoding):
