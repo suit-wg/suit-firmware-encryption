@@ -2,8 +2,8 @@
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: / h'4C56CA660A5D1414BC04C835025D52CC
-                          A9AE6101202E127329AD2465B38A1C89'
+      / digest-bytes: / h'AA45EE17A2345F8161926980949C9CB3
+                          0EB928BE302A1198B5F298434472DDA1'
     ] >>,
     << / COSE_Sign1_Tagged / 18([
       / protected: / << {
@@ -12,10 +12,10 @@
       / unprotected: / {},
       / payload: / null,
       / signature: /
-        h'ACC8962628B78BF30DD74BDEEA9305D7
-          3BFA302D82B280A7E2FCE8331C363F27
-          9ECCABE920DA97F9074DF5B3B2AAD170
-          9D844B8DE1D33F80FA99AC806B9778D0'
+        h'30CA0FF4223B0FBD9084B453624A4284
+          6F5BE7B724CBBEF33C334F3C89699A7B
+          1C0B2D97805A6F45707125EEBC51A807
+          560064EA38498E48F33743DD29561B08'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -27,18 +27,18 @@
       ]
     } >>,
     / install / 17: << [
-      / directive-set-component-index / 12, 0
-        / ['plaintext-firmware'] /,
+      / directive-set-component-index / 12, 0 /
+        ['plaintext-firmware'] /,
       / directive-override-parameters / 20, {
         / parameter-content / 18:
-          h'B94272BD7C7E9A144D12CF46D9CEE6318753574A6F7808
-            29B87911BE1CF2B24477BA4E7D1337541F308010088920',
+          h'C7C4583D2763F3ECCF09FD1EB34EC9296426899510DAF3
+            098E849C8B4F8F5364638B309447D6B6393B899F8F0AEE',
         / parameter-encryption-info / 19: << 96([
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
           } >>,
           / unprotected: / {
-            / IV / 5: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
+            / IV / 5: h'1485CADEC69C011B5CC3B0BE0F2B3801'
           },
           / payload: / null / detached ciphertext /,
           / recipients: / [
@@ -50,15 +50,15 @@
                 / ephemeral key / -1: {
                   / kty / 1: 2 / EC2 /,
                   / crv / -1: 1 / P-256 /,
-                  / x / -2: h'AAE9A733DEF11E9160A66BD81CC8215F
-                              045ACAC3F8490C7749D58A627323624A',
-                  / y / -3: h'08A7B88B7F00762BA0919CA065ABF45C
-                              2A303B483E86D674E50B015122F8E515'
+                  / x / -2: h'3982C1863015824881D1A6C9059332BE
+                              281C9613D7F7462D43EE520D20FE132F',
+                  / y / -3: h'5EB51EF8AD7C1DA697294877BBA291DC
+                              5AEE20FEE887D8A173BAD7FAFF091E5C'
                 },
                 / kid / 4: 'kid-2'
               },
               / payload: /
-                h'0A44E77C3DBBB0780F2DB42C64FD325D18FBE13A25A9369D'
+                h'DF698D95D3BF3EA7CCC655A7A5609BEF206E208A46D66D91'
                 / CEK encrypted with KEK /
             ]
           ]

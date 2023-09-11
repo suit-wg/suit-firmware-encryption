@@ -748,7 +748,8 @@ This example uses the following parameters:
 - Algorithm for payload encryption: AES-GCM-128
 - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
-- KID: "kid-2"
+- SuppPubInfo.other = 'SUIT Payload Encryption'
+- KID: 'kid-2'
 - Plaintext: "This is a real firmware image."
 - Plaintext (in hex encoding):
   546869732069732061207265616C206669726D7761726520696D6167652E
@@ -764,7 +765,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 protected by a COSE_Sign1, which is not shown below.
 
 ~~~
-{::include examples/suit-manifest-es-ecdh-content.diag.signed}
+{::include examples/suit-encryption-info-es-ecdh.diag.signed}
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
@@ -1089,8 +1090,50 @@ In hex format, the SUIT manifest is this:
 {::include examples/suit-manifest-aes-kw.hex.signed}
 ~~~
 
+## ES-DH Example with Write + Copy Directives {#example-ES-DH-write}
 
-## Operational Considerations
+The following SUIT manifest requests a parser to authenticate
+the manifest with COSE_Sign1 ES256,
+and to write and to decrypt the
+encrypted payload into a component with the suit-directive-write
+directive.
+
+The SUIT manifest in diagnostic notation (with line breaks added for
+readability) is shown here:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-content.diag.signed}
+~~~
+
+In hex format, the SUIT manifest is this:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-content.hex.signed}
+~~~
+
+## ES-DH Example with Dependency {#example-ES-DH-dependency}
+
+The following SUIT manifest requests a parser
+to resolve the delegation chain and dependency respectively.
+The parser validates the COSE_Key in the suit-delegation section using the key above,
+and then dynamically trusts it.
+The dependency manifest is embedded as an integrated-dependency
+and referred by uri "#dependency-manifest" .
+
+The SUIT manifest in diagnostic notation (with line breaks added for
+readability) is shown here:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-dependency.diag.signed}
+~~~
+
+In hex format, the SUIT manifest is this:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-dependency.hex.signed}
+~~~
+
+# Operational Considerations
 
 The algorithms described in this document assume that the party
 performing payload encryption
