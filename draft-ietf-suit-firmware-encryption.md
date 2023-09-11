@@ -765,7 +765,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 protected by a COSE_Sign1, which is not shown below.
 
 ~~~
-{::include examples/suit-encryption-info-es-ecdh.diag.signed}
+{::include examples/suit-encryption-info-es-ecdh.diag}
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
