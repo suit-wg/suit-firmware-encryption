@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-16
+docname: draft-ietf-suit-firmware-encryption-17
 category: std
 
 ipr: trust200902
@@ -1024,8 +1024,10 @@ The following manifests exemplify how to deliver encrypted payload and its
 encryption info to devices.
 
 HMAC-256 MAC are added in AES-KW examples using the following secret key:
+
 ~~~
-'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' (0x616161... in hex, and its length is 32)
+  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  (0x616161... in hex, and its length is 32)
 ~~~
 
 ES-DH examples are signed using the following ECDSA secp256r1 key:

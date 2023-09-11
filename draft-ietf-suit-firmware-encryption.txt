@@ -16,7 +16,7 @@ Expires: 14 March 2024                                    Vigil Security
 
 
                   Encrypted Payloads in SUIT Manifests
-                 draft-ietf-suit-firmware-encryption-16
+                 draft-ietf-suit-firmware-encryption-17
 
 Abstract
 
@@ -81,31 +81,31 @@ Table of Contents
        6.1.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  12
        6.1.4.  Example . . . . . . . . . . . . . . . . . . . . . . .  13
      6.2.  Content Key Distribution with Ephemeral-Static
-           Diffie-Hellman  . . . . . . . . . . . . . . . . . . . . .  14
-       6.2.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  14
+           Diffie-Hellman  . . . . . . . . . . . . . . . . . . . . .  13
+       6.2.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  13
        6.2.2.  Deployment Options  . . . . . . . . . . . . . . . . .  14
        6.2.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  15
-       6.2.4.  Context Information Structure . . . . . . . . . . . .  16
-       6.2.5.  Example . . . . . . . . . . . . . . . . . . . . . . .  18
-     6.3.  Content Encryption  . . . . . . . . . . . . . . . . . . .  21
-   7.  Firmware Updates on IoT Devices with Flash Memory . . . . . .  21
-     7.1.  AES-CBC . . . . . . . . . . . . . . . . . . . . . . . . .  24
-     7.2.  AES-CTR . . . . . . . . . . . . . . . . . . . . . . . . .  25
-     7.3.  Battery Exhaustion Attacks  . . . . . . . . . . . . . . .  26
-   8.  Complete Examples . . . . . . . . . . . . . . . . . . . . . .  26
-     8.1.  AES Key Wrap Example with Write Directive . . . . . . . .  27
-     8.2.  AES Key Wrap Example with Fetch + Copy Directives . . . .  29
-     8.3.  Operational Considerations  . . . . . . . . . . . . . . .  31
-   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  31
-   10. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  32
-   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  32
-     11.1.  Normative References . . . . . . . . . . . . . . . . . .  32
-     11.2.  Informative References . . . . . . . . . . . . . . . . .  33
-   Appendix A.  A.  Full CDDL  . . . . . . . . . . . . . . . . . . .  34
-   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  36
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  36
-
-
+       6.2.4.  Context Information Structure . . . . . . . . . . . .  15
+       6.2.5.  Example . . . . . . . . . . . . . . . . . . . . . . .  17
+     6.3.  Content Encryption  . . . . . . . . . . . . . . . . . . .  18
+   7.  Firmware Updates on IoT Devices with Flash Memory . . . . . .  19
+     7.1.  AES-CBC . . . . . . . . . . . . . . . . . . . . . . . . .  22
+     7.2.  AES-CTR . . . . . . . . . . . . . . . . . . . . . . . . .  23
+     7.3.  Battery Exhaustion Attacks  . . . . . . . . . . . . . . .  24
+   8.  Complete Examples . . . . . . . . . . . . . . . . . . . . . .  24
+     8.1.  AES Key Wrap Example with Write Directive . . . . . . . .  25
+     8.2.  AES Key Wrap Example with Fetch + Copy Directives . . . .  25
+     8.3.  ES-DH Example with Write + Copy Directives  . . . . . . .  26
+     8.4.  ES-DH Example with Dependency . . . . . . . . . . . . . .  26
+   9.  Operational Considerations  . . . . . . . . . . . . . . . . .  26
+   10. Security Considerations . . . . . . . . . . . . . . . . . . .  27
+   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  27
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  27
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .  28
+     12.2.  Informative References . . . . . . . . . . . . . . . . .  28
+   Appendix A.  A.  Full CDDL  . . . . . . . . . . . . . . . . . . .  29
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  30
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  30
 
 
 
@@ -678,15 +678,17 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    This example uses the following parameters:
 
+   *  Algorithm for authentication: COSE_Mac0 with HMAC-256
+
    *  Algorithm for payload encryption: AES-GCM-128
 
    *  Algorithm id for key wrap: A128KW
 
-   *  IV: h'11D40BB56C3836AD44B39835B3ABC7FC'
+   *  IV: h'93702C81590F845D9EC866CCAC767BD1'
 
-   *  KEK: "aaaaaaaaaaaaaaaa"
+   *  KEK: 'aaaaaaaaaaaaaaaa'
 
-   *  KID: "kid-1"
+   *  KID: 'kid-1'
 
    *  Plaintext (txt): "This is a real firmware image." (in hex):
       546869732069732061207265616C206669726D7761726520696D6167652E
@@ -694,48 +696,18 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
 
-   D8608443A10101A1054C26682306D4FB28CA01B43B80F68340A2012204456B69642D
-   315818AF09622B4F40F17930129D18D0CEA46F159C49E7F68B644D
+   {::include examples/suit-encryption-info-aes-kw.hex}
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 6.
 
-  96([
-    / protected: / << {
-      / alg / 1: 1 / AES-GCM-128 /
-    } >>,
-    / unprotected: / {
-      / IV / 5: h'11D40BB56C3836AD44B39835B3ABC7FC'
-    },
-    / payload: / null / detached ciphertext /,
-    / recipients: / [
-      [
-        / protected: / << {
-        } >>,
-        / unprotected: / {
-          / alg / 1: -3 / A128KW /,
-          / kid / 4: 'kid-1'
-        },
-        / payload: / h'E01F4443C88CA89DF93A9C7E6D79D1C9BC330757C7D2D75A'
-          / CEK encrypted with KEK /
-      ]
-    ]
-  ])
+   {::include examples/suit-encryption-info-aes-kw.diag}
 
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 13]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
-             Figure 6: COSE_Encrypt Example for AES Key Wrap
+              Figure 6: COSE_Encrypt Example for AES Key Wrap
 
    The encrypted payload (with a line feed added) was:
 
-   CE9AB65E7591EE38669C4CCA7A58FA324C1A0DBFDBC2C7C057376AFB805D
-   660048310E8DAB045A2BE0A93F014FC9
+   {::include examples/encrypted-payload-aes-kw.hex}
 
 6.2.  Content Key Distribution with Ephemeral-Static Diffie-Hellman
 
@@ -750,6 +722,13 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    *  Layer 0: Has a content encrypted with the CEK.  The content may be
       detached.
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 13]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
    *  Layer 1: Uses the AES Key Wrap algorithm to encrypt the randomly
       generated CEK with the KEK derived with ES-DH, whereby the
@@ -775,17 +754,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    The steps taken by the sender are:
 
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 14]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
        1.  Generate CEK
        2.  for i=1 to n
            {
@@ -810,37 +778,20 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
        1d.     ENC(payload, CEK(Ri, S))
            }
 
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 14]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
+
 6.2.3.  CDDL
 
    The CDDL for the COSE_Encrypt_Tagged structure is shown in Figure 7.
    Only the minimum number of parameters is shown.
    empty_or_serialized_map and header_map are structures defined in
    [RFC9052].
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 15]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
 
    outer_header_map_protected = empty_or_serialized_map
    outer_header_map_unprotected = header_map
@@ -879,24 +830,22 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    The context information structure is used to ensure that the derived
    keying material is "bound" to the context of the transaction.  This
-   specification re-uses the structure defined in Section 5.2 of RFC
-   9053 and tailors it accordingly.
+   specification re-uses the structure defined in Section 5.2 of
+   [RFC9053] and tailors it accordingly.
 
    The following information elements are bound to the context:
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 15]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
    *  the protocol employing the key-derivation method,
 
    *  information about the utilized AES Key Wrap algorithm, and the key
       length.
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 16]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
 
    *  the protected header field, which contains the content key
       encryption algorithm.
@@ -944,12 +893,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 
 
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 17]
+Tschofenig, et al.        Expires 14 March 2024                [Page 16]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
@@ -1005,14 +949,16 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 
 
-Tschofenig, et al.        Expires 14 March 2024                [Page 18]
+Tschofenig, et al.        Expires 14 March 2024                [Page 17]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 
    *  Algorithm for content key distribution: ECDH-ES + A128KW
 
-   *  KID: "kid-2"
+   *  SuppPubInfo.other = 'SUIT Payload Encryption'
+
+   *  KID: 'kid-2'
 
    *  Plaintext: "This is a real firmware image."
 
@@ -1022,110 +968,19 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
 
-   D8608443A10101A105503517CE3E78AC2BF3D1CDFDAF955E8600F6818344
-   A101381CA220A401022001215820AAE9A733DEF11E9160A66BD81CC8215F
-   045ACAC3F8490C7749D58A627323624A22582008A7B88B7F00762BA0919C
-   A065ABF45C2A303B483E86D674E50B015122F8E51504456B69642D325818
-   0A44E77C3DBBB0780F2DB42C64FD325D18FBE13A25A9369D
+   {::include examples/suit-encryption-info-es-ecdh.hex}
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 9.  Note that the COSE_Encrypt structure also needs to
    protected by a COSE_Sign1, which is not shown below.
 
-   / SUIT_Envelope_Tagged / 107({
-     / authentication-wrapper / 2: << [
-       << [
-         / digest-algorithm-id: / -16 / SHA256 /,
-         / digest-bytes: / h'4C56CA660A5D1414BC04C835025D52CC
-                             A9AE6101202E127329AD2465B38A1C89'
-       ] >>,
-       << / COSE_Sign1_Tagged / 18([
-         / protected: / << {
-           / algorithm-id / 1: -7 / ES256 /
-         } >>,
-         / unprotected: / {},
-         / payload: / null,
-         / signature: /
-           h'ACC8962628B78BF30DD74BDEEA9305D7
-             3BFA302D82B280A7E2FCE8331C363F27
-             9ECCABE920DA97F9074DF5B3B2AAD170
-             9D844B8DE1D33F80FA99AC806B9778D0'
-       ]) >>
-     ] >>,
-     / manifest / 3: << {
-       / manifest-version / 1: 1,
-       / manifest-sequence-number / 2: 1,
-       / common / 3: << {
-         / components / 2: [
-           ['decrypted-firmware']
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 19]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
-         ]
-       } >>,
-       / install / 17: << [
-         / directive-set-component-index / 12, 0
-           / ['plaintext-firmware'] /,
-         / directive-override-parameters / 20, {
-           / parameter-content / 18:
-             h'B94272BD7C7E9A144D12CF46D9CEE6318753574A6F7808
-               29B87911BE1CF2B24477BA4E7D1337541F308010088920',
-           / parameter-encryption-info / 19: << 96([
-             / protected: / << {
-               / alg / 1: 1 / AES-GCM-128 /
-             } >>,
-             / unprotected: / {
-               / IV / 5: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
-             },
-             / payload: / null / detached ciphertext /,
-             / recipients: / [
-               [
-                 / protected: / << {
-                   / alg / 1: -29 / ECDH-ES + A128KW /
-                 } >>,
-                 / unprotected: / {
-                   / ephemeral key / -1: {
-                     / kty / 1: 2 / EC2 /,
-                     / crv / -1: 1 / P-256 /,
-                     / x / -2: h'AAE9A733DEF11E9160A66BD81CC8215F
-                                 045ACAC3F8490C7749D58A627323624A',
-                     / y / -3: h'08A7B88B7F00762BA0919CA065ABF45C
-                                 2A303B483E86D674E50B015122F8E515'
-                   },
-                   / kid / 4: 'kid-2'
-                 },
-                 / payload: /
-                   h'0A44E77C3DBBB0780F2DB42C64FD325D18FBE13A25A9369D'
-                   / CEK encrypted with KEK /
-               ]
-             ]
-           ]) >>
-         },
-         / directive-write / 18, 15
-           / consumes the SUIT_Encryption_Info above /
-       ] >>
-     } >>
-   })
+   {::include examples/suit-encryption-info-es-ecdh.diag}
 
                   Figure 9: COSE_Encrypt Example for ES-DH
 
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 20]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
    The encrypted payload (with a line feed added) was:
 
-   B94272BD7C7E9A144D12CF46D9CEE6318753574A6F780829B87911BE1CF2
-   B24477BA4E7D1337541F308010088920
+   {::include examples/encrypted-payload-es-ecdh.hex}
 
 6.3.  Content Encryption
 
@@ -1147,6 +1002,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    This Enc_structure needs to be populated as follows:
 
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 18]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
+
    The protected field in the Enc_structure from Figure 10 refers to the
    content of the protected field from the COSE_Encrypt structure.
 
@@ -1167,16 +1030,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    Note: This section is specific to firmware images and does not apply
    to generic software, configuration data, and machine learning models.
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 21]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
 
    Flash memory on microcontrollers is a type of non-volatile memory
    that erases data in units called blocks, pages, or sectors and re-
@@ -1206,6 +1059,13 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    sector-by-sector and will swap it with the image found in the primary
    slot.
 
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 19]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
+
    The swap will only take place after the signature on the plaintext is
    verified.  Note that the plaintext firmware image is available in the
    primary slot only after the swap has been completed, unless "dummy
@@ -1224,16 +1084,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    reversed in case the newly obtained firmware image fails to boot.
    This approach adds robustness to the firmware update procedure.
 
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 22]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
    Since the image in primary slot is available in cleartext, it may
    need to be re-encrypted before copying it to the secondary slot.
    This may be necessary when the secondary slot has different access
@@ -1241,6 +1091,36 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    memory and is therefore more vulnerable to physical attacks.  Note
    that this description assumes that the processor does not execute
    encrypted memory by using on-the-fly decryption in hardware.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 20]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
    +--------------------------------------------------+
    | Bootloader                                       |
@@ -1277,19 +1157,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
                     Figure 11: Example Flash Area Layout
 
-
-
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 23]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
    The ability to restart an interrupted firmware update is often a
    requirement for low-end IoT devices.  To fulfill this requirement it
    is necessary to chunk a firmware image into sectors and to encrypt
@@ -1301,6 +1168,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    newly obtained image and swapping the sectors, the bootloader can
    restart where it left off.  This technique offers robustness and
    better performance.
+
+
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 21]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
    For this purpose, ciphers without integrity protection are used to
    encrypt the firmware image.  Integrity protection of the firmware
@@ -1333,25 +1209,30 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    with zero (0) and MUST increase by one with every sector till the end
    of the slot is reached.  The IV follows this numbering.
 
-
-
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 24]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
    For example, let us assume the slot size of a specific flash
    controller on an IoT device is 64 KiB, the sector size 4096 bytes (4
    KiB) and AES-128-CBC uses an AES-block size of 128 bit (16 bytes).
    Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
    If the firmware image fills the entire slot, then that slot contains
    16 sectors, i.e. IVs ranging from 0 to 15.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 22]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
           P1              P2
            |              |
@@ -1397,7 +1278,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 
 
-Tschofenig, et al.        Expires 14 March 2024                [Page 25]
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 23]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
@@ -1444,19 +1332,21 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    The following manifests exemplify how to deliver encrypted payload
    and its encryption info to devices.
 
-   The examples are signed using the following ECDSA secp256r1 key:
+   HMAC-256 MAC are added in AES-KW examples using the following secret
+   key:
+
+     'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+     (0x616161... in hex, and its length is 32)
 
 
 
 
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 26]
+Tschofenig, et al.        Expires 14 March 2024                [Page 24]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
+
+   ES-DH examples are signed using the following ECDSA secp256r1 key:
 
    -----BEGIN PRIVATE KEY-----
    MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgApZYjZCUGLM50VBC
@@ -1475,111 +1365,19 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 8.1.  AES Key Wrap Example with Write Directive
 
-   The following SUIT manifest requests a parser to write and to decrypt
-   the encrypted payload into a component with the suit-directive-write
+   The following SUIT manifest requests a parser to authenticate the
+   manifest with COSE_Mac0 HMAC256, and to write and to decrypt the
+   encrypted payload into a component with the suit-directive-write
    directive.
 
    The SUIT manifest in diagnostic notation (with line breaks added for
    readability) is shown here:
 
-   / SUIT_Envelope_Tagged / 107({
-     / authentication-wrapper / 2: << [
-       << [
-         / digest-algorithm-id: / -16 / SHA256 /,
-         / digest-bytes: / h'5DEFDDB7F175FA20778FFE24BE7B9C36
-                             9BD8ED06AA4654F28794CD134CDBA932'
-       ] >>,
-       << / COSE_Sign1_Tagged / 18([
-         / protected: / << {
-           / algorithm-id / 1: -7 / ES256 /
-         } >>,
-         / unprotected: / {},
-         / payload: / null,
-         / signature: / h'4C4A5FB50738699649BA439237D20ADC
-                          ADD6EC634A800A8E093733FC1C64984B
-                          F2BFEC583C124B5546BF0CDAC543AB09
-                          95589543B434951A29A40000EC56CBE7'
-       ]) >>
-     ] >>,
-     / manifest / 3: << {
-       / manifest-version / 1: 1,
-       / manifest-sequence-number / 2: 1,
-       / common / 3: << {
-         / components / 2: [
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 27]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
-           ['plaintext-firmware'],
-         ]
-       } >>,
-       / install / 17: << [
-         / fetch encrypted firmware /
-         / directive-override-parameters / 20, {
-           / parameter-content / 18:
-             h'CE9AB65E7591EE38669C4CCA7A58FA324C1A0DBFDBC2C7
-               C057376AFB805D660048310E8DAB045A2BE0A93F014FC9',
-           / parameter-encryption-info / 19: << 96([
-             / protected: / << {
-               / alg / 1: 1 / AES-GCM-128 /
-             } >>,
-             / unprotected: / {
-               / IV / 5: h'11D40BB56C3836AD44B39835B3ABC7FC'
-             },
-             / payload: / null / detached ciphertext /,
-             / recipients: / [
-               [
-                 / protected: / << {
-                 } >>,
-                 / unprotected: / {
-                   / alg / 1: -3 / A128KW /,
-                   / kid / 4: 'kid-1'
-                 },
-                 / payload: /
-                   h'E01F4443C88CA89DF93A9C7E6D79D1C9BC330757C7D2D75A'
-                   / CEK encrypted with KEK /
-               ]
-             ]
-           ]) >>
-         },
-
-         / decrypt encrypted firmware /
-         / directive-write / 18, 15
-           / consumes the SUIT_Encryption_Info above /
-       ] >>
-     } >>
-   })
+   {::include examples/suit-manifest-aes-kw-content.diag.signed}
 
    In hex format, the SUIT manifest is this:
 
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 28]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
-   D86BA2025873825824822F58205DEFDDB7F175FA20778FFE24BE7B9C369B
-   D8ED06AA4654F28794CD134CDBA932584AD28443A10126A0F658404C4A5F
-   B50738699649BA439237D20ADCADD6EC634A800A8E093733FC1C64984BF2
-   BFEC583C124B5546BF0CDAC543AB0995589543B434951A29A40000EC56CB
-   E703589DA4010102010357A102818152706C61696E746578742D6669726D
-   7761726511587C8414A212582ECE9AB65E7591EE38669C4CCA7A58FA324C
-   1A0DBFDBC2C7C057376AFB805D660048310E8DAB045A2BE0A93F014FC913
-   5843D8608443A10101A1055011D40BB56C3836AD44B39835B3ABC7FCF681
-   8341A0A2012204456B69642D315818E01F4443C88CA89DF93A9C7E6D79D1
-   C9BC330757C7D2D75A120F
+   {::include examples/suit-manifest-aes-kw-content.hex.signed}
 
 8.2.  AES Key Wrap Example with Fetch + Copy Directives
 
@@ -1592,110 +1390,54 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    The SUIT manifest in diagnostic notation (with line breaks added for
    readability) is shown here:
 
- / SUIT_Envelope_Tagged / 107({
-   / authentication-wrapper / 2: << [
-     << [
-       / digest-algorithm-id: / -16 / SHA256 /,
-       / digest-bytes: / h'C6A66263CCF4C6FF5992AE4074B30DDD
-                           34520AA099F6BAD96B2F60FE79F07EC4'
-     ] >>,
-     << / COSE_Sign1_Tagged / 18([
-       / protected: / << {
-         / algorithm-id / 1: -7 / ES256 /
-       } >>,
-       / unprotected: / {},
-       / payload: / null,
-       / signature: / h'DA08C3A6455FF30865A97A7F4FBC3BA1
-                        5F954E39B57167DEA9FE16EBA12CFE33
-                        D58790DB64CB70A08F89513B15CFF995
-                        1222868195224E1AB87D46FA37F58864'
-     ]) >>
-   ] >>,
-   / manifest / 3: << {
-     / manifest-version / 1: 1,
-     / manifest-sequence-number / 2: 1,
-     / common / 3: << {
-       / components / 2: [
-         ['plaintext-firmware'],
-         ['encrypted-firmware']
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 29]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
-       ]
-     } >>,
-     / install / 17: << [
-       / fetch encrypted firmware /
-       / directive-set-component-index / 12, 1
-         / ['encrypted-firmware'] /,
-       / directive-override-parameters / 20, {
-         / parameter-image-size / 14: 46,
-         / parameter-uri / 21: "https://example.com/encrypted-firmware"
-       },
-       / directive-fetch / 21, 15,
-
-       / decrypt encrypted firmware /
-       / directive-set-component-index / 12, 0
-         / ['plaintext-firmware'] /,
-       / directive-override-parameters / 20, {
-         / parameter-encryption-info / 19: << 96([
-           / protected: / << {
-             / alg / 1: 1 / AES-GCM-128 /
-           } >>,
-           / unprotected: / {
-             / IV / 5: h'11D40BB56C3836AD44B39835B3ABC7FC'
-           },
-           / payload: / null / detached ciphertext /,
-           / recipients: / [
-             [
-               / protected: / << {
-               } >>,
-               / unprotected: / {
-                 / alg / 1: -3 / A128KW /,
-                 / kid / 4: 'kid-1'
-               },
-               / payload: /
-                 h'E01F4443C88CA89DF93A9C7E6D79D1C9BC330757C7D2D75A'
-                 / CEK encrypted with KEK /
-             ]
-           ]
-         ]) >>,
-         / parameter-source-component / 22: 1 / ['encrypted-firmware'] /
-       },
-       / directive-copy / 22, 15
-         / consumes the SUIT_Encryption_Info above /
-     ] >>
-   } >>
- })
+   {::include examples/suit-manifest-aes-kw.diag.signed}
 
    In hex format, the SUIT manifest is this:
 
 
 
 
-Tschofenig, et al.        Expires 14 March 2024                [Page 30]
+Tschofenig, et al.        Expires 14 March 2024                [Page 25]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 
-   D86BA2025873825824822F5820C6A66263CCF4C6FF5992AE4074B30DDD34
-   520AA099F6BAD96B2F60FE79F07EC4584AD28443A10126A0F65840DA08C3
-   A6455FF30865A97A7F4FBC3BA15F954E39B57167DEA9FE16EBA12CFE33D5
-   8790DB64CB70A08F89513B15CFF9951222868195224E1AB87D46FA37F588
-   640358E5A40101020103582BA102828152706C61696E746578742D666972
-   6D776172658152656E637279707465642D6669726D776172651158AF900C
-   0114A20E182E15782668747470733A2F2F6578616D706C652E636F6D2F65
-   6E637279707465642D6669726D77617265150F0C0014A2135843D8608443
-   A10101A1055011D40BB56C3836AD44B39835B3ABC7FCF6818341A0A20122
-   04456B69642D315818E01F4443C88CA89DF93A9C7E6D79D1C9BC330757C7
-   D2D75A1601160F14A2035824822F582036921488FE6680712F734E11F58D
-   87EEB66D4B21A8A1AD3441060814DA16D50F0E181E030F
+   {::include examples/suit-manifest-aes-kw.hex.signed}
 
-8.3.  Operational Considerations
+8.3.  ES-DH Example with Write + Copy Directives
+
+   The following SUIT manifest requests a parser to authenticate the
+   manifest with COSE_Sign1 ES256, and to write and to decrypt the
+   encrypted payload into a component with the suit-directive-write
+   directive.
+
+   The SUIT manifest in diagnostic notation (with line breaks added for
+   readability) is shown here:
+
+   {::include examples/suit-manifest-es-ecdh-content.diag.signed}
+
+   In hex format, the SUIT manifest is this:
+
+   {::include examples/suit-manifest-es-ecdh-content.hex.signed}
+
+8.4.  ES-DH Example with Dependency
+
+   The following SUIT manifest requests a parser to resolve the
+   delegation chain and dependency respectively.  The parser validates
+   the COSE_Key in the suit-delegation section using the key above, and
+   then dynamically trusts it.  The dependency manifest is embedded as
+   an integrated-dependency and referred by uri "#dependency-manifest" .
+
+   The SUIT manifest in diagnostic notation (with line breaks added for
+   readability) is shown here:
+
+   {::include examples/suit-manifest-es-ecdh-dependency.diag.signed}
+
+   In hex format, the SUIT manifest is this:
+
+   {::include examples/suit-manifest-es-ecdh-dependency.hex.signed}
+
+9.  Operational Considerations
 
    The algorithms described in this document assume that the party
    performing payload encryption
@@ -1705,6 +1447,16 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    *  is in possession of the public key of the recipient (for use with
       ES-DH).
+
+
+
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 26]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
    Both cases require some upfront communication interaction to
    distribute these keys to the involved communication parties.  This
@@ -1724,19 +1476,9 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    consider those third parties in the software supply chain when such a
    binary analysis is desired.
 
-9.  Security Considerations
+10.  Security Considerations
 
    This entire document is about security.
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 31]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
 
    Note that it is good security practise to use different long-term
    keys for different purpose.  For example, the KEK used with an AES-
@@ -1751,7 +1493,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    approach reduces the attack surface since permissions of authors to
    these long-term keys may vary based on their privileges.
 
-10.  IANA Considerations
+11.  IANA Considerations
 
    IANA is asked to add the following value to the SUIT Parameters
    registry established by Section 11.5 of [I-D.ietf-suit-manifest]:
@@ -1762,9 +1504,17 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
    [Editor's Note: TBD19: Proposed 19]
 
-11.  References
+12.  References
 
-11.1.  Normative References
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 27]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
+
+12.1.  Normative References
 
    [I-D.ietf-cose-aes-ctr-and-cbc]
               Housley, R. and H. Tschofenig, "CBOR Object Signing and
@@ -1781,18 +1531,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
               Internet-Draft, draft-ietf-suit-manifest-23, 10 September
               2023, <https://datatracker.ietf.org/doc/html/draft-ietf-
               suit-manifest-23>.
-
-
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 32]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
 
    [I-D.ietf-suit-trust-domains]
               Moran, B. and K. Takayama, "SUIT Manifest Extensions for
@@ -1823,7 +1561,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
               Initial Algorithms", RFC 9053, DOI 10.17487/RFC9053,
               August 2022, <https://www.rfc-editor.org/rfc/rfc9053>.
 
-11.2.  Informative References
+12.2.  Informative References
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 28]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
+
 
    [iana-suit]
               Internet Assigned Numbers Authority, "IANA SUIT Manifest
@@ -1838,17 +1583,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
    [RFC5652]  Housley, R., "Cryptographic Message Syntax (CMS)", STD 70,
               RFC 5652, DOI 10.17487/RFC5652, September 2009,
               <https://www.rfc-editor.org/rfc/rfc5652>.
-
-
-
-
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 33]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
 
    [RFC5869]  Krawczyk, H. and P. Eronen, "HMAC-based Extract-and-Expand
               Key Derivation Function (HKDF)", RFC 5869,
@@ -1885,95 +1619,14 @@ Appendix A.  A.  Full CDDL
    The following CDDL must be appended to the SUIT Manifest CDDL.  The
    SUIT CDDL is defined in Appendix A of [I-D.ietf-suit-manifest]
 
-   ; Define SUIT_Encryption_Info_* as a subset of COSE_Encrypt
-
-   SUIT_Encryption_Info_Value = #6.96(
-       SUIT_Encryption_Info_AESKW .within COSE_Encrypt /
-       SUIT_Encryption_Info_ESDH .within COSE_Encrypt)
-
-   SUIT_Encryption_Info_AESKW = [
-     protected   : bstr .cbor outer_header_map_protected,
-     unprotected : outer_header_map_unprotected,
-     ciphertext  : bstr / nil,
-     recipients  : [ + COSE_recipient_AESKW .within COSE_recipient ]
-   ]
 
 
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 34]
+Tschofenig, et al.        Expires 14 March 2024                [Page 29]
 
 Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
 
 
-   COSE_recipient_AESKW = [
-     protected   : bstr .size 0 / bstr .cbor empty_map,
-     unprotected : recipient_header_unpr_map_aeskw,
-     ciphertext  : bstr        ; CEK encrypted with KEK
-   ]
-   empty_map = {}
-
-   recipient_header_unpr_map_aeskw =
-   {
-       1 => int,         ; algorithm identifier
-     ? 4 => bstr,        ; identifier of the recipient public key
-     * label => values   ; extension point
-   }
-
-   SUIT_Encryption_Info_ESDH = [
-     protected   : bstr .cbor outer_header_map_protected,
-     unprotected : outer_header_map_unprotected,
-     ciphertext  : bstr / nil,
-     recipients  : [ + COSE_recipient_ESDH .within COSE_recipient ]
-   ]
-
-   COSE_recipient_ESDH = [
-     protected   : bstr .cbor recipient_header_map_esdh,
-     unprotected : recipient_header_unpr_map_esdh,
-     ciphertext  : bstr        ; CEK encrypted with KEK
-   ]
-
-   recipient_header_map_esdh =
-   {
-       1 => int,         ; algorithm identifier
-     * label => values   ; extension point
-   }
-
-   recipient_header_unpr_map_esdh =
-   {
-      -1 => COSE_Key,    ; ephemeral public key for the sender
-     ? 4 => bstr,        ; identifier of the recipient public key
-     * label => values   ; extension point
-   }
-
-   ; common definitions
-   outer_header_map_protected =
-   {
-       1 => int,         ; algorithm identifier
-     * label => values   ; extension point
-   }
-
-   outer_header_map_unprotected =
-
-
-
-Tschofenig, et al.        Expires 14 March 2024                [Page 35]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests    September 2023
-
-
-   {
-       5 => bstr,        ; IV
-     * label => values   ; extension point
-   }
-
-
-   ; Extends SUIT Manifest
-
-   $$SUIT_Parameters //= (suit-parameter-encryption-info =>
-       bstr .cbor SUIT_Encryption_Info_Value)
-
-   suit-parameter-encryption-info = 19
+   {::include draft-ietf-suit-firmware-encryption.cddl}
 
 Acknowledgements
 
@@ -2013,4 +1666,15 @@ Authors' Addresses
 
 
 
-Tschofenig, et al.        Expires 14 March 2024                [Page 36]
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 14 March 2024                [Page 30]
