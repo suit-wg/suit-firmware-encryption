@@ -1064,6 +1064,50 @@ In hex format, the SUIT manifest is this:
 {::include examples/suit-manifest-aes-kw.hex.signed}
 ~~~
 
+## ES-DH Example with Write + Copy Directives {#example-ES-DH-write}
+
+The following SUIT manifest requests a parser to authenticate
+the manifest with COSE_Sign1 ES256,
+and to write and to decrypt the
+encrypted payload into a component with the suit-directive-write
+directive.
+
+The SUIT manifest in diagnostic notation (with line breaks added for
+readability) is shown here:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-content.diag.signed}
+~~~
+
+In hex format, the SUIT manifest is this:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-content.hex.signed}
+~~~
+
+## ES-DH Example with Dependency {#example-ES-DH-dependency}
+
+The following SUIT manifest requests a parser
+to resolve the delegation chain and dependency respectively.
+The parser validates the COSE_Key in the suit-delegation section using the key above,
+and then dynamically trusts it.
+The dependency manifest is embedded as an integrated-dependency
+and referred by uri "#dependency-manifest" .
+
+The SUIT manifest in diagnostic notation (with line breaks added for
+readability) is shown here:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-dependency.diag.signed}
+~~~
+
+In hex format, the SUIT manifest is this:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-dependency.hex.signed}
+~~~
+
+
 # Security Considerations {#sec-cons}
 
 The algorithms described in this document assume that the party
