@@ -746,7 +746,7 @@ This example uses the following parameters:
 - Algorithm for payload encryption: AES-GCM-128
 - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
-- KID: "kid-2"
+- KID: 'kid-2'
 - Plaintext: "This is a real firmware image."
 - Plaintext (in hex encoding):
   546869732069732061207265616C206669726D7761726520696D6167652E
@@ -762,7 +762,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 protected by a COSE_Sign1, which is not shown below.
 
 ~~~
-{::include examples/suit-manifest-es-ecdh-content.diag.signed}
+{::include examples/suit-encryption-info-es-ecdh.diag.signed}
 ~~~
 {: #esdh-example title="COSE_Encrypt Example for ES-DH"}
 
