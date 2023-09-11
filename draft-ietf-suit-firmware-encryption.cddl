@@ -1,6 +1,6 @@
 ; Define SUIT_Encryption_Info_* as a subset of COSE_Encrypt
 
-SUIT_Encryption_Info_Value = #6.96(
+SUIT_Encryption_Info = #6.96(
     SUIT_Encryption_Info_AESKW .within COSE_Encrypt /
     SUIT_Encryption_Info_ESDH .within COSE_Encrypt)
 
@@ -68,6 +68,6 @@ outer_header_map_unprotected =
 ; Extends SUIT Manifest
 
 $$SUIT_Parameters //= (suit-parameter-encryption-info =>
-    bstr .cbor SUIT_Encryption_Info_Value)
+    bstr .cbor SUIT_Encryption_Info)
 
 suit-parameter-encryption-info = 19
