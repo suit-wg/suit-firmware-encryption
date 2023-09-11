@@ -676,12 +676,12 @@ recipient_header_unpr_map_esdh =
 
 The context information structure is used to ensure that the derived keying material
 is "bound" to the context of the transaction. This specification re-uses the structure
-defined in Section 5.2 of RFC 9053 and tailors it accordingly.
+defined in Section 5.2 of {{RFC9053}} and tailors it accordingly.
 
 The following information elements are bound to the context:
 
 * the protocol employing the key-derivation method,
-* information about the utilized AES Key Wrap algorithm,and the key length.
+* information about the utilized AES Key Wrap algorithm, and the key length.
 * the protected header field, which contains the content key encryption algorithm.
 
 The sender and recipient identities are left empty.
