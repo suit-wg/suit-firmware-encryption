@@ -11,8 +11,8 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'02B4BCA870F62D6A351C13A52B622D2C
-                       3779D43823A2FD20C08147A8A337A391'
+      / tag: / h'02B4BCA870F62D6A351C13A52B622D2C
+                 3779D43823A2FD20C08147A8A337A391'
     ]) >>
   ] >>,
   / manifest / 3: << {

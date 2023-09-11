@@ -11,8 +11,8 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'F48509F3027EEAA2C40473212C3A12F2
-                       5A9C8BE6699E5E7936816836E91A9003'
+      / tag: / h'F48509F3027EEAA2C40473212C3A12F2
+                 5A9C8BE6699E5E7936816836E91A9003'
     ]) >>
   ] >>,
   / manifest / 3: << {
