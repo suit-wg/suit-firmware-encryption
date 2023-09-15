@@ -1199,7 +1199,7 @@ TBD19      Encryption Info      Section 4
 
 --- back
 
-# A. Full CDDL {#full-cddl}
+# Full CDDL {#full-cddl}
 
 The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
 Appendix A of {{I-D.ietf-suit-manifest}}
