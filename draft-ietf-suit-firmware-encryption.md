@@ -537,12 +537,14 @@ This example uses the following parameters:
 
 - Algorithm for authentication: COSE_Mac0 with HMAC-256
 - Algorithm for payload encryption: AES-GCM-128
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
 - Algorithm id for key wrap: A128KW
-- IV: h'93702C81590F845D9EC866CCAC767BD1'
-- KEK: 'aaaaaaaaaaaaaaaa'
+- KEK COSE_Key (Secret Key):
+  - / kty / 1: 4 / Symmetric /
+  - / k / -1: 'aaaaaaaaaaaaaaaa'
 - KID: 'kid-1'
-- Plaintext (txt): "This is a real firmware image."
-  (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
+- Plaintext: "This is a real firmware image."
+  - in hex: h'546869732069732061207265616C206669726D7761726520696D6167652E'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -745,14 +747,25 @@ structure.
 
 This example uses the following parameters:
 
+- Algorithm for authentication: COSE_Sign1 with ES256
 - Algorithm for payload encryption: AES-GCM-128
-- IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
+  - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
-- SuppPubInfo.other = 'SUIT Payload Encryption'
+- KEK COSE_Key (Receiver's Private Key):
+  - / kty / 1: 2 / EC2 /
+  - / crv / -1: 1 / P-256 /
+  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
 - KID: 'kid-2'
+- KDF Context
+  - ALgorithm ID: -3 (A128KW)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - other = 'SUIT Payload Encryption'
 - Plaintext: "This is a real firmware image."
-- Plaintext (in hex encoding):
-  546869732069732061207265616C206669726D7761726520696D6167652E
+  - in hex: h'546869732069732061207265616C206669726D7761726520696D6167652E'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
