@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 
+import base64
 from cbor2 import dumps
 from cwt import COSE, COSEKey
 
 print("Example 1: AES-KW")
-secret_key = {
-    1: 4, # kty: Symmetric
-    -1: "a" * 16 # k
+secret_key_jwk = {
+    "kty": "Symmetric",
+    "k": "61" * 16, # 0x61 = 'a'
+    "alg": "A128KW",
+    "kid": "kid-1",
 }
-print(f"Secret COSE_Key: {secret_key}")
+print(f"Secret COSE_Key: {secret_key_jwk}")
+for key in ["k"]:
+    secret_key_jwk[key] = base64.b64encode(bytes.fromhex(secret_key_jwk[key])).decode()
 with open("./encrypted-payload-aes-kw.hex", "r") as f:
     encrypted_payload_hex = ''.join(f.read().splitlines())
 print(f"Encrypted Payload: {encrypted_payload_hex}")
@@ -34,7 +39,7 @@ cose_encrypt_hex = suit_encryption_info_hex[0:index] + encrypted_payload_bstr_he
 print(f"\nGenerated COSE_Encrypt: {cose_encrypt_hex}")
 cose_encrypt_bytes = bytes.fromhex(cose_encrypt_hex)
 
-secret_key = COSEKey.from_symmetric_key(secret_key[-1], alg = "A128KW", kid = "kid-1")
+secret_key = COSEKey.from_jwk(secret_key_jwk)
 
 ctx = COSE.new()
 result = ctx.decode(cose_encrypt_bytes, keys=[secret_key])
