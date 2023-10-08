@@ -2,10 +2,13 @@ SUIT_ENCRYPTION_INFO := suit-encryption-info-aes-kw.cose suit-encryption-info-es
 SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := suit-manifest-aes-kw.suit suit-manifest-aes-kw-content.suit suit-manifest-es-ecdh-content.suit suit-manifest-es-ecdh-dependency.suit
 
 .PHONY: all
-all: $(SUIT_ENCRYPTION_INFO) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD)
+all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD)
 
 %.cose: %.diag
 	diag2cbor.rb $< > $@
+
+%.hex: %.cose
+	xxd -p -u -c 30 $< > $@
 
 %.suit: %.diag.signed
 	diag2cbor.rb $< > $@
