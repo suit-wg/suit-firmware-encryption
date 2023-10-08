@@ -1,0 +1,3 @@
+[submodule "examples/python_cwt"]
+	path = examples/python_cwt
+	url = https://github.com/kentakayama/python-cwt
