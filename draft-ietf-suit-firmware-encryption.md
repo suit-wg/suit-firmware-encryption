@@ -699,30 +699,8 @@ the constant string "SUIT Payload Encryption".
 content of the recipient_header_map_esdh field, which contains (among other fields)
 the identifier of the content key distribution method.
 
-~~~
-PartyInfoSender = (
-    identity : nil,
-    nonce : nil,
-    other : nil
-)
-
-PartyInfoRecipient = (
-    identity : nil,
-    nonce : nil,
-    other : nil
-)
-
-COSE_KDF_Context = [
-    AlgorithmID : int,
-    PartyUInfo : [ PartyInfoSender ],
-    PartyVInfo : [ PartyInfoRecipient ],
-    SuppPubInfo : [
-        keyDataLength : uint,
-        protected : bstr .cbor recipient_header_map_esdh,
-        other: bstr "SUIT Payload Encryption"
-    ],
-    SuppPrivInfo : bstr .size 0
-]
+~~~ CDDL
+{::include draft-ietf-suit-firmware-encryption-kdf-context.cddl}
 ~~~
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 

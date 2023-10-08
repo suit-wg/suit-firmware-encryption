@@ -1,0 +1,23 @@
+COSE_KDF_Context = [
+    AlgorithmID : int,
+    PartyUInfo : [ PartyInfoSender ],
+    PartyVInfo : [ PartyInfoRecipient ],
+    SuppPubInfo : [
+        keyDataLength : uint,
+        protected : bstr .cbor recipient_header_map_esdh,
+        other: 'SUIT Payload Encryption'
+    ],
+    ? SuppPrivInfo : bstr
+]
+
+PartyInfoSender = (
+    identity : nil,
+    nonce : nil,
+    other : nil
+)
+
+PartyInfoRecipient = (
+    identity : nil,
+    nonce : nil,
+    other : nil
+)
