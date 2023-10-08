@@ -684,7 +684,7 @@ The following fields in {{cddl-context-info}} require an explanation:
 
 - The COSE_KDF_Context.AlgorithmID field MUST contain the algorithm identifier
 for AES Key Wrap algorithm utilized. This specification uses the following
-values: A128KW (value -4), A192KW (value -4), or A256KW (value -5)
+values: A128KW (value -3), A192KW (value -4), or A256KW (value -5)
 
 - The COSE_KDF_Context.SuppPubInfo.keyDataLength field MUST contain the key length
 of the algorithm in the COSE_KDF_Context.AlgorithmID field expressed as the number
