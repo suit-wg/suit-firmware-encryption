@@ -2,7 +2,8 @@
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: / h'CEF034223D7F2C39D676876995B4ED4E8221AC5BF184B6606EE62C41C149C266'
+      / digest-bytes: / h'CEF034223D7F2C39D676876995B4ED4E
+                          8221AC5BF184B6606EE62C41C149C266'
     ] >>,
     << / COSE_Sign1_Tagged / 18([
       / protected: / << {
@@ -10,7 +11,11 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / signature: / h'65E59AAB8A35BDE9547458316D1C769FFB2CEA304C9FB6151E5C8A88A002A292C5B8C63C81B5AC0AE31948B610834E12CBDBB2753EA221544B6733076A92EE20'
+      / signature: /
+        h'65E59AAB8A35BDE9547458316D1C769F
+          FB2CEA304C9FB6151E5C8A88A002A292
+          C5B8C63C81B5AC0AE31948B610834E12
+          CBDBB2753EA221544B6733076A92EE20'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -22,9 +27,12 @@
       ]
     } >>,
     / install / 17: << [
-      / directive-set-component-index / 12, 0 / ['plaintext-firmware'] /,
+      / directive-set-component-index / 12, 0
+        / ['plaintext-firmware'] /,
       / directive-override-parameters / 20, {
-        / parameter-content / 18: h'344FA2D5AD2F43F6F363DA6FF2C337FE69E33E3D63714D23985BF02499EB0E8B231D45C378245DA3611C160CC511',
+        / parameter-content / 18:
+          h'344FA2D5AD2F43F6F363DA6FF2C337FE69E33E3D63714D
+            23985BF02499EB0E8B231D45C378245DA3611C160CC511',
         / parameter-encryption-info / 19: << 96([
           / protected: / << {
             / alg / 1: 1 / AES-GCM-128 /
@@ -42,18 +50,22 @@
                 / ephemeral key / -1: {
                   / kty / 1: 2 / EC2 /,
                   / crv / -1: 1 / P-256 /,
-                  / x / -2: h'FF6E266DABAF51B7207569E31CF72646183E94CEE64FCDC8695AD9A505AEFDEA',
-                  / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004BB59D8BD60D7997734A9FA0124B650895'
+                  / x / -2: h'FF6E266DABAF51B7207569E31CF72646
+                              183E94CEE64FCDC8695AD9A505AEFDEA',
+                  / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004B
+                              B59D8BD60D7997734A9FA0124B650895'
                 },
                 / kid / 4: 'kid-2'
               },
-              / payload: / h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
+              / payload: /
+                h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
                 / CEK encrypted with KEK /
             ]
           ]
         ]) >>
       },
-      / directive-write / 18, 15 / consumes the SUIT_Encryption_Info above /
+      / directive-write / 18, 15
+        / consumes the SUIT_Encryption_Info above /
     ] >>
   } >>
 })

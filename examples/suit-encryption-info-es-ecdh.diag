@@ -15,12 +15,15 @@
         / ephemeral key / -1: {
           / kty / 1: 2 / EC2 /,
           / crv / -1: 1 / P-256 /,
-          / x / -2: h'FF6E266DABAF51B7207569E31CF72646183E94CEE64FCDC8695AD9A505AEFDEA',
-          / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004BB59D8BD60D7997734A9FA0124B650895'
+          / x / -2: h'FF6E266DABAF51B7207569E31CF72646
+                      183E94CEE64FCDC8695AD9A505AEFDEA',
+          / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004B
+                      B59D8BD60D7997734A9FA0124B650895'
         },
         / kid / 4: 'kid-2'
       },
-      / payload: / h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
+      / payload:
+        / h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
         / CEK encrypted with KEK /
     ]
   ]

@@ -2,7 +2,8 @@
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: / h'AAB6A7868C4E43D5983BDE019EF2277921F6F8EF1FCAF9403CA97255BED2CD30'
+      / digest-bytes: / h'AAB6A7868C4E43D5983BDE019EF22779
+                          21F6F8EF1FCAF9403CA97255BED2CD30'
     ] >>,
     << / COSE_Mac0_Tagged / 17([
       / protected: / << {
@@ -10,7 +11,8 @@
       } >>,
       / unprotected: / {},
       / payload: / null,
-      / tag: / h'93B4B774A5D0421ED6FB5EBF890A284CDAC7816CBC048BF47EE7FA7FF3BC02C3'
+      / tag: / h'93B4B774A5D0421ED6FB5EBF890A284C
+                 DAC7816CBC048BF47EE7FA7FF3BC02C3'
     ]) >>
   ] >>,
   / manifest / 3: << {
@@ -50,7 +52,9 @@
                 / alg / 1: -3 / A128KW /,
                 / kid / 4: 'kid-1'
               },
-              / payload: / h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62' / CEK encrypted with KEK /
+              / payload: /
+                h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
+                / CEK encrypted with KEK /
             ]
           ]
         ]) >>,
