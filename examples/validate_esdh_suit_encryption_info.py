@@ -38,7 +38,7 @@ encrypted_payload_bytes = bytes.fromhex(encrypted_payload_hex)
 encrypted_payload_bstr_hex = dumps(encrypted_payload_bytes).hex().upper()
 
 # 2. Replace `null` (0xF6 in hex) by bstr wrapped encrypted_payload
-# NOTE: Skip 13 bytes (26 characters) protected and unprotected headers
+# NOTE: Skip 13 bytes (26 characters) of protected and unprotected headers
 index = suit_encryption_info_hex.find("F6", 26)
 assert index >= 0
 cose_encrypt_hex = suit_encryption_info_hex[0:index] + encrypted_payload_bstr_hex + suit_encryption_info_hex[index + 2:]
