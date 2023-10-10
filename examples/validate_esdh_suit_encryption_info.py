@@ -4,9 +4,11 @@ import base64
 from cbor2 import dumps
 from python_cwt.cwt import COSE, COSEKey
 
+# See Section 6.2.5 Example (ECDH-ES + AES-KW)
+# https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-example-2
 print("Example 2: ECDH-ES + AES-KW")
 receiver_private_key_jwk = {
-    "kty": "EC",
+    "kty": "EC2",
     "crv": "P-256",
     "x": '5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3',
     "y": '9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B',
@@ -41,7 +43,7 @@ index = suit_encryption_info_hex.find("F6", 26)
 assert index >= 0
 cose_encrypt_hex = suit_encryption_info_hex[0:index] + encrypted_payload_bstr_hex + suit_encryption_info_hex[index + 2:]
 
-print(f"\nGenerated COSE_Encrypt: {cose_encrypt_hex}")
+print(f"\nConcatenated COSE_Encrypt (non detached content): {cose_encrypt_hex}")
 cose_encrypt_bytes = bytes.fromhex(cose_encrypt_hex)
 
 private_key = COSEKey.from_jwk(receiver_private_key_jwk)

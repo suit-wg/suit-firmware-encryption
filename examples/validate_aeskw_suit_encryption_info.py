@@ -4,6 +4,8 @@ import base64
 from cbor2 import dumps
 from cwt import COSE, COSEKey
 
+# See Section 6.1.4 Example (AES-KW)
+# https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-example
 print("Example 1: AES-KW")
 secret_key_jwk = {
     "kty": "Symmetric",
@@ -36,7 +38,7 @@ index = suit_encryption_info_hex.find("F6", 26)
 assert index >= 0
 cose_encrypt_hex = suit_encryption_info_hex[0:index] + encrypted_payload_bstr_hex + suit_encryption_info_hex[index + 2:]
 
-print(f"\nGenerated COSE_Encrypt: {cose_encrypt_hex}")
+print(f"\nConcatenated COSE_Encrypt (non detached content): {cose_encrypt_hex}")
 cose_encrypt_bytes = bytes.fromhex(cose_encrypt_hex)
 
 secret_key = COSEKey.from_jwk(secret_key_jwk)
