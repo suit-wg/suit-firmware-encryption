@@ -535,7 +535,6 @@ of zero length.
 
 This example uses the following parameters:
 
-- Algorithm for authentication: COSE_Mac0 with HMAC-256
 - Algorithm for payload encryption: AES-GCM-128
   - IV: h'93702C81590F845D9EC866CCAC767BD1'
 - Algorithm id for key wrap: A128KW
@@ -544,7 +543,7 @@ This example uses the following parameters:
   - / k / -1: 'aaaaaaaaaaaaaaaa'
 - KID: 'kid-1'
 - Plaintext: "This is a real firmware image."
-  - in hex: h'546869732069732061207265616C206669726D7761726520696D6167652E'
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -765,7 +764,7 @@ This example uses the following parameters:
     - protected = << { / alg / 1: -3 / A128KW / } >>
     - other = 'SUIT Payload Encryption'
 - Plaintext: "This is a real firmware image."
-  - in hex: h'546869732069732061207265616C206669726D7761726520696D6167652E'
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -1040,7 +1039,7 @@ HMAC-256 MAC are added in AES-KW examples using the following secret key:
 
 ~~~
   'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-  (0x616161... in hex, and its length is 32)
+  (616161... in hex, and its length is 32)
 ~~~
 
 ES-DH examples are signed using the following ECDSA secp256r1 key:
