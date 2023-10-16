@@ -746,7 +746,6 @@ structure.
 
 This example uses the following parameters:
 
-- Algorithm for authentication: COSE_Sign1 with ES256
 - Algorithm for payload encryption: AES-GCM-128
   - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
