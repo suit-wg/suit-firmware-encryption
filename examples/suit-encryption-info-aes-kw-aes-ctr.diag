@@ -1,0 +1,22 @@
+96([
+  / protected: / << {
+    / alg / 1: -65534 / A128CTR /
+  } >>,
+  / unprotected: / {
+    / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
+  },
+  / payload: / null / detached ciphertext /,
+  / recipients: / [
+    [
+      / protected: / << {
+      } >>,
+      / unprotected: / {
+        / alg / 1: -3 / A128KW /,
+        / kid / 4: 'kid-1'
+      },
+      / payload: /
+        h'CE34035CE5C2E2666E46D4C131FC561DD190A6D26CFA1990'
+        / CEK encrypted with KEK /
+    ]
+  ]
+])
