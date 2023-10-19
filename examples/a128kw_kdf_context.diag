@@ -1,0 +1,10 @@
+[
+    / AlgorithmID: / -3 / A128KW /,
+    / PartyUInfo: / [ null, null, null ],
+    / PartyVInfo: / [ null, null, null ],
+    / SuppPubInfo: / [
+        / keyDataLength: / 128,
+        / protected: / << { / alg / 1: -3 / A128KW / } >>,
+        / other: / 'SUIT Payload Encryption'
+    ]
+]
