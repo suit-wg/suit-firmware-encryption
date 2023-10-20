@@ -43,6 +43,8 @@ validate: all cddl
 	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose
 	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
 	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
+	python3 ./validate_aeskw_suit_encryption_info.py
+	python3 ./validate_esdh_suit_encryption_info.py
 
 .PHONY: clean
 clean:

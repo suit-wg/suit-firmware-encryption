@@ -60,3 +60,4 @@ context = {
 result = ctx.decode(cose_encrypt_bytes, keys=[private_key], context=context)
 print(f"\nDecrypted Payload: {result}")
 assert result == b'This is a real firmware image.'
+print("Successfully decrypted")

@@ -47,3 +47,4 @@ ctx = COSE.new()
 result = ctx.decode(cose_encrypt_bytes, keys=[secret_key])
 print(f"\nDecrypted Payload: {result}")
 assert result == b'This is a real firmware image.'
+print("Successfully decrypted")
