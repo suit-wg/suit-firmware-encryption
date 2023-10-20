@@ -54,6 +54,7 @@ endef
 .PHONY: validate_binary_match
 validate_binary_match: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex.cose)
 	$(foreach s,$(SUIT_ENCRYPTION_INFO),$(call CheckMatch,$(s)))
+	@echo [SUCCESS] Each binaries from diag matches to one from hex
 
 .PHONY: clean
 clean:
