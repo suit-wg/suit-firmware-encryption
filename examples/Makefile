@@ -25,10 +25,10 @@ draft-ietf-suit-firmware-encryption.cddl: ../draft-ietf-suit-firmware-encryption
 	cat $^ > $@
 
 draft-ietf-suit-trust-domains.cddl:
-	curl https://raw.githubusercontent.com/suit-wg/suit-multiple-trust-domains/main/draft-ietf-suit-trust-domains.cddl -o $@
+	curl --retry 3 https://raw.githubusercontent.com/suit-wg/suit-multiple-trust-domains/main/draft-ietf-suit-trust-domains.cddl -o $@
 
 draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-trust-domains.cddl
-	curl https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
+	curl --retry 3 https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
 	cat draft-ietf-suit-firmware-encryption.cddl >> $@
 	cat draft-ietf-suit-trust-domains.cddl >> $@
 
@@ -36,7 +36,7 @@ rfc-9052.cddl: rfc-9052.xml
 	sed -n -e '/<sourcecode type="CDDL"/,/<\/sourcecode/ p' $< | sed -e '/<sourcecode type="CDDL"/ d' -e '/<\/sourcecode/ d' -e '/<\/section>/,/<figure title=""/ d' -e 's/\&gt;/>/g' > $@
 
 rfc-9052.xml:
-	curl https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
+	curl --retry 3 https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
 
 draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-encryption.cddl
 	cat ../$@ $^ > $@
