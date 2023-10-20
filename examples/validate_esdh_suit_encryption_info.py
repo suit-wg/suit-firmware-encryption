@@ -2,7 +2,7 @@
 
 import base64
 from cbor2 import dumps
-from python_cwt.cwt import COSE, COSEKey
+from cwt import COSE, COSEKey
 
 # See Section 6.2.5 Example (ECDH-ES + AES-KW)
 # https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-example-2
