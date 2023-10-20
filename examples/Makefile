@@ -1,8 +1,10 @@
 SUIT_ENCRYPTION_INFO := suit-encryption-info-aes-kw.cose suit-encryption-info-es-ecdh.cose
 SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := suit-manifest-aes-kw.suit suit-manifest-aes-kw-content.suit suit-manifest-es-ecdh-content.suit suit-manifest-es-ecdh-dependency.suit
+KDF_CONTEXT := a128kw_kdf_context.cbor
+CDDL := draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-manifest.cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl
 
 .PHONY: all
-all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD)
+all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD) $(KDF_CONTEXT)
 
 %.cose: %.diag
 	diag2cbor.rb $< > $@
@@ -10,11 +12,14 @@ all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_
 %.hex: %.cose
 	xxd -p -u -c 30 $< > $@
 
+%.cbor: %.diag
+	diag2cbor.rb $< > $@
+
 %.suit: %.diag.signed
 	diag2cbor.rb $< > $@
 
 .PHONY: cddl
-cddl: draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-manifest.cddl
+cddl: $(CDDL)
 
 draft-ietf-suit-firmware-encryption.cddl: ../draft-ietf-suit-firmware-encryption.cddl rfc-9052.cddl
 	cat $^ > $@
@@ -29,11 +34,15 @@ rfc-9052.cddl: rfc-9052.xml
 rfc-9052.xml:
 	curl https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
 
+draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-encryption.cddl
+	cat ../$@ $^ > $@
+
 .PHONY: validate
 validate: all cddl
 	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose
 	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose
 	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
+	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
 
 .PHONY: clean
 clean:
