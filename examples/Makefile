@@ -24,9 +24,13 @@ cddl: $(CDDL)
 draft-ietf-suit-firmware-encryption.cddl: ../draft-ietf-suit-firmware-encryption.cddl rfc-9052.cddl
 	cat $^ > $@
 
-draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl
+draft-ietf-suit-trust-domains.cddl:
+	curl https://raw.githubusercontent.com/suit-wg/suit-multiple-trust-domains/main/draft-ietf-suit-trust-domains.cddl -o $@
+
+draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-trust-domains.cddl
 	curl https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
 	cat draft-ietf-suit-firmware-encryption.cddl >> $@
+	cat draft-ietf-suit-trust-domains.cddl >> $@
 
 rfc-9052.cddl: rfc-9052.xml
 	sed -n -e '/<sourcecode type="CDDL"/,/<\/sourcecode/ p' $< | sed -e '/<sourcecode type="CDDL"/ d' -e '/<\/sourcecode/ d' -e '/<\/section>/,/<figure title=""/ d' -e 's/\&gt;/>/g' > $@
