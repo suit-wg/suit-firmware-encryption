@@ -43,13 +43,16 @@ draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-e
 
 .PHONY: validate
 validate: all cddl
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
-	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
+	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose 2> /dev/null
+	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose 2> /dev/null
+	@echo Each SUIT_Encryption_Info matches to its CDDL
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit 2> /dev/null
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit 2> /dev/null
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit 2> /dev/null
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit 2> /dev/null
+	@echo Each SUIT Manifest with Encrypted Payloads matches to its CDDL
+	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor 2> /dev/null
+	@echo KDF Context matches to its CDDL
 	python3 ./validate_aeskw_suit_encryption_info.py
 	python3 ./validate_esdh_suit_encryption_info.py
 
