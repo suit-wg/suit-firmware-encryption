@@ -46,6 +46,9 @@ validate: all cddl
 	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose
 	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose
 	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
 	python3 ./validate_aeskw_suit_encryption_info.py
 	python3 ./validate_esdh_suit_encryption_info.py
