@@ -4,10 +4,13 @@ KDF_CONTEXT := a128kw_kdf_context.cbor
 CDDL := draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-manifest.cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl
 
 .PHONY: all
-all: $(SUIT_ENCRYPTION_INFO) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD) $(KDF_CONTEXT)
+all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD) $(KDF_CONTEXT)
 
 %.cose: %.diag
 	diag2cbor.rb $< > $@
+
+%.hex: %.cose
+	xxd -p -u -c 30 $< > $@
 
 %.cbor: %.diag
 	diag2cbor.rb $< > $@
@@ -21,25 +24,38 @@ cddl: $(CDDL)
 draft-ietf-suit-firmware-encryption.cddl: ../draft-ietf-suit-firmware-encryption.cddl rfc-9052.cddl
 	cat $^ > $@
 
-draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl
-	curl https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
+draft-ietf-suit-trust-domains.cddl:
+	curl --retry 3 https://raw.githubusercontent.com/suit-wg/suit-multiple-trust-domains/main/draft-ietf-suit-trust-domains.cddl -o $@
+
+draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-trust-domains.cddl
+	curl --retry 3 https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
 	cat draft-ietf-suit-firmware-encryption.cddl >> $@
+	cat draft-ietf-suit-trust-domains.cddl >> $@
 
 rfc-9052.cddl: rfc-9052.xml
 	sed -n -e '/<sourcecode type="CDDL"/,/<\/sourcecode/ p' $< | sed -e '/<sourcecode type="CDDL"/ d' -e '/<\/sourcecode/ d' -e '/<\/section>/,/<figure title=""/ d' -e 's/\&gt;/>/g' > $@
 
 rfc-9052.xml:
-	curl https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
+	curl --retry 3 https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
 
 draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-encryption.cddl
 	cat ../$@ $^ > $@
 
 .PHONY: validate
 validate: all cddl
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
-	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
+	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose 2> /dev/null
+	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose 2> /dev/null
+	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit 2> /dev/null
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit 2> /dev/null
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit 2> /dev/null
+	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit 2> /dev/null
+	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
+	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor 2> /dev/null
+	@echo [SUCCESS] KDF Context matches to its CDDL
+	python3 ./validate_aeskw_suit_encryption_info.py
+	python3 ./validate_esdh_suit_encryption_info.py
+	@echo [SUCCESS] The expected plaintext firmware can be decrypted
 
 .PHONY: clean
 clean:
