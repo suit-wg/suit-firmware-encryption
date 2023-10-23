@@ -3,7 +3,7 @@
     / alg / 1: 1 / AES-GCM-128 /
   } >>,
   / unprotected: / {
-    / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
+    / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
   },
   / payload: / null / detached ciphertext /,
   / recipients: / [
@@ -14,7 +14,8 @@
         / alg / 1: -3 / A128KW /,
         / kid / 4: 'kid-1'
       },
-      / payload: / h'CA0DF4EE01796D12FE379165602E0AC2476391A4EF122A64'
+      / payload: /
+        h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
         / CEK encrypted with KEK /
     ]
   ]

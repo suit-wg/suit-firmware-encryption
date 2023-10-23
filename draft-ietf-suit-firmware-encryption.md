@@ -535,14 +535,15 @@ of zero length.
 
 This example uses the following parameters:
 
-- Algorithm for authentication: COSE_Mac0 with HMAC-256
 - Algorithm for payload encryption: AES-GCM-128
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
 - Algorithm id for key wrap: A128KW
-- IV: h'93702C81590F845D9EC866CCAC767BD1'
-- KEK: 'aaaaaaaaaaaaaaaa'
+- KEK COSE_Key (Secret Key):
+  - / kty / 1: 4 / Symmetric /
+  - / k / -1: 'aaaaaaaaaaaaaaaa'
 - KID: 'kid-1'
-- Plaintext (txt): "This is a real firmware image."
-  (in hex): 546869732069732061207265616C206669726D7761726520696D6167652E
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -684,7 +685,7 @@ The following fields in {{cddl-context-info}} require an explanation:
 
 - The COSE_KDF_Context.AlgorithmID field MUST contain the algorithm identifier
 for AES Key Wrap algorithm utilized. This specification uses the following
-values: A128KW (value -4), A192KW (value -4), or A256KW (value -5)
+values: A128KW (value -3), A192KW (value -4), or A256KW (value -5)
 
 - The COSE_KDF_Context.SuppPubInfo.keyDataLength field MUST contain the key length
 of the algorithm in the COSE_KDF_Context.AlgorithmID field expressed as the number
@@ -699,30 +700,8 @@ the constant string "SUIT Payload Encryption".
 content of the recipient_header_map_esdh field, which contains (among other fields)
 the identifier of the content key distribution method.
 
-~~~
-PartyInfoSender = (
-    identity : nil,
-    nonce : nil,
-    other : nil
-)
-
-PartyInfoRecipient = (
-    identity : nil,
-    nonce : nil,
-    other : nil
-)
-
-COSE_KDF_Context = [
-    AlgorithmID : int,
-    PartyUInfo : [ PartyInfoSender ],
-    PartyVInfo : [ PartyInfoRecipient ],
-    SuppPubInfo : [
-        keyDataLength : uint,
-        protected : bstr .cbor recipient_header_map_esdh,
-        other: bstr "SUIT Payload Encryption"
-    ],
-    SuppPrivInfo : bstr .size 0
-]
+~~~ CDDL
+{::include draft-ietf-suit-firmware-encryption-kdf-context.cddl}
 ~~~
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 
@@ -746,13 +725,23 @@ structure.
 This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-GCM-128
-- IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
+  - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
 - Algorithm for content key distribution: ECDH-ES + A128KW
-- SuppPubInfo.other = 'SUIT Payload Encryption'
+- KEK COSE_Key (Receiver's Private Key):
+  - / kty / 1: 2 / EC2 /
+  - / crv / -1: 1 / P-256 /
+  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
 - KID: 'kid-2'
+- KDF Context
+  - ALgorithm ID: -3 (A128KW)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - other = 'SUIT Payload Encryption'
 - Plaintext: "This is a real firmware image."
-- Plaintext (in hex encoding):
-  546869732069732061207265616C206669726D7761726520696D6167652E
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -1182,7 +1171,7 @@ HMAC-256 MAC are added in AES-KW examples using the following secret key:
 
 ~~~
   'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-  (0x616161... in hex, and its length is 32)
+  (616161... in hex, and its length is 32)
 ~~~
 
 ES-DH examples are signed using the following ECDSA secp256r1 key:
@@ -1354,7 +1343,7 @@ TBD19      Encryption Info      Section 4
 
 --- back
 
-# A. Full CDDL {#full-cddl}
+# Full CDDL {#full-cddl}
 
 The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
 Appendix A of {{I-D.ietf-suit-manifest}}
