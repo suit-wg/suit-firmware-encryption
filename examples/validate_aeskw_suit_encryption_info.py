@@ -16,10 +16,10 @@ secret_key_jwk = {
 print(f"Secret COSE_Key: {secret_key_jwk}")
 for key in ["k"]:
     secret_key_jwk[key] = base64.b64encode(bytes.fromhex(secret_key_jwk[key])).decode()
-with open("./encrypted-payload-aes-kw.hex", "r") as f:
+with open("./encrypted-payload-aes-kw-aes-gcm.hex", "r") as f:
     encrypted_payload_hex = ''.join(f.read().splitlines())
 print(f"Encrypted Payload: {encrypted_payload_hex}")
-with open("./suit-encryption-info-aes-kw.hex", "r") as f:
+with open("./suit-encryption-info-aes-kw-aes-gcm.hex", "r") as f:
     suit_encryption_info_hex = ''.join(f.read().splitlines())
 print(f"SUIT_Encryption_Info: {suit_encryption_info_hex}")
 

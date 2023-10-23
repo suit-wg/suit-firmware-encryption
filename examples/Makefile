@@ -1,7 +1,23 @@
-SUIT_ENCRYPTION_INFO := suit-encryption-info-aes-kw.cose suit-encryption-info-es-ecdh.cose
-SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := suit-manifest-aes-kw.suit suit-manifest-aes-kw-content.suit suit-manifest-es-ecdh-content.suit suit-manifest-es-ecdh-dependency.suit
+SUIT_ENCRYPTION_INFO := \
+	suit-encryption-info-aes-kw-aes-gcm.cose \
+	suit-encryption-info-es-ecdh-aes-gcm.cose \
+	suit-encryption-info-aes-kw-aes-cbc.cose \
+	suit-encryption-info-es-ecdh-aes-cbc.cose \
+	suit-encryption-info-aes-kw-aes-ctr.cose \
+	suit-encryption-info-es-ecdh-aes-ctr.cose
+
+SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := \
+	suit-manifest-aes-kw.suit \
+	suit-manifest-aes-kw-content.suit \
+	suit-manifest-es-ecdh-content.suit \
+	suit-manifest-es-ecdh-dependency.suit
+
 KDF_CONTEXT := a128kw_kdf_context.cbor
-CDDL := draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-manifest.cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl
+
+CDDL := \
+	draft-ietf-suit-firmware-encryption.cddl \
+	draft-ietf-suit-manifest.cddl \
+	draft-ietf-suit-firmware-encryption-kdf-context.cddl
 
 .PHONY: all
 all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD) $(KDF_CONTEXT)
@@ -17,6 +33,9 @@ all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_
 
 %.suit: %.diag.signed
 	diag2cbor.rb $< > $@
+
+%.hex.cose: %.hex
+	pretty2cbor.rb $< > $@
 
 .PHONY: cddl
 cddl: $(CDDL)
@@ -42,9 +61,22 @@ draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-e
 	cat ../$@ $^ > $@
 
 .PHONY: validate
-validate: all cddl
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw.cose 2> /dev/null
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh.cose 2> /dev/null
+validate: all cddl validate_binary_match validate_cddl_match validate_decrypted_plaintext
+
+define CheckMatch
+	diff $(1) $(1:.cose=.hex.cose)
+
+endef
+
+.PHONY: validate_binary_match
+validate_binary_match: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex.cose)
+	$(foreach s,$(SUIT_ENCRYPTION_INFO),$(call CheckMatch,$(s)))
+	@echo [SUCCESS] Each binaries from diag matches to one from hex
+
+.PHONY: validate_cddl_match
+validate_cddl_match: all cddl
+	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose 2> /dev/null
+	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose 2> /dev/null
 	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
 	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit 2> /dev/null
 	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit 2> /dev/null
@@ -53,6 +85,9 @@ validate: all cddl
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
 	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor 2> /dev/null
 	@echo [SUCCESS] KDF Context matches to its CDDL
+
+.PHONY: validate_decrypted_plaintext
+validate_decrypted_plaintext:
 	python3 ./validate_aeskw_suit_encryption_info.py
 	python3 ./validate_esdh_suit_encryption_info.py
 	@echo [SUCCESS] The expected plaintext firmware can be decrypted

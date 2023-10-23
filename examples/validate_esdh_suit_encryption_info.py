@@ -21,10 +21,10 @@ print(f"Receiver's Private Key: {receiver_private_key_jwk}")
 for key in ["x", "y", "d"]:
     receiver_private_key_jwk[key] = base64.b64encode(bytes.fromhex(receiver_private_key_jwk[key])).decode()
 
-with open("./encrypted-payload-es-ecdh.hex", "r") as f:
+with open("./encrypted-payload-es-ecdh-aes-gcm.hex", "r") as f:
     encrypted_payload_hex = ''.join(f.read().splitlines())
 print(f"Encrypted Payload: {encrypted_payload_hex}")
-with open("./suit-encryption-info-es-ecdh.hex", "r") as f:
+with open("./suit-encryption-info-es-ecdh-aes-gcm.hex", "r") as f:
     suit_encryption_info_hex = ''.join(f.read().splitlines())
 print(f"SUIT_Encryption_Info: {suit_encryption_info_hex}")
 
