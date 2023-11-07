@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
 import base64
-from cbor2 import dumps
 from cwt import COSE, COSEKey
+
+expected_plaintext_payload = b'This is a real firmware image.'
 
 # See Section 6.2.5 Example (ECDH-ES + AES-KW)
 # https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-example-2
 print("Example 2: ECDH-ES + AES-KW")
+
+# 0. Load the Receiver's Private Key and Configure KDF Context
 receiver_private_key_jwk = {
     "kty": "EC2",
     "crv": "P-256",
@@ -20,44 +23,41 @@ receiver_private_key_jwk = {
 print(f"Receiver's Private Key: {receiver_private_key_jwk}")
 for key in ["x", "y", "d"]:
     receiver_private_key_jwk[key] = base64.b64encode(bytes.fromhex(receiver_private_key_jwk[key])).decode()
-
-with open("./encrypted-payload-es-ecdh-aes-gcm.hex", "r") as f:
-    encrypted_payload_hex = ''.join(f.read().splitlines())
-print(f"Encrypted Payload: {encrypted_payload_hex}")
-with open("./suit-encryption-info-es-ecdh-aes-gcm.hex", "r") as f:
-    suit_encryption_info_hex = ''.join(f.read().splitlines())
-print(f"SUIT_Encryption_Info: {suit_encryption_info_hex}")
-
-# Decrypt the Encrypted Payload using SUIT_Encryption_Info
-# NOTE: python-cwt does not support detached content feature used in SUIT Encrypted Payloads
-# With this feature, the payload is encoded with `null` (0xF6 in hex)
-# and can be replaced with bstr wrapped encrypted_payload.
-
-# 1. Generate bstr wrapped encrypted_payload in hex
-encrypted_payload_bytes = bytes.fromhex(encrypted_payload_hex)
-encrypted_payload_bstr_hex = dumps(encrypted_payload_bytes).hex().upper()
-
-# 2. Replace `null` (0xF6 in hex) by bstr wrapped encrypted_payload
-# NOTE: Skip 13 bytes (26 characters) of protected and unprotected headers
-index = suit_encryption_info_hex.find("F6", 26)
-assert index >= 0
-cose_encrypt_hex = suit_encryption_info_hex[0:index] + encrypted_payload_bstr_hex + suit_encryption_info_hex[index + 2:]
-
-print(f"\nConcatenated COSE_Encrypt (non detached content): {cose_encrypt_hex}")
-cose_encrypt_bytes = bytes.fromhex(cose_encrypt_hex)
-
 private_key = COSEKey.from_jwk(receiver_private_key_jwk)
 
-ctx = COSE.new()
-context = {
+# See Section 6.2.4 Context Information Structure
+# https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-context-information-structu
+kdf_context = {
     "alg": "A128KW",
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {1: -29}, # "alg": "ECDH-ES+A128KW"
+        "protected": {"alg": "ECDH-ES+A128KW"},
         "other": "SUIT Payload Encryption",
     },
 }
-result = ctx.decode(cose_encrypt_bytes, keys=[private_key], context=context)
+print(f"KDF Context (NOTE: TO BE CONVERTED INTO ACTUAL VALUE): {kdf_context}")
+print()
+
+# 1. Load SUIT_Encryption_Info and the detached encrypted payload
+filename_hex_suit_encryption_info = "suit-encryption-info-es-ecdh-aes-gcm.hex"
+with open(filename_hex_suit_encryption_info, "r") as f:
+    suit_encryption_info_hex = ''.join(f.read().splitlines())
+print(f"SUIT_Encryption_Info (from {filename_hex_suit_encryption_info}):\n{suit_encryption_info_hex}")
+suit_encryption_info_bytes = bytes.fromhex(suit_encryption_info_hex)
+
+filename_diag_suit_encryption_info = "suit-encryption-info-es-ecdh-aes-gcm.diag"
+with open(filename_diag_suit_encryption_info, "r") as f:
+    print(f.read())
+
+filename_encrypted_payload = "encrypted-payload-es-ecdh-aes-gcm.hex"
+with open(filename_encrypted_payload, "r") as f:
+    encrypted_payload_hex = ''.join(f.read().splitlines())
+print(f"Encrypted Payload (from {filename_encrypted_payload}):\n{encrypted_payload_hex}")
+encrypted_payload_bytes = bytes.fromhex(encrypted_payload_hex)
+
+# 2. Decrypt the Encrypted Payload using SUIT_Encryption_Info
+ctx = COSE.new()
+result = ctx.decode(suit_encryption_info_bytes, keys=[private_key], context=kdf_context, detached_payload=encrypted_payload_bytes)
 print(f"\nDecrypted Payload: {result}")
-assert result == b'This is a real firmware image.'
+assert result == expected_plaintext_payload
 print("Successfully decrypted")
