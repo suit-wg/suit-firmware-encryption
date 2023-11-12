@@ -1005,10 +1005,10 @@ This example uses the following parameters:
   - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
   - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
 - KDF Context
-  - ALgorithm ID: -3 (A128KW)
+  - ALgorithm ID: -65531 (A128CBC)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - protected = h''
     - other = 'SUIT Payload Encryption'
 - Plaintext: "This is a real firmware image."
   - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
@@ -1116,10 +1116,10 @@ This example uses the following parameters:
   - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
   - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
 - KDF Context
-  - ALgorithm ID: -3 (A128KW)
+  - ALgorithm ID: -65534 (A128CTR)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - protected = h''
     - other = 'SUIT Payload Encryption'
 - Plaintext: "This is a real firmware image."
   - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
