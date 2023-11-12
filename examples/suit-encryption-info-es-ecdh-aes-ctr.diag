@@ -1,25 +1,23 @@
 96([
-  / protected: / << {
-    / alg / 1: -65534 / A128CTR /
-  } >>,
+  / protected: / h'',
   / unprotected: / {
+    / alg / 1: -65534 / A128CTR /,
     / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
   },
   / payload: / null / detached ciphertext /,
   / recipients: / [
     [
-      / protected: / << {
-        / alg / 1: -29 / ECDH-ES + A128KW /
-      } >>,
+      / protected: / h'',
       / unprotected: / {
+        / alg / 1: -29 / ECDH-ES + A128KW /,
         / ephemeral key / -1: {
           / kty / 1: 2 / EC2 /,
           / crv / -1: 1 / P-256 /,
-          / x / -2: h'CB2A8EEAF7E260F02AD5C29E4608939A6487E2172D239562819E5F52C6D34674',
-          / y / -3: h'FB6F870883864A9B14828501FE47A4E9282A7065CD1C234E8A3BCE46F49A1A9F'
+          / x / -2: h'E27FAA7A0B2C23DAA4BAD8239F52E3CE1248A2D263969A47C8F71F3A3DDC32C2',
+          / y / -3: h'2255DAD40BFC2C74F1AC72DFE3AFE43C4D39FFCE6661E5207265D961256912D5'
         }
       },
-      / payload: / h'18DC08054C462C7977EE90FA2B9DE62FF6D42E398CEE8168'
+      / payload: / h'016D93E9BEAAF0239C793DC9618DAC6A2289305BF5880AB8'
         / CEK encrypted with KEK /
     ]
   ]

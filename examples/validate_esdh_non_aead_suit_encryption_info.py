@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
+import sys
 import base64
 from cwt import COSE, COSEKey
 
-expected_plaintext_payload = b'This is a real firmware image.'
+if len(sys.argv) != 4:
+    print(f"{sys.argv[0]} [hex-encryption-info] [hex-encrypted-payload] [KDF-ALGORITHM]")
 
-# See Section 6.2.5 Example (ECDH-ES + AES-KW)
-# https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-example-2
-print("Example 2: ECDH-ES + AES-KW")
+filename_hex_suit_encryption_info = sys.argv[1]
+filename_hex_encrypted_payload = sys.argv[2]
+filename_diag_suit_encryption_info = filename_hex_suit_encryption_info.replace(".hex", ".diag")
+kdf_algorithm = sys.argv[3]
+
+expected_plaintext_payload = b'This is a real firmware image.'
 
 # 0. Load the Receiver's Private Key and Configure KDF Context
 receiver_private_key_jwk = {
@@ -28,10 +33,10 @@ private_key = COSEKey.from_jwk(receiver_private_key_jwk)
 # See Section 6.2.4 Context Information Structure
 # https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-context-information-structu
 kdf_context = {
-    "alg": "A128KW",
+    "alg": kdf_algorithm,
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {"alg": "ECDH-ES+A128KW"},
+        "protected": {},
         "other": "SUIT Payload Encryption",
     },
 }
@@ -39,20 +44,17 @@ print(f"KDF Context (NOTE: TO BE CONVERTED INTO ACTUAL VALUE): {kdf_context}")
 print()
 
 # 1. Load SUIT_Encryption_Info and the detached encrypted payload
-filename_hex_suit_encryption_info = "suit-encryption-info-es-ecdh-aes-gcm.hex"
 with open(filename_hex_suit_encryption_info, "r") as f:
     suit_encryption_info_hex = ''.join(f.read().splitlines())
 print(f"SUIT_Encryption_Info (from {filename_hex_suit_encryption_info}):\n{suit_encryption_info_hex}")
 suit_encryption_info_bytes = bytes.fromhex(suit_encryption_info_hex)
 
-filename_diag_suit_encryption_info = "suit-encryption-info-es-ecdh-aes-gcm.diag"
 with open(filename_diag_suit_encryption_info, "r") as f:
     print(f.read())
 
-filename_encrypted_payload = "encrypted-payload-es-ecdh-aes-gcm.hex"
-with open(filename_encrypted_payload, "r") as f:
+with open(filename_hex_encrypted_payload, "r") as f:
     encrypted_payload_hex = ''.join(f.read().splitlines())
-print(f"Encrypted Payload (from {filename_encrypted_payload}):\n{encrypted_payload_hex}")
+print(f"Encrypted Payload (from {filename_hex_encrypted_payload}):\n{encrypted_payload_hex}")
 encrypted_payload_bytes = bytes.fromhex(encrypted_payload_hex)
 
 # 2. Decrypt the Encrypted Payload using SUIT_Encryption_Info
