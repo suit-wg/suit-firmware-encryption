@@ -725,7 +725,7 @@ structure.
 This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-GCM-128
-  - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
+  - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KEK COSE_Key (Receiver's Private Key):
   - / kty / 1: 2 / EC2 /
