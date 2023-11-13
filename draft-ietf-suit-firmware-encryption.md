@@ -996,7 +996,7 @@ The encrypted payload (with a line feed added) was:
 This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-CBC-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KEK COSE_Key (Receiver's Private Key):
   - / kty / 1: 2 / EC2 /
@@ -1073,7 +1073,7 @@ Legend:
 This example uses the following parameters:
 
 - Algorithm for payload encryption: AES-CTR-128
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
 - Algorithm id for key wrap: A128KW
 - KEK COSE_Key (Secret Key):
   - / kty / 1: 4 / Symmetric /
