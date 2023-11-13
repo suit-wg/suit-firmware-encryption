@@ -84,7 +84,7 @@ for key in ["x", "y"]:
     receiver_public_key_jwk[key] = base64.b64encode(bytes.fromhex(receiver_public_key_jwk[key])).decode()
 
 kdf_context_a128gcm = {
-    "alg": "A128KW",
+    "alg": "A128GCM",
     "supp_pub": {
         "key_data_length": 128,
         "protected": {"alg": "ECDH-ES+A128KW"},
