@@ -5,7 +5,7 @@ SUIT_Encryption_Info = #6.96(
     SUIT_Encryption_Info_ESDH .within COSE_Encrypt)
 
 SUIT_Encryption_Info_AESKW = [
-  protected   : bstr .cbor outer_header_map_protected,
+  protected   : bstr .size 0 / bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
   ciphertext  : bstr / nil,
   recipients  : [ + COSE_recipient_AESKW .within COSE_recipient ]
@@ -26,14 +26,14 @@ recipient_header_unpr_map_aeskw =
 }
 
 SUIT_Encryption_Info_ESDH = [
-  protected   : bstr .cbor outer_header_map_protected,
+  protected   : bstr .size 0 / bstr .cbor outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
   ciphertext  : bstr / nil,
   recipients  : [ + COSE_recipient_ESDH .within COSE_recipient ]
 ]
 
 COSE_recipient_ESDH = [
-  protected   : bstr .cbor recipient_header_map_esdh,
+  protected   : bstr .size 0 / bstr .cbor recipient_header_map_esdh,
   unprotected : recipient_header_unpr_map_esdh,
   ciphertext  : bstr        ; CEK encrypted with KEK
 ]
