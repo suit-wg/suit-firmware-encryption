@@ -1,5 +1,5 @@
 96([
-  / protected: / <<{}>>,
+  / protected: / h'',
   / unprotected: / {
     / alg / 1: -65531 / A128CBC /,
     / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
