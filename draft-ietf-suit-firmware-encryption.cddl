@@ -20,7 +20,7 @@ empty_map = {}
 
 recipient_header_unpr_map_aeskw =
 {
-    1 => int,         ; algorithm identifier
+  ? 1 => int,         ; algorithm identifier for non AEAD
   ? 4 => bstr,        ; identifier of the recipient public key
   * label => values   ; extension point
 }
@@ -40,13 +40,14 @@ COSE_recipient_ESDH = [
 
 recipient_header_map_esdh =
 {
-    1 => int,         ; algorithm identifier
+  ? 1 => int,         ; algorithm identifier for AEAD
   * label => values   ; extension point
 }
 
 recipient_header_unpr_map_esdh =
 {
    -1 => COSE_Key,    ; ephemeral public key for the sender
+  ? 1 => int,         ; algorithm identifier for non AEAD
   ? 4 => bstr,        ; identifier of the recipient public key
   * label => values   ; extension point
 }
@@ -54,12 +55,13 @@ recipient_header_unpr_map_esdh =
 ; common definitions
 outer_header_map_protected =
 {
-    1 => int,         ; algorithm identifier
+  ? 1 => int,         ; algorithm identifier for AEAD
   * label => values   ; extension point
 }
 
 outer_header_map_unprotected =
 {
+  ? 1 => int,         ; algorithm identifier for non AEAD
     5 => bstr,        ; IV
   * label => values   ; extension point
 }
