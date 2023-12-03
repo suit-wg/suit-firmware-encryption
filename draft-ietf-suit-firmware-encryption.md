@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-18
+docname: draft-ietf-suit-firmware-encryption-19
 category: std
 
 ipr: trust200902
@@ -61,7 +61,7 @@ normative:
   RFC9053:
   RFC8174:
   I-D.ietf-suit-manifest:
-  I-D.ietf-cose-aes-ctr-and-cbc:
+  RFC9459:
   I-D.ietf-suit-trust-domains:
 
 informative:
@@ -120,6 +120,9 @@ access to the payload. Attackers typically need intimate knowledge
 of a binary, such as a firmware image, to mount their attacks.
 For example, return-oriented programming (ROP) {{ROP}} requires access
 to the binary and encryption makes it much more difficult to write exploits.
+Beside confidentiality of the binary, confidentiality of the sources
+(e.g. in case of open source software) may be required as well to prevent
+reverse engineering and/or reproduction of the binary firmware.
 
 While the original motivating use case of this document was firmware
 encryption, the use of SUIT manifests has been extended to other use cases
@@ -143,9 +146,17 @@ the IETF SUIT manifest, namely:
 The former method relies on asymmetric key cryptography while the
 latter uses symmetric key cryptography.
 
-Our goal was to reduce the number of content key distribution methods
+Our design aims to reduce the number of content key distribution methods
 for use with payload encryption and thereby increase interoperability
 between different SUIT manifest parser implementations.
+
+The goal of this specification is to protect payloads during transportation
+end-to-end, and at rest when stored inside a device. Since many of the
+devices today do not offer hardware-based, on-the-fly decryption of
+code stored in flash memory, it may be necessary to decrypt and store
+firmware images in on-chip flash before code can be executed. Since
+devices with hardware-based, on-the-fly decryption become more common,
+the goal of accomplishing confidentiality at rest may be better accomplished.
 
 # Conventions and Terminology
 
@@ -209,7 +220,7 @@ which is included in the SUIT manifest.) Hence, the author has to
 collaborate with the distribution system. The varying degree of
 collaboration is discussed below.
 
-~~~
+~~~ aasvg
  +----------+
  |  Device  |                              +----------+
  |    1     |<--+                          |  Author  |
@@ -237,15 +248,18 @@ collaboration is discussed below.
 The author has several deployment options, namely:
 
 * The author, as the sender, obtains information about the recipients
-  and their keys from the distribution system. Then, it performs the necessary
+  and their keys from the distribution system. There are proprietary as well as
+  standardized device management solutions available providing this functionality,
+  as discussed in {{RFC9019}}. Then, it performs the necessary
   steps to encrypt the payload. As a last step it creates one or more manifests.
   The device(s) perform decryption and act as recipients.
 
-* The author treats the distribution system as the initial recipient. Then,
-  the distribution system decrypts and re-encrypts the payload for consumption
-  by the device (or the devices). Delegating the task of re-encrypting
-  the payload to the distribution system offers flexibility when the number
-  of devices that need to receive encrypted payloads changes dynamically
+* The author treats the distribution system as the initial recipient. The
+  author typically uses REST APIs or web user interfaces to interact with the
+  distribution system. Then, the distribution system decrypts and re-encrypts the
+  payload for consumption by the device (or the devices). Delegating the task of
+  re-encrypting the payload to the distribution system offers flexibility when the
+  number of devices that need to receive encrypted payloads changes dynamically
   or when updates to KEKs or recipient public keys are necessary. As a downside,
   the author needs to trust the distribution system with performing the
   re-encryption of the payload.
@@ -257,20 +271,21 @@ manifest again. However, the COSE_Encrypt structure is contained within a signed
 container, which presents a problem: replacing the COSE_Encrypt with a new one
 will cause the digest of the manifest to change, thereby changing the signature.
 This means that the distributor must be able to sign the new manifest. If this
-is the case, then the distributor  gains the ability to construct and sign
+is the case, then the distributor gains the ability to construct and sign
 manifests, which allows the distributor the authority to sign code, effectively
 presenting the distributor with full control over the recipient. Because
 distributors typically perform their re-encryption online in order to handle
 a large number of devices in a timely fashion, it is not possible to air-gap
 the distributor's signing operations. This impacts the recommendations in
-Section 4.3.17 of {{RFC9124}}.
+Section 4.3.17 of {{RFC9124}}. This model nevertheless represent the current
+state of firmware updates for IoT devices.
 
 2. The distributor uses a two-manifest system. More precisely, the distributor
 constructs a new manifest that overrides the COSE_Encrypt using the dependency
 system defined in {{I-D.ietf-suit-trust-domains}}. This incurs additional
 overhead: one additional signature verification and one additional manifest,
 as well as the additional machinery in the recipient needed for dependency
-processing.
+processing. This extra complexity offers extra security.
 
 These two models also present different threat profiles for the distributor.
 If the distributor only has encryption rights, then an attacker who breaches
@@ -315,7 +330,7 @@ suit-parameter-encryption-info = 19
 {: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
 
 RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
-parameter is set to 19, as the proposed value.]
+parameter is set to 19, as the proposed value.
 
 # Extended Directives
 
@@ -372,8 +387,7 @@ not covered by the digital signature or the MAC protecting the manifest.
 (To be more precise, the suit-authentication-wrapper found in the envelope
 contains a digest of the manifest in the SUIT Digest Container.) 
 
-The
-lack of authentication and integrity protection of the payload is
+The lack of authentication and integrity protection of the payload is
 particularly a concern when a cipher without integrity protection is
 used.
 
@@ -391,13 +405,13 @@ These steps apply to both content key distribution methods.
 The sub-sections below describe two content key distribution methods,
 namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
 Many other methods are specified in the literature, and even supported
-by COSE. New methods can be added via enhancements to this specification.
-The two specified methods were selected to their maturity, different
-security properties, and to ensure interoperability in deployments.
+by COSE. AES-KW and ES-DH cover the popular methods used in the market
+today and they were selected due to their maturity, different
+security properties, and because of their interoperability properties.
 
 The two content key distribution methods require the CEKs to be
-randomly generated. It must be ensured that the guidelines for random
-number generation in {{RFC8937}} are followed.
+randomly generated. The guidelines for random number generation
+in {{RFC8937}} MUST be followed.
 
 When an encrypted payload is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
@@ -454,7 +468,7 @@ the following steps:
      4. ENC(payload, CEK)
 ~~~
 
-This deployment option is stronly discouraged. An attacker gaining access to
+This deployment option is strongly discouraged. An attacker gaining access to
 the KEK will be able to encrypt and send payloads to all recipients configured
 to use this KEK.
 
@@ -491,7 +505,6 @@ The sender needs to execute the following steps:
     1d.    ENC(payload, CEK(Ri, S))
     2.  }
 ~~~
-
 
 ### CDDL
 
@@ -624,8 +637,6 @@ by the sender:
     1d.     ENC(payload, CEK(Ri, S))
         }
 ~~~
-
-
 
 ### CDDL
 
@@ -789,44 +800,50 @@ to the content of the protected field from the COSE_Encrypt structure.
 The value of the external_aad MUST be set to a zero-length byte string,
 i.e., h'' in diagnostic notation and encoded as 0x40.
 
-For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
-Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
-because the Enc_structure represents the Additional Authenticated Data
-(AAD) byte string consumable only by AEAD ciphers. Hence, the 
-Additional Authenticated Data structure is not supplied to the 
-API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW
+Some ciphers provide confidentiality witout integrity protection, such
+as AES-CTR and AES-CBC (see {{RFC9459}}). For these ciphers the
+Enc_structure, shown in {{cddl-enc-aeskw}}, MUST NOT be used because
+the Additional Authenticated Data (AAD) byte string is only consumable
+by AEAD ciphers. Hence, the AAD structure is not supplied to the 
+API of those ciphers and the protected header in the SUIT_Encryption_Info_AESKW
 or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
 respectively.
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
-Note: This section is specific to firmware images and does not apply to
-generic software, configuration data, and machine learning models.
+There are many flavors of embedded devices, the market is large and fragmented.
+Hence, it is likely that some implementations and deployments implement their
+firmware update procedure differently than described below. On a positive note,
+the SUIT manifest allows different deployment scenarios to be supported easily
+thanks to the "scripting" functionality offered by the commands.
 
-Flash memory on microcontrollers is a type of non-volatile memory that erases
-data in units called blocks, pages, or sectors and re-writes data at the byte level
-(often 4-bytes) or larger units.
-Flash memory is furthermore segmented into different memory regions, which store
-the bootloader, different versions of firmware images (in so-called slots),
-and configuration data. {{image-layout}} shows an example layout of a
-microcontroller flash area. The primary slot typically contains the firmware image
-to be executed by the bootloader, which is a common deployment on devices that do
-not offer the concept of position independent code. Position independent code
-is not a feature frequently found in real-time operating systems used on
-microcontrollers. There are many flavors of embedded devices, the market
-is large and fragmented. Hence, it is likely that some implementations and deployments
-implement their firmware update procedure different than described below.
-On a positive note, the SUIT manifest allows different deployment scenarios
-to be supported easily thanks to the "scripting" functionality offered by
-the commands.
+This section is specific to firmware images on microcontrollers and does
+not apply to generic software, configuration data, and machine learning models. 
+The differences are the result of two aspects:
+
+- Use of flash memory: Flash memory on microcontrollers is a type of non-volatile
+memory that erases data in larger units called blocks, pages, or sectors and
+re-writes data at the byte level (often 4-bytes) or larger units. Flash memory
+is furthermore segmented into different memory regions, which store the
+bootloader, different versions of firmware images (in so-called slots), and
+configuration data. {{image-layout}} shows an example layout of a microcontroller
+flash area.
+
+- Microcontroller Design: Code on microcontrollers cannot be executed from an
+arbitrary place in flash memory, execute-in-place, without extra software
+development and design efforts. Hence, developers often compile firmware such
+that the bootloader can execute the code from a specific location in flash
+memory. Often, the primary slot is used for this purpose.
 
 When the encrypted firmware image has been transferred to the device, it will
 typically be stored in a staging area, in the secondary slot in our example.
 
-At the next boot, the bootloader will recognize a new firmware image in the
-secondary slot and will start decrypting the downloaded image sector-by-sector
-and will swap it with the image found in the primary slot.
+At the next boot, the bootloader will recognize a new firmware image and will
+start decrypting the downloaded image sector-by-sector and will swap it with
+the image found in the primary slot. This approach of swapping the newly
+downloaded image with the previously valid image requires two slots to allow
+the update to be reversed in case the newly obtained firmware image fails to
+boot. This adds robustness to the firmware update procedure.
 
 The swap will only take place after the signature on the plaintext is verified.
 Note that the plaintext firmware image is available in the primary slot only after
@@ -839,19 +856,13 @@ While there are performance optimizations possible, such as conveying hashes for
 each sector in the manifest rather than a hash of the entire firmware image,
 such optimizations are not described in this specification.
 
-This approach of swapping the newly downloaded image with the previously valid
-image requires two slots to allow the update to be reversed in case the newly obtained
-firmware image fails to boot. This approach adds robustness to the firmware
-update procedure.
+Without support for hardware-based, on-the-fly decryption the image in primary
+slot is available in cleartext, it may need to be re-encrypted before copying it
+to the secondary slot. This may be necessary when the secondary slot has different
+access permissions or when the staging area is located in off-chip flash memory and
+is therefore more vulnerable to physical attacks.
 
-Since the image in primary slot is available in cleartext, it may need to be
-re-encrypted before copying it to the secondary slot. This may be necessary
-when the secondary slot has different access permissions or when the staging
-area is located in off-chip flash memory and is therefore more vulnerable to
-physical attacks. Note that this description assumes that the processor does
-not execute encrypted memory by using on-the-fly decryption in hardware.
-
-~~~
+~~~ aasvg
 +--------------------------------------------------+
 | Bootloader                                       |
 +--------------------------------------------------+
@@ -898,16 +909,16 @@ image and swapping the sectors, the bootloader can restart where it left off. Th
 technique offers robustness and better performance.
 
 For this purpose, ciphers without integrity protection are used to encrypt the
-firmware image. Integrity protection of the firmware image MUST be
-provided and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
+firmware image. Integrity protection of the firmware image MUST be provided
+and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
 {{I-D.ietf-suit-manifest}}, MUST be used.
 
-{{I-D.ietf-cose-aes-ctr-and-cbc}} registers AES Counter (AES-CTR) mode and
-AES Cipher Block Chaining (AES-CBC) ciphers that do not offer integrity protection.
-These ciphers are useful for use cases that require firmware encryption on IoT
-devices. For many other use cases where software packages, configuration information
-or personalization data need to be encrypted, the use of Authenticated Encryption
-with Associated Data (AEAD) ciphers is RECOMMENDED.
+{{RFC9459}} registers AES Counter (AES-CTR) mode and AES Cipher Block Chaining
+(AES-CBC) ciphers that do not offer integrity protection. These ciphers are useful
+for use cases that require firmware encryption on IoT devices. For many other use
+cases where software packages, configuration information or personalization data
+need to be encrypted, the use of Authenticated Encryption with Associated Data
+(AEAD) ciphers is RECOMMENDED.
 
 The following sub-sections provide further information about the initialization vector
 (IV) selection for use with AES-CBC and AES-CTR in the firmware encryption context. An
@@ -930,7 +941,7 @@ is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block 
 If the firmware image fills the entire slot, then that slot contains 16 sectors, i.e. IVs
 ranging from 0 to 15.
 
-~~~
+~~~ aasvg
        P1              P2
         |              |
    IV--(+)    +-------(+)
@@ -1046,7 +1057,7 @@ Using the previous example with a slot size of 64 KiB, the sector size 4096 byte
 the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
 and 16 * 256 IVs for the remaining sectors in the slot.
 
-~~~
+~~~ aasvg
          IV1            IV2
           |              |
           |              |
@@ -1145,21 +1156,6 @@ The encrypted payload (with a line feed added) was:
 ~~~
 {::include examples/encrypted-payload-es-ecdh-aes-ctr.hex}
 ~~~
-
-## Battery Exhaustion Attacks
-
-The use of flash memory opens up for another attack. An attacker may swap
-detached payloads and thereby force the device to process a wrong
-payload. While this attack will be detected, a device may have performed
-energy-expensive flash operations already. These operations may reduce
-the lifetime of devices when they are battery powered Iot devices. See
-{{flash}} for further discussion about IoT devices using flash memory.
-
-Including the digest of the encrypted payload allows the device to
-detect a battery exhaustion attack before energy consuming decryption
-and flash operations took place. Including the digest of the plaintext
-payload is adequate when battery exhaustion attacks are not a concern.
-
 
 
 # Complete Examples 
@@ -1299,7 +1295,6 @@ key identifiers and algorithm information need to be provisioned.
 This specification places no requirements on the structure of the
 key identifier.
 
-
 In some cases third party companies analyse binaries for known
 security vulnerabilities. With encrypted payloads, this type of
 analysis is prevented. Consequently, these third party companies
@@ -1314,19 +1309,71 @@ such a binary analysis is desired.
 
 This entire document is about security.
 
-Note that it is good security practise to use different long-term
-keys for different purpose. For example, the KEK used with an
-AES-KW-based content key distribution method for encryption should
-be different from the long-term symmetric key used for authentication
-and integrity protection when uses with COSE_Mac0.
+It is good security practise to use different keys for different purpose.
+For example, the KEK used with an AES-KW-based content key distribution
+method for encryption should be different from the long-term symmetric key
+used for authentication in a communication security protocol.
 
-The design of this specification allows to use different long-term
-keys for encrypting payloads. For example, KEK_1 may be used with
-an AES-KW content key distribution method to encrypt a firmware
-image while KEK_2 would be used to encrypt configuration data. This
-approach reduces the attack surface since permissions of authors to
-these long-term keys may vary based on their privileges.
+To further reduce the attack surface it may be beneficial use different
+long-term keys for the encryption of different types of payloads. For
+example, KEK_1 may be used with an AES-KW content key distribution method
+to encrypt a firmware image while KEK_2 would be used to encrypt
+configuration data.
 
+A large part of this document is focused on the content key distribution and
+two methods are utilized, namely AES Key Wrap (AES-KW) and Ephemeral-Static
+Diffie-Hellman (ES-DH). In this table we summarize the main properties with
+respect to their deployment:
+
+~~~ aasvg
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Number of    ||  Same key  |  One key      |  One Key       |
+|  Long-Term    ||  for all   |  per device   |  per device    |
+|  Keys         ||  devices   |               |                |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Number of    ||  Single    |  Single       |  One CEK       |
+|  Content      ||  CEK per   |  CEK per      |  per payload   |
+|  Encryption   ||  payload   |  payload      |  encryption    |
+|  Keys (CEKs)  ||  shared    |  shared       |  transaction   |
+|               ||  with all  |  with all     |  per device    |
+|               ||  devies    |  devies       |                |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Use Case     ||  Legacy    |  Efficient    |  Point-to-     |
+|               ||  Usage     |  Payload      |  Point Payload |
+|               ||            |  Distribution |  Distribution  |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Recommended? ||  No, bad   |  Yes          |  Yes           |
+|               ||  practice  |               |                |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+~~~
+
+The use of firmware encryption with IoT devices introduces an battery
+exhaustion attack. This attack utilizes the fact that flash memory
+operations are energy-expensive. To perform this attacker, the adversary
+needs to be able to swap detached payloads and force the device to process
+a wrong payload. Swapping the payloads is only possible when there is no
+communication security protocol in place between the device and the
+distribution system or when the distribution system itself is compromised.
+The security features provided by the manifest will detect this attack and
+the device will not boot the incorrectly provided payload. However, at this
+time the energy-expensive flash operations have already been performed.
+Consequently, these operations may reduce the lifetime of devices and
+battery powered IoT devices are particularly vulnerable to such an attack.
+See {{flash}} for further discussion about IoT devices using flash memory.
+
+Including the digest of the encrypted payload in the manifest allows the
+device to detect a battery exhaustion attack before energy consuming decryption
+and flash memory copy or swap operations took place. When battery exhaustion
+attacks are not a concern, it is adequate to use the digest of the plaintet
+payload instead.
 
 #  IANA Considerations
 
@@ -1352,11 +1399,11 @@ Appendix A of {{I-D.ietf-suit-manifest}}
 {::include draft-ietf-suit-firmware-encryption.cddl}
 ~~~
 
-
 # Acknowledgements
 {: numbered="no"}
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
 Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like
-to thank Dick Brooks for making us aware of the challenges encryption imposes on binary analysis.
+Lundblade, Christian Amsüss, Ruud Derwig, and Carsten Bormann for their review feedback. Finally,
+we would like to thank Dick Brooks for making us aware of the challenges encryption imposes on
+binary analysis.
