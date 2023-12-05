@@ -61,7 +61,7 @@ outer_header_map_protected =
 
 outer_header_map_unprotected =
 {
-  ? 1 => int,         ; algorithm identifier for non AEAD
+  ? 1 => int,         ; algorithm identifier for non AEAD cipher
     5 => bstr,        ; IV
   * label => values   ; extension point
 }
