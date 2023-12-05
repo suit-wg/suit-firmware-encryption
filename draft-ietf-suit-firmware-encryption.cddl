@@ -20,7 +20,7 @@ empty_map = {}
 
 recipient_header_unpr_map_aeskw =
 {
-    1 => int,         ; algorithm identifier for non AEAD
+    1 => int,         ; algorithm identifier for non AEAD cipher
   ? 4 => bstr,        ; identifier of the recipient public key
   * label => values   ; extension point
 }
