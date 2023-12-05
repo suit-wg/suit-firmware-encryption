@@ -40,7 +40,7 @@ COSE_recipient_ESDH = [
 
 recipient_header_map_esdh =
 {
-  ? 1 => int,         ; algorithm identifier for AEAD
+  ? 1 => int,         ; algorithm identifier for AEAD cipher
   * label => values   ; extension point
 }
 
