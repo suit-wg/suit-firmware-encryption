@@ -55,7 +55,7 @@ recipient_header_unpr_map_esdh =
 ; common definitions
 outer_header_map_protected =
 {
-  ? 1 => int,         ; algorithm identifier for AEAD
+  ? 1 => int,         ; algorithm identifier for AEAD cipher
   * label => values   ; extension point
 }
 
