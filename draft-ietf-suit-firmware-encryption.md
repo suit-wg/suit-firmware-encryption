@@ -375,8 +375,8 @@ payload will be stored into component #0.
 / directive-fetch / 21, 15,
 / directive-set-component-index / 12, 0,
 / directive-override-parameters / 20, {
-  / parameter-source-component / 22: 1,
-  / parameter-encryption-info / 19: h'D86...1F0'
+  / parameter-encryption-info / 19: h'D86...1F0',
+  / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15
 ~~~
@@ -1049,6 +1049,134 @@ The encrypted payload (with a line feed added) was:
 ~~~
 {::include examples/encrypted-payload-es-ecdh-aes-cbc.hex}
 ~~~
+
+# Integrity Check on Encrypted and Decrypted Payloads
+
+In addition to suit-condition-image-match (Section 8.4.9.2 of 
+{{I-D.ietf-suit-manifest}}),
+AEAD algorithms used for content encryption provides another way
+to validate the integrity of components.
+This section provides a guideline to construct secure but not redundant
+SUIT Manifest for encrypted payloads.
+
+## Validating Payload Integrity
+
+With encrypted payloads, validating them is also a way
+to validate the integrity of components.
+This sub-section explains three way to do it.
+
+### Image Match after Decryption
+
+This is the basic one, that conducts suit-condition-image-match on plaintext payload after decryption.
+Example command sequences are shown in {{figure-image-match-after-decryption}}.
+
+~~~
+/ directive-set-component-index / 12, 1,
+/ directive-override-parameters / 20, {
+  / parameter-uri / 21: "http://example.com/encrypted.bin"
+},
+/ directive-fetch / 21, 15,
+
+/ directive-set-component-index / 12, 0,
+/ directive-override-parameters / 20, {
+  / parameter-image-digest / 3: << {
+    / algorithm-id: / -16 / SHA256 /,
+    / digest-bytes: / h'3B1...92A' / digest of plaintext payload /
+  } >>,
+  / parameter-image-size / 14: 30 / size of plaintext payload /,
+  / parameter-encryption-info / 19: h'369...50F',
+  / parameter-source-component / 22: 1
+},
+/ directive-copy / 22, 15,
+/ condition-image-match / 3, 15 / integrity check on decrypted payload /,
+~~~
+{: #figure-image-match-after-decryption title="Check Image Match After Decryption"}
+
+### Image Match before Decryption
+
+With encrypted payloads, suit-condition-image-match on encrypted payload
+before decryption is also available if it is stored in a component.
+Example command sequences are shown in {{figure-image-match-before-decryption}}.
+This option mitigates battery exhaustion attacks (See {{sec-cons}}).
+
+~~~
+/ directive-set-component-index / 12, 1,
+/ directive-override-parameters / 20, {
+  / parameter-image-digest / 3: << {
+    / algorithm-id: / -16 / SHA256 /,
+    / digest-bytes: / h'8B4...D34' / digest of encrypted payload /
+  } >>,
+  / parameter-image-size / 14: 30 / size of encrypted payload /,
+  / parameter-uri / 21: "http://example.com/encrypted.bin"
+},
+/ directive-fetch / 21, 15,
+/ condition-image-match / 3, 15 / integrity check on encrypted payload /,
+
+/ directive-set-component-index / 12, 0,
+/ directive-override-parameters / 20, {
+  / parameter-encryption-info / 19: h'D86...1F0',
+  / parameter-source-component / 22: 1
+},
+/ directive-copy / 22, 15,
+~~~
+{: #figure-image-match-before-decryption title="Check Image Match Before Decryption"}
+
+### Checking Authentication Tag while Decryption
+
+AEAD encryption algorithms such as AES-GCM and ChaCha20/Poly1305 provide authenticated tags.
+Recipients can authenticate that the tag is created by the sender
+and validate the integrity of decrypted payload with it.
+With AEAD encryption algorithm, validating integrity after decryption is redundant and not required.
+
+## Payload Integrity in SUIT Manifest
+
+This sub-section provides a guideline to decide
+how to validate the integrity of the payloads with SUIT Manifest.
+Figure {{payload-integrity-classification-tree}} illustrates a classification tree
+to decide how to establish payload integrity.
+
+~~~ aasvg
++------------------------------------------------+
+|              Q1. Payload Delivery              |
++-+--------------------------------------------+-+
+  |                                            |
+  | in Content                          others |
+  |                                            v
+  |             +--------------------------------+
+  |             |      Q2. Mitigate Battery      |
+  |             |       Exhaustion Attacks       |
+  |             +-+----------------------------+-+
+  |               |                            |
+  |               | No                     Yes |
+  |               v                            |
+  |    +-----------------+                     |
+  |    | Q3. AEAD cipher |                     |
+  |    +-+-------------+-+                     |
+  |      |             |                       |
+  |      | Yes      No |                       |
+  v      v             v                       v
+ .+------+.      .-----+-----.      .----------+.
+|   NOT    |    |    AFTER    |    |   BEFORE    |
+| Required |    | Decryption  |    | Decryption  |
+ '--------'      '-----------'      '-----------'
+~~~
+{: #payload-integrity-classification-tree title="Classification Tree: Appropriate Location of Image Match"}
+
+There are mainly three conditions:
+
+- Q1. How does Recipient Get the Encrypted Payload?
+If the encrypted payload are in the content,
+its integrity is already validated with suit-authentication-wrapper,
+so additional integrity check is not required.
+
+- Q2. Does Sender want to Mitigate Battery Exhaustion Attacks?
+If yes, the encrypted payload can be validated before decryption to mitigate 
+battery exhaustion attacks.
+
+- Q3. Does Sender encrypt the plaintext payload with AEAD cipher?
+If yes, additional integrity check is not required because Recipient validates
+integrity of the payload while decrypting it. If no, validating its integrity
+is RECOMMENDED after/before decryption.
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
