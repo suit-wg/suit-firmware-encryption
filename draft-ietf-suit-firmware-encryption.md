@@ -702,7 +702,7 @@ structure.
 This section summarizes the steps taken for content encryption, which
 applies to both content key distribution methods.
 
-For use with AEAD ciphers such as AES-GCM,
+For use with AEAD ciphers such as AES-GCM and ChaCha20/Poly1305,
 the COSE specification requires a consistent byte
 stream for the authenticated data structure to be created. This structure
 is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
