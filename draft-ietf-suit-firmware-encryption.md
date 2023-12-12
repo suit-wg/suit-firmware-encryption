@@ -560,8 +560,12 @@ The following two layer structure is used:
 CEK with the KEK derived with ES-DH, whereby the resulting symmetric
 key is fed into the HKDF-based key derivation function.
 
-As a result, the two layers combine ES-DH with AES-KW and HKDF. An example is
-given in {{esdh-aesgcm-example}}.
+As a result, the two layers combine ES-DH with AES-KW and HKDF,
+and it is called ECDH-ES + AES-KW.
+An example is given in {{esdh-aesgcm-example}}.
+
+ECDH-ES + HKDF, another version of ES-DH algorithm which doesn't use AES Key Wrap
+can be also used for Content Key Distribution.
 
 ### Deployment Options
 
