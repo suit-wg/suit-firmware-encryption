@@ -544,40 +544,6 @@ does not have public parameters that vary on a per-invocation basis. Hence,
 the protected header in the COSE_recipient structure is a byte string
 of zero length.
 
-### Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-GCM-128
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-gcm.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aesgcm-example}}.
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-gcm.diag}
-~~~
-{: #aeskw-aesgcm-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-aes-kw-aes-gcm.hex}
-~~~
-
 ## Content Key Distribution with Ephemeral-Static Diffie-Hellman {#ES-DH}
 
 ### Introduction
@@ -594,8 +560,12 @@ The following two layer structure is used:
 CEK with the KEK derived with ES-DH, whereby the resulting symmetric
 key is fed into the HKDF-based key derivation function.
 
-As a result, the two layers combine ES-DH with AES-KW and HKDF. An example is
-given in {{esdh-aesgcm-example}}.
+As a result, the two layers combine ES-DH with AES-KW and HKDF,
+and it is called ECDH-ES + AES-KW.
+An example is given in {{esdh-aesgcm-example}}.
+
+ECDH-ES + HKDF, another version of ES-DH algorithm which doesn't use AES Key Wrap
+can be also used for Content Key Distribution.
 
 ### Deployment Options
 
@@ -731,55 +701,13 @@ Profiles of this specification MAY specify an extended version of the
 context information structure or MAY utilize a different context information
 structure.
 
-### Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-GCM-128
-  - IV: h'3517CE3E78AC2BF3D1CDFDAF955E8600'
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KID: 'kid-2'
-- KDF Context
-  - ALgorithm ID: -3 (A128KW)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
-    - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-gcm.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{esdh-aesgcm-example}}.
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-gcm.diag}
-~~~
-{: #esdh-aesgcm-example title="COSE_Encrypt Example for ES-DH"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-es-ecdh-aes-gcm.hex}
-~~~
-
-## Content Encryption {#content-enc}
+# Content Encryption {#content-enc}
 
 This section summarizes the steps taken for content encryption, which
 applies to both content key distribution methods.
 
-For use with AEAD ciphers, the COSE specification requires a consistent byte
+For use with AEAD ciphers such as AES-GCM and ChaCha20/Poly1305,
+the COSE specification requires a consistent byte
 stream for the authenticated data structure to be created. This structure
 is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
 
@@ -808,6 +736,319 @@ by AEAD ciphers. Hence, the AAD structure is not supplied to the
 API of those ciphers and the protected header in the SUIT_Encryption_Info_AESKW
 or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
 respectively.
+
+## AES-GCM
+
+### Introduction
+
+AES-GCM is an AEAD cipher, provides confidentiality and integrity protection.
+
+Examples in this section uses the following parameters:
+- Algorithm for payload encryption: AES-GCM-128
+  - k: h'15F785B5C931414411B4B71373A9C0F7'
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+
+### AES-KW + AES-GCM Example
+
+This example uses the following parameters:
+
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - kty: Symmetric
+  - k: 'aaaaaaaaaaaaaaaa'
+  - kid: 'kid-1'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-gcm.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{aeskw-aesgcm-example}}.
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-gcm.diag}
+~~~
+{: #aeskw-aesgcm-example title="COSE_Encrypt Example for AES Key Wrap"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-aes-kw-aes-gcm.hex}
+~~~
+
+### ECDH-ES+AES-KW + AES-GCM Example
+
+This example uses the following parameters:
+
+- Algorithm for content key distribution: ECDH-ES + A128KW
+- KEK COSE_Key (Receiver's Private Key):
+  - kty: EC2
+  - crv: P-256
+  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+  - kid: 'kid-2'
+- KDF Context
+  - ALgorithm ID: -3 (A128KW)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - other = 'SUIT Payload Encryption'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-gcm.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{esdh-aesgcm-example}}.
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-gcm.diag}
+~~~
+{: #esdh-aesgcm-example title="COSE_Encrypt Example for ES-DH"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-es-ecdh-aes-gcm.hex}
+~~~
+
+## AES-CTR
+
+### Introduction
+
+AES-CTR is a non AEAD cipher, provides confidentiality but no integrity protection.
+Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}.
+Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
+start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
+within the entire slot.
+
+Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
+the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
+and 16 * 256 IVs for the remaining sectors in the slot.
+
+~~~ aasvg
+         IV1            IV2
+          |              |
+          |              |
+          |              |
+      +-------+      +-------+
+      |       |      |       |
+      |       |      |       |
+   k--|  E    |   k--|  E    |
+      |       |      |       |
+      +-------+      +-------+
+          |              |
+     P1--(+)        P2--(+)
+          |              |
+          |              |
+          C1             C2
+
+Legend: 
+  See previous diagram.
+~~~
+{: #aes-ctr-fig title="AES-CTR Operation"}
+
+Examples in this section uses the following parameters:
+- Algorithm for payload encryption: AES-CTR-128
+  - k: h'261DE6165070FB8951EC5D7B92A065FE'
+  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+
+### AES-KW + AES-CTR Example
+
+This example uses the following parameters:
+
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - kty: Symmetric
+  - k: 'aaaaaaaaaaaaaaaa'
+  - kid: 'kid-1'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-ctr.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{aeskw-aesctr-example}}.
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-ctr.diag}
+~~~
+{: #aeskw-aesctr-example title="COSE_Encrypt Example for AES Key Wrap"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-aes-kw-aes-ctr.hex}
+~~~
+
+### ECDH-ES+AES-KW + AES-CTR Example
+
+This example uses the following parameters:
+
+- Algorithm for content key distribution: ECDH-ES + A128KW
+- KEK COSE_Key (Receiver's Private Key):
+  - kty: EC2
+  - crv: P-256
+  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+  - kid: 'kid-2'
+- KDF Context
+  - ALgorithm ID: -3 (A128KW)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - other = 'SUIT Payload Encryption'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-ctr.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{esdh-aesctr-example}}.
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-ctr.diag}
+~~~
+{: #esdh-aesctr-example title="COSE_Encrypt Example for ES-DH"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-es-ecdh-aes-ctr.hex}
+~~~
+
+## AES-CBC
+
+### Introduction
+
+AES-CBC is a non AEAD cipher, provides confidentiality but no integrity protection.
+In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
+since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
+numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
+every sector till the end of the slot is reached. The IV follows this numbering.
+
+For example, let us assume the slot size of a specific flash controller on an IoT device
+is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
+128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
+If the firmware image fills the entire slot, then that slot contains 16 sectors, i.e. IVs
+ranging from 0 to 15.
+
+~~~ aasvg
+       P1              P2
+        |              |
+   IV--(+)    +-------(+)
+        |     |        |
+        |     |        |
+    +-------+ |    +-------+
+    |       | |    |       |
+    |       | |    |       |
+ k--|  E    | | k--|  E    |
+    |       | |    |       |
+    +-------+ |    +-------+
+        |     |        |
+        +-----+        |
+        |              |
+        |              |
+        C1             C2
+
+Legend: 
+  Pi = Plaintext blocks
+  Ci = Ciphertext blocks
+  E = Encryption function
+  k = Symmetric key
+  (+) = XOR operation
+~~~
+{: #aes-cbc-fig title="AES-CBC Operation"}
+
+Examples in this section uses the following parameters:
+- Algorithm for payload encryption: AES-CTR-128
+  - k: h'627FCF0EA82C967D5ED8981EB325F303'
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+
+### AES-KW + AES-CBC Example
+
+This example uses the following parameters:
+
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - kty: Symmetric
+  - k: 'aaaaaaaaaaaaaaaa'
+  - kid: 'kid-1'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-cbc.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{aeskw-aescbc-example}}.
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-cbc.diag}
+~~~
+{: #aeskw-aescbc-example title="COSE_Encrypt Example for AES Key Wrap"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-aes-kw-aes-cbc.hex}
+~~~
+
+### ECDH-ES+AES-KW + AES-CBC Example
+
+This example uses the following parameters:
+
+- Algorithm for content key distribution: ECDH-ES + A128KW
+- KEK COSE_Key (Receiver's Private Key):
+  - kty: EC2
+  - crv: P-256
+  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+  - kid: 'kid-2'
+- KDF Context
+  - ALgorithm ID: -3 (A128KW)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - other = 'SUIT Payload Encryption'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{esdh-aescbc-example}}.
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-cbc.diag}
+~~~
+{: #esdh-aescbc-example title="COSE_Encrypt Example for ES-DH"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-es-ecdh-aes-cbc.hex}
+~~~
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
@@ -927,236 +1168,6 @@ not random but rather based on the slot/sector-combination in flash memory. The
 text below assumes that the block-size of AES is (much) smaller than the sector size. The
 typical sector-size of flash memory is in the order of KiB. Hence, multiple AES blocks
 need to be decrypted until an entire sector is completed.
-
-## AES-CBC
-
-In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
-since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
-numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
-every sector till the end of the slot is reached. The IV follows this numbering.
-
-For example, let us assume the slot size of a specific flash controller on an IoT device
-is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
-128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
-If the firmware image fills the entire slot, then that slot contains 16 sectors, i.e. IVs
-ranging from 0 to 15.
-
-~~~ aasvg
-       P1              P2
-        |              |
-   IV--(+)    +-------(+)
-        |     |        |
-        |     |        |
-    +-------+ |    +-------+
-    |       | |    |       |
-    |       | |    |       |
- k--|  E    | | k--|  E    |
-    |       | |    |       |
-    +-------+ |    +-------+
-        |     |        |
-        +-----+        |
-        |              |
-        |              |
-        C1             C2
-
-Legend: 
-  Pi = Plaintext blocks
-  Ci = Ciphertext blocks
-  E = Encryption function
-  k = Symmetric key
-  (+) = XOR operation
-~~~
-{: #aes-cbc-fig title="AES-CBC Operation"}
-
-### AES-KW + AES-CBC Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: A128-CBC
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-cbc.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aescbc-example}}.
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-cbc.diag}
-~~~
-{: #aeskw-aescbc-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-aes-kw-aes-cbc.hex}
-~~~
-
-### ES-DH + AES-CBC Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-CBC-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KDF Context
-  - ALgorithm ID: -3 (A128KW)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
-    - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{esdh-aescbc-example}}. Note that the COSE_Encrypt structure also needs to
-be protected and authenticated by the suit-authentication-wrapper,
-which is not shown below.
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-cbc.diag}
-~~~
-{: #esdh-aescbc-example title="COSE_Encrypt Example for ES-DH"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-es-ecdh-aes-cbc.hex}
-~~~
-
-## AES-CTR
-
-Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}.
-Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
-start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
-within the entire slot.
-
-Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
-the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
-and 16 * 256 IVs for the remaining sectors in the slot.
-
-~~~ aasvg
-         IV1            IV2
-          |              |
-          |              |
-          |              |
-      +-------+      +-------+
-      |       |      |       |
-      |       |      |       |
-   k--|  E    |   k--|  E    |
-      |       |      |       |
-      +-------+      +-------+
-          |              |
-     P1--(+)        P2--(+)
-          |              |
-          |              |
-          C1             C2
-
-Legend: 
-  See previous diagram.
-~~~
-{: #aes-ctr-fig title="AES-CTR Operation"}
-
-### AES-KW + AES-CTR Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-CTR-128
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-ctr.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aesctr-example}}.
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-ctr.diag}
-~~~
-{: #aeskw-aesctr-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-aes-kw-aes-ctr.hex}
-~~~
-
-### ES-DH + AES-CTR Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-CTR-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KDF Context
-  - ALgorithm ID: -3 (A128KW)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
-    - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-ctr.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{esdh-aesctr-example}}. Note that the COSE_Encrypt structure also needs to
-be protected and authenticated by the suit-authentication-wrapper,
-which is not shown below.
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-ctr.diag}
-~~~
-{: #esdh-aesctr-example title="COSE_Encrypt Example for ES-DH"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-es-ecdh-aes-ctr.hex}
-~~~
-
 
 # Complete Examples 
 
