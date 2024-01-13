@@ -75,15 +75,19 @@ validate_binary_match: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex
 
 .PHONY: validate_cddl_match
 validate_cddl_match: all cddl
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose 2> /dev/null
-	cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose 2> /dev/null
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit 2> /dev/null
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit 2> /dev/null
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit 2> /dev/null
-	cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit 2> /dev/null
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
-	cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor 2> /dev/null
+	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
 	@echo [SUCCESS] KDF Context matches to its CDDL
 
 .PHONY: validate_decrypted_plaintext

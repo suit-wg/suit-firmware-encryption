@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-18
+docname: draft-ietf-suit-firmware-encryption-19
 category: std
 
 ipr: trust200902
@@ -61,7 +61,7 @@ normative:
   RFC9053:
   RFC8174:
   I-D.ietf-suit-manifest:
-  I-D.ietf-cose-aes-ctr-and-cbc:
+  RFC9459:
   I-D.ietf-suit-trust-domains:
 
 informative:
@@ -120,6 +120,9 @@ access to the payload. Attackers typically need intimate knowledge
 of a binary, such as a firmware image, to mount their attacks.
 For example, return-oriented programming (ROP) {{ROP}} requires access
 to the binary and encryption makes it much more difficult to write exploits.
+Beside confidentiality of the binary, confidentiality of the sources
+(e.g. in case of open source software) may be required as well to prevent
+reverse engineering and/or reproduction of the binary firmware.
 
 While the original motivating use case of this document was firmware
 encryption, the use of SUIT manifests has been extended to other use cases
@@ -143,9 +146,17 @@ the IETF SUIT manifest, namely:
 The former method relies on asymmetric key cryptography while the
 latter uses symmetric key cryptography.
 
-Our goal was to reduce the number of content key distribution methods
+Our design aims to reduce the number of content key distribution methods
 for use with payload encryption and thereby increase interoperability
 between different SUIT manifest parser implementations.
+
+The goal of this specification is to protect payloads during transportation
+end-to-end, and at rest when stored inside a device. Since many of the
+devices today do not offer hardware-based, on-the-fly decryption of
+code stored in flash memory, it may be necessary to decrypt and store
+firmware images in on-chip flash before code can be executed. Since
+devices with hardware-based, on-the-fly decryption become more common,
+the goal of accomplishing confidentiality at rest may be better accomplished.
 
 # Conventions and Terminology
 
@@ -209,7 +220,7 @@ which is included in the SUIT manifest.) Hence, the author has to
 collaborate with the distribution system. The varying degree of
 collaboration is discussed below.
 
-~~~
+~~~ aasvg
  +----------+
  |  Device  |                              +----------+
  |    1     |<--+                          |  Author  |
@@ -237,15 +248,18 @@ collaboration is discussed below.
 The author has several deployment options, namely:
 
 * The author, as the sender, obtains information about the recipients
-  and their keys from the distribution system. Then, it performs the necessary
+  and their keys from the distribution system. There are proprietary as well as
+  standardized device management solutions available providing this functionality,
+  as discussed in {{RFC9019}}. Then, it performs the necessary
   steps to encrypt the payload. As a last step it creates one or more manifests.
   The device(s) perform decryption and act as recipients.
 
-* The author treats the distribution system as the initial recipient. Then,
-  the distribution system decrypts and re-encrypts the payload for consumption
-  by the device (or the devices). Delegating the task of re-encrypting
-  the payload to the distribution system offers flexibility when the number
-  of devices that need to receive encrypted payloads changes dynamically
+* The author treats the distribution system as the initial recipient. The
+  author typically uses REST APIs or web user interfaces to interact with the
+  distribution system. Then, the distribution system decrypts and re-encrypts the
+  payload for consumption by the device (or the devices). Delegating the task of
+  re-encrypting the payload to the distribution system offers flexibility when the
+  number of devices that need to receive encrypted payloads changes dynamically
   or when updates to KEKs or recipient public keys are necessary. As a downside,
   the author needs to trust the distribution system with performing the
   re-encryption of the payload.
@@ -257,20 +271,21 @@ manifest again. However, the COSE_Encrypt structure is contained within a signed
 container, which presents a problem: replacing the COSE_Encrypt with a new one
 will cause the digest of the manifest to change, thereby changing the signature.
 This means that the distributor must be able to sign the new manifest. If this
-is the case, then the distributor  gains the ability to construct and sign
+is the case, then the distributor gains the ability to construct and sign
 manifests, which allows the distributor the authority to sign code, effectively
 presenting the distributor with full control over the recipient. Because
 distributors typically perform their re-encryption online in order to handle
 a large number of devices in a timely fashion, it is not possible to air-gap
 the distributor's signing operations. This impacts the recommendations in
-Section 4.3.17 of {{RFC9124}}.
+Section 4.3.17 of {{RFC9124}}. This model nevertheless represent the current
+state of firmware updates for IoT devices.
 
 2. The distributor uses a two-manifest system. More precisely, the distributor
 constructs a new manifest that overrides the COSE_Encrypt using the dependency
 system defined in {{I-D.ietf-suit-trust-domains}}. This incurs additional
 overhead: one additional signature verification and one additional manifest,
 as well as the additional machinery in the recipient needed for dependency
-processing.
+processing. This extra complexity offers extra security.
 
 These two models also present different threat profiles for the distributor.
 If the distributor only has encryption rights, then an attacker who breaches
@@ -315,7 +330,7 @@ suit-parameter-encryption-info = 19
 {: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
 
 RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
-parameter is set to 19, as the proposed value.]
+parameter is set to 19, as the proposed value.
 
 # Extended Directives
 
@@ -360,8 +375,8 @@ payload will be stored into component #0.
 / directive-fetch / 21, 15,
 / directive-set-component-index / 12, 0,
 / directive-override-parameters / 20, {
-  / parameter-source-component / 22: 1,
-  / parameter-encryption-info / 19: h'D86...1F0'
+  / parameter-encryption-info / 19: h'D86...1F0',
+  / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15
 ~~~
@@ -372,8 +387,7 @@ not covered by the digital signature or the MAC protecting the manifest.
 (To be more precise, the suit-authentication-wrapper found in the envelope
 contains a digest of the manifest in the SUIT Digest Container.) 
 
-The
-lack of authentication and integrity protection of the payload is
+The lack of authentication and integrity protection of the payload is
 particularly a concern when a cipher without integrity protection is
 used.
 
@@ -391,13 +405,13 @@ These steps apply to both content key distribution methods.
 The sub-sections below describe two content key distribution methods,
 namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
 Many other methods are specified in the literature, and even supported
-by COSE. New methods can be added via enhancements to this specification.
-The two specified methods were selected to their maturity, different
-security properties, and to ensure interoperability in deployments.
+by COSE. AES-KW and ES-DH cover the popular methods used in the market
+today and they were selected due to their maturity, different
+security properties, and because of their interoperability properties.
 
 The two content key distribution methods require the CEKs to be
-randomly generated. It must be ensured that the guidelines for random
-number generation in {{RFC8937}} are followed.
+randomly generated. The guidelines for random number generation
+in {{RFC8937}} MUST be followed.
 
 When an encrypted payload is sent to multiple recipients, there
 are different deployment options. To explain these options we use the
@@ -454,7 +468,7 @@ the following steps:
      4. ENC(payload, CEK)
 ~~~
 
-This deployment option is stronly discouraged. An attacker gaining access to
+This deployment option is strongly discouraged. An attacker gaining access to
 the KEK will be able to encrypt and send payloads to all recipients configured
 to use this KEK.
 
@@ -491,7 +505,6 @@ The sender needs to execute the following steps:
     1d.    ENC(payload, CEK(Ri, S))
     2.  }
 ~~~
-
 
 ### CDDL
 
@@ -531,40 +544,6 @@ does not have public parameters that vary on a per-invocation basis. Hence,
 the protected header in the COSE_recipient structure is a byte string
 of zero length.
 
-### Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-GCM-128
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-gcm.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aesgcm-example}}.
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-gcm.diag}
-~~~
-{: #aeskw-aesgcm-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-aes-kw-aes-gcm.hex}
-~~~
-
 ## Content Key Distribution with Ephemeral-Static Diffie-Hellman {#ES-DH}
 
 ### Introduction
@@ -581,8 +560,12 @@ The following two layer structure is used:
 CEK with the KEK derived with ES-DH, whereby the resulting symmetric
 key is fed into the HKDF-based key derivation function.
 
-As a result, the two layers combine ES-DH with AES-KW and HKDF. An example is
-given in {{esdh-aesgcm-example}}.
+As a result, the two layers combine ES-DH with AES-KW and HKDF,
+and it is called ECDH-ES + AES-KW.
+An example is given in {{esdh-aesgcm-example}}.
+
+ECDH-ES + HKDF, another version of ES-DH algorithm which doesn't use AES Key Wrap
+can be also used for Content Key Distribution.
 
 ### Deployment Options
 
@@ -624,8 +607,6 @@ by the sender:
     1d.     ENC(payload, CEK(Ri, S))
         }
 ~~~
-
-
 
 ### CDDL
 
@@ -720,28 +701,107 @@ Profiles of this specification MAY specify an extended version of the
 context information structure or MAY utilize a different context information
 structure.
 
-### Example
+# Content Encryption {#content-enc}
+
+This section summarizes the steps taken for content encryption, which
+applies to both content key distribution methods.
+
+For use with AEAD ciphers such as AES-GCM and ChaCha20/Poly1305,
+the COSE specification requires a consistent byte
+stream for the authenticated data structure to be created. This structure
+is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
+
+~~~
+ Enc_structure = [
+   context : "Encrypt",
+   protected : empty_or_serialized_map,
+   external_aad : bstr
+ ]
+~~~
+{: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
+
+This Enc_structure needs to be populated as follows:
+
+The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
+to the content of the protected field from the COSE_Encrypt structure.
+
+The value of the external_aad MUST be set to a zero-length byte string,
+i.e., h'' in diagnostic notation and encoded as 0x40.
+
+Some ciphers provide confidentiality witout integrity protection, such
+as AES-CTR and AES-CBC (see {{RFC9459}}). For these ciphers the
+Enc_structure, shown in {{cddl-enc-aeskw}}, MUST NOT be used because
+the Additional Authenticated Data (AAD) byte string is only consumable
+by AEAD ciphers. Hence, the AAD structure is not supplied to the 
+API of those ciphers and the protected header in the SUIT_Encryption_Info_AESKW
+or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
+respectively.
+
+## AES-GCM
+
+### Introduction
+
+AES-GCM is an AEAD cipher, provides confidentiality and integrity protection.
+
+Examples in this section uses the following parameters:
+- Algorithm for payload encryption: AES-GCM-128
+<<<<<<< HEAD
+  - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+=======
+  - k: h'15F785B5C931414411B4B71373A9C0F7'
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+
+### AES-KW + AES-GCM Example
 
 This example uses the following parameters:
 
-- Algorithm for payload encryption: AES-GCM-128
-  - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - kty: Symmetric
+  - k: 'aaaaaaaaaaaaaaaa'
+  - kid: 'kid-1'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-gcm.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{aeskw-aesgcm-example}}.
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-gcm.diag}
+~~~
+{: #aeskw-aesgcm-example title="COSE_Encrypt Example for AES Key Wrap"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-aes-kw-aes-gcm.hex}
+~~~
+
+### ECDH-ES+AES-KW + AES-GCM Example
+
+This example uses the following parameters:
+
+>>>>>>> main
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KID: 'kid-2'
+  - kty: EC2
+  - crv: P-256
+  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+  - kid: 'kid-2'
 - KDF Context
   - Algorithm ID: 1 (A128GCM)
   - SuppPubInfo
     - keyDataLength: 128
     - protected = << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
     - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -763,70 +823,437 @@ The encrypted payload (with a line feed added) was:
 {::include examples/encrypted-payload-es-ecdh-aes-gcm.hex}
 ~~~
 
-## Content Encryption {#content-enc}
+## AES-CTR
 
-This section summarizes the steps taken for content encryption, which
-applies to both content key distribution methods.
+### Introduction
 
-For use with AEAD ciphers, the COSE specification requires a consistent byte
-stream for the authenticated data structure to be created. This structure
-is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
+AES-CTR is a non AEAD cipher, provides confidentiality but no integrity protection.
+Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}.
+Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
+start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
+within the entire slot.
+
+Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
+the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
+and 16 * 256 IVs for the remaining sectors in the slot.
+
+~~~ aasvg
+         IV1            IV2
+          |              |
+          |              |
+          |              |
+      +-------+      +-------+
+      |       |      |       |
+      |       |      |       |
+   k--|  E    |   k--|  E    |
+      |       |      |       |
+      +-------+      +-------+
+          |              |
+     P1--(+)        P2--(+)
+          |              |
+          |              |
+          C1             C2
+
+Legend: 
+  See previous diagram.
+~~~
+{: #aes-ctr-fig title="AES-CTR Operation"}
+
+Examples in this section uses the following parameters:
+- Algorithm for payload encryption: AES-CTR-128
+  - k: h'261DE6165070FB8951EC5D7B92A065FE'
+  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+
+### AES-KW + AES-CTR Example
+
+This example uses the following parameters:
+
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - kty: Symmetric
+  - k: 'aaaaaaaaaaaaaaaa'
+  - kid: 'kid-1'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
 ~~~
- Enc_structure = [
-   context : "Encrypt",
-   protected : empty_or_serialized_map,
-   external_aad : bstr
- ]
+{::include examples/suit-encryption-info-aes-kw-aes-ctr.hex}
 ~~~
-{: #cddl-enc-aeskw title="CDDL for Enc_structure Data Structure"}
 
-This Enc_structure needs to be populated as follows:
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{aeskw-aesctr-example}}.
 
-The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
-to the content of the protected field from the COSE_Encrypt structure.
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-ctr.diag}
+~~~
+{: #aeskw-aesctr-example title="COSE_Encrypt Example for AES Key Wrap"}
 
-The value of the external_aad MUST be set to a zero-length byte string,
-i.e., h'' in diagnostic notation and encoded as 0x40.
+The encrypted payload (with a line feed added) was:
 
-For use with ciphers that do not provide integrity protection, such as
-AES-CTR and AES-CBC (see {{I-D.ietf-cose-aes-ctr-and-cbc}}), the
-Enc_structure shown in {{cddl-enc-aeskw}} MUST NOT be used
-because the Enc_structure represents the Additional Authenticated Data
-(AAD) byte string consumable only by AEAD ciphers. Hence, the 
-Additional Authenticated Data structure is not supplied to the 
-API of the cipher. The protected header in the SUIT_Encryption_Info_AESKW
-or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
-respectively.
+~~~
+{::include examples/encrypted-payload-aes-kw-aes-ctr.hex}
+~~~
 
+### ECDH-ES+AES-KW + AES-CTR Example
+
+This example uses the following parameters:
+
+- Algorithm for content key distribution: ECDH-ES + A128KW
+- KEK COSE_Key (Receiver's Private Key):
+  - kty: EC2
+  - crv: P-256
+  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+  - kid: 'kid-2'
+- KDF Context
+  - ALgorithm ID: -3 (A128KW)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - other = 'SUIT Payload Encryption'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-ctr.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{esdh-aesctr-example}}.
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-ctr.diag}
+~~~
+{: #esdh-aesctr-example title="COSE_Encrypt Example for ES-DH"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-es-ecdh-aes-ctr.hex}
+~~~
+
+## AES-CBC
+
+### Introduction
+
+AES-CBC is a non AEAD cipher, provides confidentiality but no integrity protection.
+In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
+since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
+numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
+every sector till the end of the slot is reached. The IV follows this numbering.
+
+For example, let us assume the slot size of a specific flash controller on an IoT device
+is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
+128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
+If the firmware image fills the entire slot, then that slot contains 16 sectors, i.e. IVs
+ranging from 0 to 15.
+
+~~~ aasvg
+       P1              P2
+        |              |
+   IV--(+)    +-------(+)
+        |     |        |
+        |     |        |
+    +-------+ |    +-------+
+    |       | |    |       |
+    |       | |    |       |
+ k--|  E    | | k--|  E    |
+    |       | |    |       |
+    +-------+ |    +-------+
+        |     |        |
+        +-----+        |
+        |              |
+        |              |
+        C1             C2
+
+Legend: 
+  Pi = Plaintext blocks
+  Ci = Ciphertext blocks
+  E = Encryption function
+  k = Symmetric key
+  (+) = XOR operation
+~~~
+{: #aes-cbc-fig title="AES-CBC Operation"}
+
+Examples in this section uses the following parameters:
+- Algorithm for payload encryption: AES-CTR-128
+  - k: h'627FCF0EA82C967D5ED8981EB325F303'
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+
+### AES-KW + AES-CBC Example
+
+This example uses the following parameters:
+
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - kty: Symmetric
+  - k: 'aaaaaaaaaaaaaaaa'
+  - kid: 'kid-1'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-cbc.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{aeskw-aescbc-example}}.
+
+~~~
+{::include examples/suit-encryption-info-aes-kw-aes-cbc.diag}
+~~~
+{: #aeskw-aescbc-example title="COSE_Encrypt Example for AES Key Wrap"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-aes-kw-aes-cbc.hex}
+~~~
+
+### ECDH-ES+AES-KW + AES-CBC Example
+
+This example uses the following parameters:
+
+<<<<<<< HEAD
+- Algorithm for payload encryption: AES-CBC-128
+  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+=======
+>>>>>>> main
+- Algorithm for content key distribution: ECDH-ES + A128KW
+- KEK COSE_Key (Receiver's Private Key):
+  - kty: EC2
+  - crv: P-256
+  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+  - kid: 'kid-2'
+- KDF Context
+  - Algorithm ID: -65531 (A128CBC)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = h''
+    - other = 'SUIT Payload Encryption'
+
+The COSE_Encrypt structure, in hex format, is (with a line break inserted):
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
+~~~
+
+The resulting COSE_Encrypt structure in a diagnostic format is shown in
+{{esdh-aescbc-example}}.
+
+~~~
+{::include examples/suit-encryption-info-es-ecdh-aes-cbc.diag}
+~~~
+{: #esdh-aescbc-example title="COSE_Encrypt Example for ES-DH"}
+
+The encrypted payload (with a line feed added) was:
+
+~~~
+{::include examples/encrypted-payload-es-ecdh-aes-cbc.hex}
+~~~
+
+# Integrity Check on Encrypted and Decrypted Payloads
+
+In addition to suit-condition-image-match (Section 8.4.9.2 of 
+{{I-D.ietf-suit-manifest}}),
+AEAD algorithms used for content encryption provides another way
+to validate the integrity of components.
+This section provides a guideline to construct secure but not redundant
+SUIT Manifest for encrypted payloads.
+
+## Validating Payload Integrity
+
+With encrypted payloads, validating them is also a way
+to validate the integrity of components.
+This sub-section explains three way to do it.
+
+<<<<<<< HEAD
+- Algorithm for payload encryption: AES-CTR-128
+  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+- Algorithm id for key wrap: A128KW
+- KEK COSE_Key (Secret Key):
+  - / kty / 1: 4 / Symmetric /
+  - / k / -1: 'aaaaaaaaaaaaaaaa'
+- KID: 'kid-1'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+=======
+### Image Match after Decryption
+>>>>>>> main
+
+This is the basic one, that conducts suit-condition-image-match on plaintext payload after decryption.
+Example command sequences are shown in {{figure-image-match-after-decryption}}.
+
+~~~
+/ directive-set-component-index / 12, 1,
+/ directive-override-parameters / 20, {
+  / parameter-uri / 21: "http://example.com/encrypted.bin"
+},
+/ directive-fetch / 21, 15,
+
+/ directive-set-component-index / 12, 0,
+/ directive-override-parameters / 20, {
+  / parameter-image-digest / 3: << {
+    / algorithm-id: / -16 / SHA256 /,
+    / digest-bytes: / h'3B1...92A' / digest of plaintext payload /
+  } >>,
+  / parameter-image-size / 14: 30 / size of plaintext payload /,
+  / parameter-encryption-info / 19: h'369...50F',
+  / parameter-source-component / 22: 1
+},
+/ directive-copy / 22, 15,
+/ condition-image-match / 3, 15 / integrity check on decrypted payload /,
+~~~
+{: #figure-image-match-after-decryption title="Check Image Match After Decryption"}
+
+### Image Match before Decryption
+
+With encrypted payloads, suit-condition-image-match on encrypted payload
+before decryption is also available if it is stored in a component.
+Example command sequences are shown in {{figure-image-match-before-decryption}}.
+This option mitigates battery exhaustion attacks (See {{sec-cons}}).
+
+~~~
+/ directive-set-component-index / 12, 1,
+/ directive-override-parameters / 20, {
+  / parameter-image-digest / 3: << {
+    / algorithm-id: / -16 / SHA256 /,
+    / digest-bytes: / h'8B4...D34' / digest of encrypted payload /
+  } >>,
+  / parameter-image-size / 14: 30 / size of encrypted payload /,
+  / parameter-uri / 21: "http://example.com/encrypted.bin"
+},
+/ directive-fetch / 21, 15,
+/ condition-image-match / 3, 15 / integrity check on encrypted payload /,
+
+/ directive-set-component-index / 12, 0,
+/ directive-override-parameters / 20, {
+  / parameter-encryption-info / 19: h'D86...1F0',
+  / parameter-source-component / 22: 1
+},
+/ directive-copy / 22, 15,
+~~~
+{: #figure-image-match-before-decryption title="Check Image Match Before Decryption"}
+
+### Checking Authentication Tag while Decryption
+
+AEAD encryption algorithms such as AES-GCM and ChaCha20/Poly1305 provide authenticated tags.
+Recipients can authenticate that the tag is created by the sender
+and validate the integrity of decrypted payload with it.
+With AEAD encryption algorithm, validating integrity after decryption is redundant and not required.
+
+## Payload Integrity in SUIT Manifest
+
+This sub-section provides a guideline to decide
+how to validate the integrity of the payloads with SUIT Manifest.
+Figure {{payload-integrity-classification-tree}} illustrates a classification tree
+to decide how to establish payload integrity.
+
+~~~ aasvg
++------------------------------------------------+
+|              Q1. Payload Delivery              |
++-+--------------------------------------------+-+
+  |                                            |
+  | in Content                          others |
+  |                                            v
+  |             +--------------------------------+
+  |             |      Q2. Mitigate Battery      |
+  |             |       Exhaustion Attacks       |
+  |             +-+----------------------------+-+
+  |               |                            |
+  |               | No                     Yes |
+  |               v                            |
+  |    +-----------------+                     |
+  |    | Q3. AEAD cipher |                     |
+  |    +-+-------------+-+                     |
+  |      |             |                       |
+  |      | Yes      No |                       |
+  v      v             v                       v
+ .+------+.      .-----+-----.      .----------+.
+|   NOT    |    |    AFTER    |    |   BEFORE    |
+| Required |    | Decryption  |    | Decryption  |
+ '--------'      '-----------'      '-----------'
+~~~
+{: #payload-integrity-classification-tree title="Classification Tree: Appropriate Location of Image Match"}
+
+There are mainly three conditions:
+
+- Q1. How does Recipient Get the Encrypted Payload?
+If the encrypted payload are in the content,
+its integrity is already validated with suit-authentication-wrapper,
+so additional integrity check is not required.
+
+- Q2. Does Sender want to Mitigate Battery Exhaustion Attacks?
+If yes, the encrypted payload can be validated before decryption to mitigate 
+battery exhaustion attacks.
+
+- Q3. Does Sender encrypt the plaintext payload with AEAD cipher?
+If yes, additional integrity check is not required because Recipient validates
+integrity of the payload while decrypting it. If no, validating its integrity
+is RECOMMENDED after/before decryption.
+
+<<<<<<< HEAD
+- Algorithm for payload encryption: AES-CTR-128
+  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+- Algorithm for content key distribution: ECDH-ES + A128KW
+- KEK COSE_Key (Receiver's Private Key):
+  - / kty / 1: 2 / EC2 /
+  - / crv / -1: 1 / P-256 /
+  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
+  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
+  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
+- KDF Context
+  - Algorithm ID: -65534 (A128CTR)
+  - SuppPubInfo
+    - keyDataLength: 128
+    - protected = h''
+    - other = 'SUIT Payload Encryption'
+- Plaintext: "This is a real firmware image."
+  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
+=======
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
+>>>>>>> main
 
-Note: This section is specific to firmware images and does not apply to
-generic software, configuration data, and machine learning models.
+There are many flavors of embedded devices, the market is large and fragmented.
+Hence, it is likely that some implementations and deployments implement their
+firmware update procedure differently than described below. On a positive note,
+the SUIT manifest allows different deployment scenarios to be supported easily
+thanks to the "scripting" functionality offered by the commands.
 
-Flash memory on microcontrollers is a type of non-volatile memory that erases
-data in units called blocks, pages, or sectors and re-writes data at the byte level
-(often 4-bytes) or larger units.
-Flash memory is furthermore segmented into different memory regions, which store
-the bootloader, different versions of firmware images (in so-called slots),
-and configuration data. {{image-layout}} shows an example layout of a
-microcontroller flash area. The primary slot typically contains the firmware image
-to be executed by the bootloader, which is a common deployment on devices that do
-not offer the concept of position independent code. Position independent code
-is not a feature frequently found in real-time operating systems used on
-microcontrollers. There are many flavors of embedded devices, the market
-is large and fragmented. Hence, it is likely that some implementations and deployments
-implement their firmware update procedure different than described below.
-On a positive note, the SUIT manifest allows different deployment scenarios
-to be supported easily thanks to the "scripting" functionality offered by
-the commands.
+This section is specific to firmware images on microcontrollers and does
+not apply to generic software, configuration data, and machine learning models. 
+The differences are the result of two aspects:
+
+- Use of flash memory: Flash memory on microcontrollers is a type of non-volatile
+memory that erases data in larger units called blocks, pages, or sectors and
+re-writes data at the byte level (often 4-bytes) or larger units. Flash memory
+is furthermore segmented into different memory regions, which store the
+bootloader, different versions of firmware images (in so-called slots), and
+configuration data. {{image-layout}} shows an example layout of a microcontroller
+flash area.
+
+- Microcontroller Design: Code on microcontrollers cannot be executed from an
+arbitrary place in flash memory, execute-in-place, without extra software
+development and design efforts. Hence, developers often compile firmware such
+that the bootloader can execute the code from a specific location in flash
+memory. Often, the primary slot is used for this purpose.
 
 When the encrypted firmware image has been transferred to the device, it will
 typically be stored in a staging area, in the secondary slot in our example.
 
-At the next boot, the bootloader will recognize a new firmware image in the
-secondary slot and will start decrypting the downloaded image sector-by-sector
-and will swap it with the image found in the primary slot.
+At the next boot, the bootloader will recognize a new firmware image and will
+start decrypting the downloaded image sector-by-sector and will swap it with
+the image found in the primary slot. This approach of swapping the newly
+downloaded image with the previously valid image requires two slots to allow
+the update to be reversed in case the newly obtained firmware image fails to
+boot. This adds robustness to the firmware update procedure.
 
 The swap will only take place after the signature on the plaintext is verified.
 Note that the plaintext firmware image is available in the primary slot only after
@@ -839,19 +1266,13 @@ While there are performance optimizations possible, such as conveying hashes for
 each sector in the manifest rather than a hash of the entire firmware image,
 such optimizations are not described in this specification.
 
-This approach of swapping the newly downloaded image with the previously valid
-image requires two slots to allow the update to be reversed in case the newly obtained
-firmware image fails to boot. This approach adds robustness to the firmware
-update procedure.
+Without support for hardware-based, on-the-fly decryption the image in primary
+slot is available in cleartext, it may need to be re-encrypted before copying it
+to the secondary slot. This may be necessary when the secondary slot has different
+access permissions or when the staging area is located in off-chip flash memory and
+is therefore more vulnerable to physical attacks.
 
-Since the image in primary slot is available in cleartext, it may need to be
-re-encrypted before copying it to the secondary slot. This may be necessary
-when the secondary slot has different access permissions or when the staging
-area is located in off-chip flash memory and is therefore more vulnerable to
-physical attacks. Note that this description assumes that the processor does
-not execute encrypted memory by using on-the-fly decryption in hardware.
-
-~~~
+~~~ aasvg
 +--------------------------------------------------+
 | Bootloader                                       |
 +--------------------------------------------------+
@@ -898,16 +1319,16 @@ image and swapping the sectors, the bootloader can restart where it left off. Th
 technique offers robustness and better performance.
 
 For this purpose, ciphers without integrity protection are used to encrypt the
-firmware image. Integrity protection of the firmware image MUST be
-provided and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
+firmware image. Integrity protection of the firmware image MUST be provided
+and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
 {{I-D.ietf-suit-manifest}}, MUST be used.
 
-{{I-D.ietf-cose-aes-ctr-and-cbc}} registers AES Counter (AES-CTR) mode and
-AES Cipher Block Chaining (AES-CBC) ciphers that do not offer integrity protection.
-These ciphers are useful for use cases that require firmware encryption on IoT
-devices. For many other use cases where software packages, configuration information
-or personalization data need to be encrypted, the use of Authenticated Encryption
-with Associated Data (AEAD) ciphers is RECOMMENDED.
+{{RFC9459}} registers AES Counter (AES-CTR) mode and AES Cipher Block Chaining
+(AES-CBC) ciphers that do not offer integrity protection. These ciphers are useful
+for use cases that require firmware encryption on IoT devices. For many other use
+cases where software packages, configuration information or personalization data
+need to be encrypted, the use of Authenticated Encryption with Associated Data
+(AEAD) ciphers is RECOMMENDED.
 
 The following sub-sections provide further information about the initialization vector
 (IV) selection for use with AES-CBC and AES-CTR in the firmware encryption context. An
@@ -916,251 +1337,6 @@ not random but rather based on the slot/sector-combination in flash memory. The
 text below assumes that the block-size of AES is (much) smaller than the sector size. The
 typical sector-size of flash memory is in the order of KiB. Hence, multiple AES blocks
 need to be decrypted until an entire sector is completed.
-
-## AES-CBC
-
-In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
-since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
-numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
-every sector till the end of the slot is reached. The IV follows this numbering.
-
-For example, let us assume the slot size of a specific flash controller on an IoT device
-is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
-128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
-If the firmware image fills the entire slot, then that slot contains 16 sectors, i.e. IVs
-ranging from 0 to 15.
-
-~~~
-       P1              P2
-        |              |
-   IV--(+)    +-------(+)
-        |     |        |
-        |     |        |
-    +-------+ |    +-------+
-    |       | |    |       |
-    |       | |    |       |
- k--|  E    | | k--|  E    |
-    |       | |    |       |
-    +-------+ |    +-------+
-        |     |        |
-        +-----+        |
-        |              |
-        |              |
-        C1             C2
-
-Legend: 
-  Pi = Plaintext blocks
-  Ci = Ciphertext blocks
-  E = Encryption function
-  k = Symmetric key
-  (+) = XOR operation
-~~~
-{: #aes-cbc-fig title="AES-CBC Operation"}
-
-### AES-KW + AES-CBC Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: A128-CBC
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-cbc.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aescbc-example}}.
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-cbc.diag}
-~~~
-{: #aeskw-aescbc-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-aes-kw-aes-cbc.hex}
-~~~
-
-### ES-DH + AES-CBC Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-CBC-128
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KDF Context
-  - Algorithm ID: -65531 (A128CBC)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected = h''
-    - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{esdh-aescbc-example}}. Note that the COSE_Encrypt structure also needs to
-be protected and authenticated by the suit-authentication-wrapper,
-which is not shown below.
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-cbc.diag}
-~~~
-{: #esdh-aescbc-example title="COSE_Encrypt Example for ES-DH"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-es-ecdh-aes-cbc.hex}
-~~~
-
-## AES-CTR
-
-Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}.
-Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
-start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
-within the entire slot.
-
-Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
-the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
-and 16 * 256 IVs for the remaining sectors in the slot.
-
-~~~
-         IV1            IV2
-          |              |
-          |              |
-          |              |
-      +-------+      +-------+
-      |       |      |       |
-      |       |      |       |
-   k--|  E    |   k--|  E    |
-      |       |      |       |
-      +-------+      +-------+
-          |              |
-     P1--(+)        P2--(+)
-          |              |
-          |              |
-          C1             C2
-
-Legend: 
-  See previous diagram.
-~~~
-{: #aes-ctr-fig title="AES-CTR Operation"}
-
-### AES-KW + AES-CTR Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-CTR-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-ctr.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aesctr-example}}.
-
-~~~
-{::include examples/suit-encryption-info-aes-kw-aes-ctr.diag}
-~~~
-{: #aeskw-aesctr-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-aes-kw-aes-ctr.hex}
-~~~
-
-### ES-DH + AES-CTR Example
-
-This example uses the following parameters:
-
-- Algorithm for payload encryption: AES-CTR-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KDF Context
-  - Algorithm ID: -65534 (A128CTR)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected = h''
-    - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-ctr.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{esdh-aesctr-example}}. Note that the COSE_Encrypt structure also needs to
-be protected and authenticated by the suit-authentication-wrapper,
-which is not shown below.
-
-~~~
-{::include examples/suit-encryption-info-es-ecdh-aes-ctr.diag}
-~~~
-{: #esdh-aesctr-example title="COSE_Encrypt Example for ES-DH"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~
-{::include examples/encrypted-payload-es-ecdh-aes-ctr.hex}
-~~~
-
-## Battery Exhaustion Attacks
-
-The use of flash memory opens up for another attack. An attacker may swap
-detached payloads and thereby force the device to process a wrong
-payload. While this attack will be detected, a device may have performed
-energy-expensive flash operations already. These operations may reduce
-the lifetime of devices when they are battery powered Iot devices. See
-{{flash}} for further discussion about IoT devices using flash memory.
-
-Including the digest of the encrypted payload allows the device to
-detect a battery exhaustion attack before energy consuming decryption
-and flash operations took place. Including the digest of the plaintext
-payload is adequate when battery exhaustion attacks are not a concern.
-
-
 
 # Complete Examples 
 
@@ -1299,7 +1475,6 @@ key identifiers and algorithm information need to be provisioned.
 This specification places no requirements on the structure of the
 key identifier.
 
-
 In some cases third party companies analyse binaries for known
 security vulnerabilities. With encrypted payloads, this type of
 analysis is prevented. Consequently, these third party companies
@@ -1314,19 +1489,71 @@ such a binary analysis is desired.
 
 This entire document is about security.
 
-Note that it is good security practise to use different long-term
-keys for different purpose. For example, the KEK used with an
-AES-KW-based content key distribution method for encryption should
-be different from the long-term symmetric key used for authentication
-and integrity protection when uses with COSE_Mac0.
+It is good security practise to use different keys for different purpose.
+For example, the KEK used with an AES-KW-based content key distribution
+method for encryption should be different from the long-term symmetric key
+used for authentication in a communication security protocol.
 
-The design of this specification allows to use different long-term
-keys for encrypting payloads. For example, KEK_1 may be used with
-an AES-KW content key distribution method to encrypt a firmware
-image while KEK_2 would be used to encrypt configuration data. This
-approach reduces the attack surface since permissions of authors to
-these long-term keys may vary based on their privileges.
+To further reduce the attack surface it may be beneficial use different
+long-term keys for the encryption of different types of payloads. For
+example, KEK_1 may be used with an AES-KW content key distribution method
+to encrypt a firmware image while KEK_2 would be used to encrypt
+configuration data.
 
+A large part of this document is focused on the content key distribution and
+two methods are utilized, namely AES Key Wrap (AES-KW) and Ephemeral-Static
+Diffie-Hellman (ES-DH). In this table we summarize the main properties with
+respect to their deployment:
+
+~~~ aasvg
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Number of    ||  Same key  |  One key      |  One Key       |
+|  Long-Term    ||  for all   |  per device   |  per device    |
+|  Keys         ||  devices   |               |                |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Number of    ||  Single    |  Single       |  One CEK       |
+|  Content      ||  CEK per   |  CEK per      |  per payload   |
+|  Encryption   ||  payload   |  payload      |  encryption    |
+|  Keys (CEKs)  ||  shared    |  shared       |  transaction   |
+|               ||  with all  |  with all     |  per device    |
+|               ||  devies    |  devies       |                |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Use Case     ||  Legacy    |  Efficient    |  Point-to-     |
+|               ||  Usage     |  Payload      |  Point Payload |
+|               ||            |  Distribution |  Distribution  |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+|               ||            |               |                |
+|  Recommended? ||  No, bad   |  Yes          |  Yes           |
+|               ||  practice  |               |                |
+|               ||            |               |                |
++---------------++------------+---------------+----------------+
+~~~
+
+The use of firmware encryption with IoT devices introduces an battery
+exhaustion attack. This attack utilizes the fact that flash memory
+operations are energy-expensive. To perform this attacker, the adversary
+needs to be able to swap detached payloads and force the device to process
+a wrong payload. Swapping the payloads is only possible when there is no
+communication security protocol in place between the device and the
+distribution system or when the distribution system itself is compromised.
+The security features provided by the manifest will detect this attack and
+the device will not boot the incorrectly provided payload. However, at this
+time the energy-expensive flash operations have already been performed.
+Consequently, these operations may reduce the lifetime of devices and
+battery powered IoT devices are particularly vulnerable to such an attack.
+See {{flash}} for further discussion about IoT devices using flash memory.
+
+Including the digest of the encrypted payload in the manifest allows the
+device to detect a battery exhaustion attack before energy consuming decryption
+and flash memory copy or swap operations took place. When battery exhaustion
+attacks are not a concern, it is adequate to use the digest of the plaintet
+payload instead.
 
 #  IANA Considerations
 
@@ -1352,11 +1579,11 @@ Appendix A of {{I-D.ietf-suit-manifest}}
 {::include draft-ietf-suit-firmware-encryption.cddl}
 ~~~
 
-
 # Acknowledgements
 {: numbered="no"}
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
 Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Christian Amsüss, and Carsten Bormann for their review feedback. Finally, we would like
-to thank Dick Brooks for making us aware of the challenges encryption imposes on binary analysis.
+Lundblade, Christian Amsüss, Ruud Derwig, and Carsten Bormann for their review feedback. Finally,
+we would like to thank Dick Brooks for making us aware of the challenges encryption imposes on
+binary analysis.
