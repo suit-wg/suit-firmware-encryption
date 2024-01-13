@@ -16,8 +16,7 @@ KDF_CONTEXT := a128kw_kdf_context.cbor
 
 CDDL := \
 	draft-ietf-suit-firmware-encryption.cddl \
-	draft-ietf-suit-manifest.cddl \
-	draft-ietf-suit-firmware-encryption-kdf-context.cddl
+	draft-ietf-suit-manifest.cddl
 
 .PHONY: all
 all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD) $(KDF_CONTEXT)
@@ -57,9 +56,6 @@ rfc-9052.cddl: rfc-9052.xml
 rfc-9052.xml:
 	curl --retry 3 https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
 
-draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-encryption.cddl
-	cat ../$@ $^ > $@
-
 .PHONY: validate
 validate: all cddl validate_binary_match validate_cddl_match validate_decrypted_plaintext
 
@@ -87,7 +83,7 @@ validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
-	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
+	RUBYOPT="-W0" cddl ../cddls/kdf-context.cddl validate a128kw_kdf_context.cbor
 	@echo [SUCCESS] KDF Context matches to its CDDL
 
 .PHONY: validate_decrypted_plaintext

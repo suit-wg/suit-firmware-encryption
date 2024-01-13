@@ -508,34 +508,11 @@ The sender needs to execute the following steps:
 
 ### CDDL
 
-The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-aeskw}}.
+The CDDL for the AES-KW binary is shown in {{cddl-aeskw}}.
 empty_or_serialized_map and header_map are structures defined in {{RFC9052}}.
 
 ~~~
-outer_header_map_protected = empty_or_serialized_map
-outer_header_map_unprotected = header_map
-
-SUIT_Encryption_Info_AESKW = [
-  protected   : bstr .cbor outer_header_map_protected,
-  unprotected : outer_header_map_unprotected,
-  ciphertext  : bstr / nil,
-  recipients  : [ + COSE_recipient_AESKW .within COSE_recipient ]
-]
-
-COSE_recipient_AESKW = [
-  protected   : bstr .size 0 / bstr .cbor empty_map,
-  unprotected : recipient_header_unpr_map_aeskw,
-  ciphertext  : bstr        ; CEK encrypted with KEK
-]
-
-empty_map = {}
-
-recipient_header_unpr_map_aeskw =
-{
-    1 => int,         ; algorithm identifier
-  ? 4 => bstr,        ; identifier of the KEK pre-shared with the recipient
-  * label => values   ; extension point
-}
+{::include cddls/aeskw.cddl}
 ~~~
 {: #cddl-aeskw title="CDDL for AES-KW-based Content Key Distribution"}
 
@@ -610,39 +587,12 @@ by the sender:
 
 ### CDDL
 
-The CDDL for the COSE_Encrypt_Tagged structure is shown in {{cddl-esdh}}.
+The CDDL for the ECDH-ES+AES-KW binary is shown in {{cddl-esdh}}.
 Only the minimum number of parameters is shown. empty_or_serialized_map
 and header_map are structures defined in {{RFC9052}}.
 
 ~~~
-outer_header_map_protected = empty_or_serialized_map
-outer_header_map_unprotected = header_map
-
-SUIT_Encryption_Info_ESDH = [
-  protected   : bstr .cbor outer_header_map_protected,
-  unprotected : outer_header_map_unprotected,
-  ciphertext  : bstr / nil,
-  recipients  : [ + COSE_recipient_ESDH .within COSE_recipient ]
-]
-
-COSE_recipient_ESDH = [
-  protected   : bstr .cbor recipient_header_map_esdh,
-  unprotected : recipient_header_unpr_map_esdh,
-  ciphertext  : bstr        ; CEK encrypted with KEK
-]
-
-recipient_header_map_esdh =
-{
-    1 => int,         ; algorithm identifier
-  * label => values   ; extension point
-}
-
-recipient_header_unpr_map_esdh =
-{
-   -1 => COSE_Key,    ; ephemeral public key for the sender
-  ? 4 => bstr,        ; identifier of the recipient public key
-  * label => values   ; extension point
-}
+{::include cddls/esdh_aeskw.cddl}
 ~~~
 {: #cddl-esdh title="CDDL for ES-DH-based Content Key Distribution"}
 
@@ -682,7 +632,7 @@ content of the recipient_header_map_esdh field, which contains (among other fiel
 the identifier of the content key distribution method.
 
 ~~~ CDDL
-{::include draft-ietf-suit-firmware-encryption-kdf-context.cddl}
+{::include cddls/kdf-context.cddl}
 ~~~
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 
@@ -733,9 +683,8 @@ as AES-CTR and AES-CBC (see {{RFC9459}}). For these ciphers the
 Enc_structure, shown in {{cddl-enc-aeskw}}, MUST NOT be used because
 the Additional Authenticated Data (AAD) byte string is only consumable
 by AEAD ciphers. Hence, the AAD structure is not supplied to the 
-API of those ciphers and the protected header in the SUIT_Encryption_Info_AESKW
-or SUIT_Encryption_Info_ESDH structure MUST be a zero-length byte string,
-respectively.
+API of those ciphers and the protected header in the SUIT_Encryption_Info
+structure MUST be a zero-length byte string.
 
 ## AES-GCM
 

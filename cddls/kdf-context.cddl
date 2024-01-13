@@ -4,7 +4,7 @@ COSE_KDF_Context = [
     PartyVInfo : [ PartyInfoRecipient ],
     SuppPubInfo : [
         keyDataLength : uint,
-        protected : bstr .cbor recipient_header_map_esdh,
+        protected : bstr,
         other: 'SUIT Payload Encryption'
     ],
     ? SuppPrivInfo : bstr
