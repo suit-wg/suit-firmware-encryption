@@ -745,11 +745,8 @@ AES-GCM is an AEAD cipher, provides confidentiality and integrity protection.
 
 Examples in this section uses the following parameters:
 - Algorithm for payload encryption: AES-GCM-128
-<<<<<<< HEAD
-  - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
-=======
   - k: h'15F785B5C931414411B4B71373A9C0F7'
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+  - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
 - Plaintext: "This is a real firmware image."
   - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
@@ -787,7 +784,6 @@ The encrypted payload (with a line feed added) was:
 
 This example uses the following parameters:
 
->>>>>>> main
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KEK COSE_Key (Receiver's Private Key):
   - kty: EC2
@@ -1019,11 +1015,6 @@ The encrypted payload (with a line feed added) was:
 
 This example uses the following parameters:
 
-<<<<<<< HEAD
-- Algorithm for payload encryption: AES-CBC-128
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-=======
->>>>>>> main
 - Algorithm for content key distribution: ECDH-ES + A128KW
 - KEK COSE_Key (Receiver's Private Key):
   - kty: EC2
@@ -1074,19 +1065,7 @@ With encrypted payloads, validating them is also a way
 to validate the integrity of components.
 This sub-section explains three way to do it.
 
-<<<<<<< HEAD
-- Algorithm for payload encryption: AES-CTR-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - / kty / 1: 4 / Symmetric /
-  - / k / -1: 'aaaaaaaaaaaaaaaa'
-- KID: 'kid-1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-=======
 ### Image Match after Decryption
->>>>>>> main
 
 This is the basic one, that conducts suit-condition-image-match on plaintext payload after decryption.
 Example command sequences are shown in {{figure-image-match-after-decryption}}.
@@ -1199,27 +1178,7 @@ If yes, additional integrity check is not required because Recipient validates
 integrity of the payload while decrypting it. If no, validating its integrity
 is RECOMMENDED after/before decryption.
 
-<<<<<<< HEAD
-- Algorithm for payload encryption: AES-CTR-128
-  - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - / kty / 1: 2 / EC2 /
-  - / crv / -1: 1 / P-256 /
-  - / x / -2: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - / y / -3: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - / d / -4: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-- KDF Context
-  - Algorithm ID: -65534 (A128CTR)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected = h''
-    - other = 'SUIT Payload Encryption'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-=======
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
->>>>>>> main
 
 There are many flavors of embedded devices, the market is large and fragmented.
 Hence, it is likely that some implementations and deployments implement their
