@@ -746,7 +746,7 @@ AES-GCM is an AEAD cipher, provides confidentiality and integrity protection.
 Examples in this section uses the following parameters:
 - Algorithm for payload encryption: AES-GCM-128
   - k: h'15F785B5C931414411B4B71373A9C0F7'
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
+  - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
 - Plaintext: "This is a real firmware image."
   - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
 
@@ -793,10 +793,10 @@ This example uses the following parameters:
   - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
   - kid: 'kid-2'
 - KDF Context
-  - ALgorithm ID: -3 (A128KW)
+  - Algorithm ID: 1 (A128GCM)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - protected = << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
     - other = 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -1024,10 +1024,10 @@ This example uses the following parameters:
   - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
   - kid: 'kid-2'
 - KDF Context
-  - ALgorithm ID: -3 (A128KW)
+  - Algorithm ID: -65531 (A128CBC)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
+    - protected = h''
     - other = 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):

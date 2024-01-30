@@ -1,25 +1,23 @@
 96([
-  / protected: / << {
-    / alg / 1: -65531 / A128CBC /
-  } >>,
+  / protected: / h'',
   / unprotected: / {
-    / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+    / alg / 1: -65531 / A128CBC /,
+    / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
   },
   / payload: / null / detached ciphertext /,
   / recipients: / [
     [
-      / protected: / << {
-        / alg / 1: -29 / ECDH-ES + A128KW /
-      } >>,
+      / protected: / h'',
       / unprotected: / {
+        / alg / 1: -29 / ECDH-ES + A128KW /,
         / ephemeral key / -1: {
           / kty / 1: 2 / EC2 /,
           / crv / -1: 1 / P-256 /,
-          / x / -2: h'BE4FB61E951F0378F453B610C91DDD29EF00CD36A0957F9686AC7D693E8880A3',
-          / y / -3: h'0DF7D9253B34FC0247A11E15F20281680447896BE91B65E1D1E06D3E5FC57B0A'
+          / x / -2: h'BC6A2DCD5025C8C0F7A5D120EB3E458CA722F8FB94BD56A24709CB15A8697489',
+          / y / -3: h'10136574F673511540FE2A8589A7EDA372CB7B1AF94A8E1B4B94F6BDBD98AA18'
         }
       },
-      / payload: / h'32970E4511E3709F118B838C5EDD62A05A1421558CE56C20'
+      / payload: / h'AC8CDFB5426422298FCF235EB5F24D9E4C44C1689167473A'
         / CEK encrypted with KEK /
     ]
   ]

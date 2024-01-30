@@ -10,7 +10,10 @@ plaintext = b"This is a real firmware image."
 ############################################
 print("# AES-CBC Examples")
 a128cbc_key = COSEKey.from_symmetric_key(bytes.fromhex("627FCF0EA82C967D5ED8981EB325F303"), alg="A128CBC")
-print(f"AES-CBC key = {{'kty': {a128cbc_key.kty}, 'k': h'{a128cbc_key.key.hex().upper()}'}}\n")
+print(f"AES-CBC key = {{'kty': {a128cbc_key.kty}, 'k': h'{a128cbc_key.key.hex().upper()}'}}")
+a128cbc_iv = bytes.fromhex("93702C81590F845D9EC866CCAC767BD1")
+print(f"IV for AES-CBC = {a128cbc_iv.hex().upper()}")
+print()
 
 print("## Example 3: A128KW + A128CBC")
 a128kw_key = COSEKey.from_symmetric_key("a" * 16, alg="A128KW", kid="kid-1")
@@ -20,16 +23,18 @@ sender = COSE.new()
 encoded = sender.encode_and_encrypt(
     plaintext,
     a128cbc_key,
-    protected={"alg": "A128CBC"},
+    protected={},
     unprotected={
-        "iv": bytes.fromhex("93702C81590F845D9EC866CCAC767BD1")
+        "alg": "A128CBC",
+        "iv": a128cbc_iv
     },
     recipients=[r],
 )
+print(encoded.hex().upper())
 
 # The recipient side:
 recipient = COSE.new()
-decrypted_payload = recipient.decode(encoded, keys = [a128kw_key])
+decrypted_payload = recipient.decode(encoded, keys=[a128kw_key])
 assert plaintext == decrypted_payload
 
 output = subprocess.check_output(f"echo {encoded.hex().upper()} | pretty2diag.rb -e", shell=True).decode(sys.stdout.encoding).rstrip("\n")
@@ -80,28 +85,32 @@ for key in ["x", "y", "d"]:
 for key in ["x", "y"]:
     receiver_public_key_jwk[key] = base64.b64encode(bytes.fromhex(receiver_public_key_jwk[key])).decode()
 
-context = {
-    "alg": "A128KW",
+kdf_context_a128cbc = {
+    "alg": "A128CBC",
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {1: -29}, # ECDH-ES+A128KW
+        "protected": {},
         "other": "SUIT Payload Encryption",
     }
 }
 
 # The sender side:
 r = Recipient.new(
-    protected={"alg": "ECDH-ES+A128KW"},
+    protected={},
+    unprotected={"alg": "ECDH-ES+A128KW"},
     sender_key=COSEKey.from_jwk(sender_private_key_jwk),
     recipient_key=COSEKey.from_jwk(receiver_public_key_jwk),
-    context=context
+    context=kdf_context_a128cbc
 )
 sender = COSE.new()
 encoded = sender.encode(
     plaintext,
-    a128cbc_key,
-    protected={"alg": "A128CBC"},
-    unprotected={"iv": bytes.fromhex("DAE613B2E0DC55F4322BE38BDBA9DC68")},
+    key=a128cbc_key,
+    protected={},
+    unprotected={
+        "alg": "A128CBC",
+        "iv": a128cbc_iv
+    },
     recipients=[r],
 )
 
@@ -109,8 +118,8 @@ encoded = sender.encode(
 recipient = COSE.new()
 decrypted_payload = recipient.decode(
     encoded,
-    COSEKey.from_jwk(sender_private_key_jwk),
-    context
+    keys=COSEKey.from_jwk(sender_private_key_jwk),
+    context=kdf_context_a128cbc
 )
 assert plaintext == decrypted_payload
 
@@ -128,7 +137,10 @@ print()
 ############################################
 print("# AES-CTR Examples")
 a128ctr_key = COSEKey.from_symmetric_key(bytes.fromhex("261DE6165070FB8951EC5D7B92A065FE"), alg="A128CTR")
-print(f"AES-CTR key = {{'kty': {a128ctr_key.kty}, 'k': h'{a128ctr_key.key.hex().upper()}'}}\n")
+print(f"AES-CTR key = {{'kty': {a128ctr_key.kty}, 'k': h'{a128ctr_key.key.hex().upper()}'}}")
+a128ctr_iv = bytes.fromhex("DAE613B2E0DC55F4322BE38BDBA9DC68")
+print(f"IV for AES-CTR = {a128ctr_iv.hex().upper()}")
+print()
 
 print("## Example 5: A128KW + A128CTR")
 a128kw_key = COSEKey.from_symmetric_key("a" * 16, alg="A128KW", kid="kid-1")
@@ -137,17 +149,18 @@ r = Recipient.new(unprotected={"alg": "A128KW", "kid": a128kw_key.kid}, sender_k
 sender = COSE.new()
 encoded = sender.encode_and_encrypt(
     plaintext,
-    a128ctr_key,
-    protected={"alg": "A128CTR"},
+    key=a128ctr_key,
+    protected={},
     unprotected={
-        "iv": bytes.fromhex("93702C81590F845D9EC866CCAC767BD1")
+        "alg": "A128CTR",
+        "iv": a128ctr_iv
     },
     recipients=[r],
 )
 
 # The recipient side:
 recipient = COSE.new()
-decrypted_payload = recipient.decode(encoded, keys = [a128kw_key])
+decrypted_payload = recipient.decode(encoded, keys=[a128kw_key])
 assert plaintext == decrypted_payload
 
 output = subprocess.check_output(f"echo {encoded.hex().upper()} | pretty2diag.rb -e", shell=True).decode(sys.stdout.encoding).rstrip("\n")
@@ -199,28 +212,32 @@ for key in ["x", "y", "d"]:
 for key in ["x", "y"]:
     receiver_public_key_jwk[key] = base64.b64encode(bytes.fromhex(receiver_public_key_jwk[key])).decode()
 
-context = {
-    "alg": "A128KW",
+kdf_context_a128ctr = {
+    "alg": "A128CTR",
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {1: -29}, # ECDH-ES+A128KW
+        "protected": {},
         "other": "SUIT Payload Encryption",
     }
 }
 
 # The sender side:
 r = Recipient.new(
-    protected={"alg": "ECDH-ES+A128KW"},
+    protected={},
+    unprotected={"alg": "ECDH-ES+A128KW"},
     sender_key=COSEKey.from_jwk(sender_private_key_jwk),
     recipient_key=COSEKey.from_jwk(receiver_public_key_jwk),
-    context=context
+    context=kdf_context_a128ctr
 )
 sender = COSE.new()
 encoded = sender.encode(
     plaintext,
-    a128ctr_key,
-    protected={"alg": "A128CTR"},
-    unprotected={"iv": bytes.fromhex("DAE613B2E0DC55F4322BE38BDBA9DC68")},
+    key=a128ctr_key,
+    protected={},
+    unprotected={
+        "alg": "A128CTR",
+        "iv": a128ctr_iv
+    },
     recipients=[r],
 )
 
@@ -228,8 +245,8 @@ encoded = sender.encode(
 recipient = COSE.new()
 decrypted_payload = recipient.decode(
     encoded,
-    COSEKey.from_jwk(sender_private_key_jwk),
-    context
+    keys=COSEKey.from_jwk(sender_private_key_jwk),
+    context=kdf_context_a128ctr
 )
 assert plaintext == decrypted_payload
 
