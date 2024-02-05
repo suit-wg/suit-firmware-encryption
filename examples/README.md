@@ -1,5 +1,7 @@
 # SUIT Encrypted Payloads example binaries
 
+Before each PR merged, examples are validated automatically.
+
 ## Requirements
 
 - make
