@@ -16,6 +16,8 @@ KDF_CONTEXT := a128kw_kdf_context.cbor
 
 CDDL := \
 	draft-ietf-suit-firmware-encryption.cddl \
+	aeskw.cddl \
+	esdh_aeskw.cddl \
 	draft-ietf-suit-manifest.cddl
 
 .PHONY: all
@@ -40,6 +42,12 @@ all: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex) $(SUIT_MANIFEST_
 cddl: $(CDDL)
 
 draft-ietf-suit-firmware-encryption.cddl: ../draft-ietf-suit-firmware-encryption.cddl rfc-9052.cddl
+	cat $^ > $@
+
+aeskw.cddl: ../cddls/aeskw.cddl rfc-9052.cddl
+	cat $^ > $@
+
+esdh_aeskw.cddl: ../cddls/esdh_aeskw.cddl rfc-9052.cddl
 	cat $^ > $@
 
 draft-ietf-suit-trust-domains.cddl:
@@ -72,11 +80,17 @@ validate_binary_match: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex
 .PHONY: validate_cddl_match
 validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose
+	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
+	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
+	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
+	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
+	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
+	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit

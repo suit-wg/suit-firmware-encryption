@@ -1,9 +1,9 @@
-SUIT_Encryption_Info_AESKW = [
-  protected   : bstr .cbor outer_header_map_protected,
+SUIT_Encryption_Info_AESKW = #6.96([
+  protected   : outer_header_map_protected,
   unprotected : outer_header_map_unprotected,
   ciphertext  : bstr / nil,
   recipients  : [ + COSE_recipient_AESKW ]
-]
+])
 
 outer_header_map_protected = empty_or_serialized_map
 outer_header_map_unprotected = header_map
