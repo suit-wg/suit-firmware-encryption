@@ -16,8 +16,9 @@ KDF_CONTEXT := a128kw_kdf_context.cbor
 
 CDDL := \
 	draft-ietf-suit-firmware-encryption.cddl \
-	draft-ietf-suit-manifest.cddl \
-	draft-ietf-suit-firmware-encryption-kdf-context.cddl
+	aeskw.cddl \
+	esdh_aeskw.cddl \
+	draft-ietf-suit-manifest.cddl
 
 .PHONY: all
 all: $(SUIT_ENCRYPTION_INFO) $(SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD) $(KDF_CONTEXT)
@@ -43,6 +44,12 @@ cddl: $(CDDL)
 draft-ietf-suit-firmware-encryption.cddl: ../draft-ietf-suit-firmware-encryption.cddl rfc-9052.cddl
 	cat $^ > $@
 
+aeskw.cddl: ../cddls/aeskw.cddl rfc-9052.cddl
+	cat $^ > $@
+
+esdh_aeskw.cddl: ../cddls/esdh_aeskw.cddl rfc-9052.cddl
+	cat $^ > $@
+
 draft-ietf-suit-trust-domains.cddl:
 	curl --retry 3 https://raw.githubusercontent.com/suit-wg/suit-multiple-trust-domains/main/draft-ietf-suit-trust-domains.cddl -o $@
 
@@ -56,9 +63,6 @@ rfc-9052.cddl: rfc-9052.xml
 
 rfc-9052.xml:
 	curl --retry 3 https://raw.githubusercontent.com/cose-wg/cose-rfc8152bis/master/draft-ietf-cose-rfc8152bis-struct.xml -o $@
-
-draft-ietf-suit-firmware-encryption-kdf-context.cddl: draft-ietf-suit-firmware-encryption.cddl
-	cat ../$@ $^ > $@
 
 .PHONY: validate
 validate: all cddl validate_binary_match validate_cddl_match validate_decrypted_plaintext
@@ -76,18 +80,24 @@ validate_binary_match: $(SUIT_ENCRYPTION_INFO) $(SUIT_ENCRYPTION_INFO:.cose=.hex
 .PHONY: validate_cddl_match
 validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose
+	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
+	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
+	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
+	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
+	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
+	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
-	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption-kdf-context.cddl validate a128kw_kdf_context.cbor
+	RUBYOPT="-W0" cddl ../cddls/kdf-context.cddl validate a128kw_kdf_context.cbor
 	@echo [SUCCESS] KDF Context matches to its CDDL
 
 .PHONY: validate_decrypted_plaintext

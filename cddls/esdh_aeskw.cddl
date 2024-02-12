@@ -1,0 +1,28 @@
+SUIT_Encryption_Info_ESDH = #6.96([
+  protected   : outer_header_map_protected,
+  unprotected : outer_header_map_unprotected,
+  ciphertext  : bstr / nil,
+  recipients  : [ + COSE_recipient_ESDH ]
+])
+
+outer_header_map_protected = empty_or_serialized_map
+outer_header_map_unprotected = header_map
+
+COSE_recipient_ESDH = [
+  protected   : bstr .cbor recipient_header_map_esdh,
+  unprotected : recipient_header_unpr_map_esdh,
+  ciphertext  : bstr        ; CEK encrypted with KEK
+]
+
+recipient_header_map_esdh =
+{
+    1 => int,         ; algorithm identifier
+  * label => values   ; extension point
+}
+
+recipient_header_unpr_map_esdh =
+{
+  ? 4 => bstr,        ; identifier of the recipient public key
+   -1 => COSE_Key,    ; ephemeral public key for the sender
+  * label => values   ; extension point
+}

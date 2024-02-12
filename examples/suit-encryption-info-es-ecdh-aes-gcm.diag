@@ -8,9 +8,10 @@
   / payload: / null / detached ciphertext /,
   / recipients: / [
     [
-      / protected: / h'',
+      / protected: / << {
+        / alg / 1: -29 / ECDH-ES + A128KW /
+      } >>,
       / unprotected: / {
-        / alg / 1: -29 / ECDH-ES + A128KW /,
         / ephemeral key / -1: {
           / kty / 1: 2 / EC2 /,
           / crv / -1: 1 / P-256 /,

@@ -94,8 +94,8 @@ kdf_context_a128gcm = {
 
 # The sender side:
 r = Recipient.new(
-    protected={},
-    unprotected={"alg": "ECDH-ES+A128KW"},
+    protected={"alg": "ECDH-ES+A128KW"},
+    unprotected={},
     sender_key=COSEKey.from_jwk(sender_private_key_jwk),
     recipient_key=COSEKey.from_jwk(receiver_public_key_jwk),
     context=kdf_context_a128gcm
