@@ -1,0 +1,184 @@
+/ SUIT_Envelope_Tagged / 107({
+  / delegation / 1: << [
+    [
+      / NOTE: signed by trust anchor /
+      << 18([
+        / protected: / << {
+          / alg / 1: -7 / ES256 /
+        } >>,
+        / unprotected / {
+        },
+        / payload: / << {
+          / cnf / 8: {
+            / NOTE: public key of delegated authority /
+            / COSE_Key / 1: {
+              / kty / 1: 2 / EC2 /,
+              / crv / -1: 1 / P-256 /,
+              / x / -2: h'0E908AA8F066DB1F084E0C3652C63952
+                          BD99F2A5BDB22F9E01367AAD03ABA68B',
+              / y / -3: h'77DA1BD8AC4F0CB490BA210648BF79AB
+                          164D49AD3551D71D314B2749EE42D29A'
+            }
+          }
+        } >>,
+        / signature: /
+          h'FB2D5ACF66B9C8573CE92E13BFB8D113
+            F798715CC10B5A0010B11925C155E724
+            5A64E131073B87AC50CAC71650A21315
+            B82D06CA2298CD1A95519AAE4C4B5315'
+      ]) >>
+    ]
+  ] >>,
+  / authentication-wrapper / 2: << [
+    << [
+      / digest-algorithm-id: / -16 / SHA256 /,
+      / digest-bytes: / h'6A1D9F42E7B4047D2F54046019AE3ED4
+                          3A8ACC467AC16576B17D6F8E633042D2'
+    ] >>,
+    << / COSE_Sign1_Tagged / 18([
+      / protected: / << {
+        / algorithm-id / 1: -7 / ES256 /
+      } >>,
+      / unprotected: / {},
+      / payload: / null,
+      / signature: /
+        h'DF493BDBF167EFFB40593C5910D33B66
+          429721467DF05800EA66A88B91729CD5
+          1007981F151FC324745FF43E6F75AAF5
+          197DD5EC4AA6BCEFCE43E4B1E35C948E'
+    ]) >>
+  ] >>,
+  / manifest / 3: << {
+    / manifest-version / 1: 1,
+    / manifest-sequence-number / 2: 1,
+    / common / 3: << {
+      / dependencies / 1: {
+        / component-index / 1: {
+          / dependency-prefix / 1: [
+             'dependency-manifest.suit'
+          ]
+        }
+      },
+      / components / 2: [
+        ['decrypted-firmware']
+      ]
+    } >>,
+    / manifest-component-id / 5: [
+      'dependent-manifest.suit'
+    ],
+    / install / 17: << [
+      / NOTE: set SUIT_Encryption_Info /
+      / directive-set-component-index / 12, 0
+        / ['decrypted-firmware'] /,
+      / directive-override-parameters / 20, {
+        / parameter-content / 18:
+          h'344FA2D5AD2F43F6F363DA6FF2C337FE69E33E3D63714D
+            23985BF02499EB0E8B231D45C378245DA3611C160CC511',
+        / parameter-encryption-info / 19: << 96([
+          / protected: / << {
+            / alg / 1: 1 / AES-GCM-128 /
+          } >>,
+          / unprotected: / {
+            / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+          },
+          / payload: / null / detached ciphertext /,
+          / recipients: / [
+            [
+              / protected: / << {
+                / alg / 1: -29 / ECDH-ES + A128KW /
+              } >>,
+              / unprotected: / {
+                / ephemeral key / -1: {
+                  / kty / 1: 2 / EC2 /,
+                  / crv / -1: 1 / P-256 /,
+                  / x / -2: h'FF6E266DABAF51B7207569E31CF72646
+                              183E94CEE64FCDC8695AD9A505AEFDEA',
+                  / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004B
+                              B59D8BD60D7997734A9FA0124B650895'
+                },
+                / kid / 4: 'kid-2'
+              },
+              / payload: /
+                h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
+                / CEK encrypted with KEK /
+            ]
+          ]
+        ]) >>
+      },
+
+      / NOTE: call dependency-manifest /
+      / directive-set-component-index / 12, 1
+        / ['dependenty-manifest.suit'] /,
+      / directive-override-parameters / 20, {
+        / parameter-image-digest / 3: << [
+          / algorithm-id / -16 / SHA256 /,
+          / digest-bytes / h'1051324059C5193317CAC9A099BBC0B6
+                             AFB56184C04277F566A3A4131F4A1C25'
+        ] >>,
+        / parameter-image-size / 14: 247,
+        / parameter-uri / 21: "#dependency-manifest"
+      },
+      / directive-fetch / 21, 15,
+      / condition-dependency-integrity / 7, 15,
+      / directive-process-dependency / 11, 15
+    ] >>
+  } >>,
+  "#dependency-manifest": <<
+    / SUIT_Envelope_Tagged / 107({
+      / authentication-wrapper / 2: << [
+        << [
+          / digest-algorithm-id: / -16 / SHA256 /,
+          / digest-bytes: / h'1051324059C5193317CAC9A099BBC0B6
+                              AFB56184C04277F566A3A4131F4A1C25'
+        ] >>,
+        << / COSE_Sign1_Tagged / 18([
+          / protected: / << {
+            / algorithm-id / 1: -7 / ES256 /
+          } >>,
+          / unprotected: / {},
+          / payload: / null,
+          / signature: /
+            h'55990F3745DC4F200FF946643A6DE30D
+              DCE57B080B7D68DE9896D8190B9A63E2
+              D60E7C3D9693B67221AA6D07BBF0AB45
+              314C236827A242C22B5E688DDC467269'
+        ]) >>
+      ] >>,
+      / manifest / 3: << {
+        / manifest-version / 1: 1,
+        / manifest-sequence-number / 2: 1,
+        / common / 3: << {
+          / components / 2: [
+            ['decrypted-firmware']
+          ],
+          / shared-sequence / 4: << [
+            / directive-set-componnt-index / 12, 0
+              / ['decrypted-firmware'] /,
+            / directive-override-parameters / 20, {
+              / parameter-image-digest / 3: << [
+                / algorithm-id / -16 / SHA256 /,
+                / digest-bytes / h'36921488FE6680712F734E11F58D87EE
+                                   B66D4B21A8A1AD3441060814DA16D50F'
+              ] >>,
+              / parameter-image-size / 14: 30
+            }
+          ] >>
+        } >>,
+        / manifest-component-id / 5: [
+          'dependency-manifest.suit'
+        ],
+        / validate / 7: << [
+          / condition-image-match / 3, 15
+        ] >>,
+        / install / 17: << [
+          / directive-set-component-index / 12, 0
+            / ['decrypted-firmware'] /,
+          / directive-write / 18, 15
+            / consumes the SUIT_Encryption_Info set by dependent /,
+          / condition-image-match / 3, 15
+            / check the integrity of the decrypted payload /
+        ] >>
+      } >>
+    })
+  >>
+})
