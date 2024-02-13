@@ -9,7 +9,8 @@ SUIT_ENCRYPTION_INFO := \
 SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := \
 	suit-manifest-aes-kw.suit \
 	suit-manifest-aes-kw-content.suit \
-	suit-manifest-es-ecdh-content.suit
+	suit-manifest-es-ecdh-content.suit \
+	suit-manifest-es-ecdh-dependency.suit
 
 KDF_CONTEXT := a128kw_kdf_context.cbor
 
@@ -94,6 +95,7 @@ validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
 	RUBYOPT="-W0" cddl ../cddls/kdf-context.cddl validate a128kw_kdf_context.cbor
 	@echo [SUCCESS] KDF Context matches to its CDDL

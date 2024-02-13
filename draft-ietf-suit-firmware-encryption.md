@@ -1341,6 +1341,28 @@ In hex format, the SUIT manifest is this:
 {::include examples/suit-manifest-es-ecdh-content.hex.signed}
 ~~~
 
+## ES-DH Example with Dependency {#example-ES-DH-dependency}
+
+The following SUIT manifest requests a parser
+to resolve the delegation chain and dependency respectively.
+The parser validates the COSE_Key in the suit-delegation section using the key above,
+and then dynamically trusts it.
+The dependency manifest is embedded as an integrated-dependency
+and referred by uri "#dependency-manifest" .
+
+The SUIT manifest in diagnostic notation (with line breaks added for
+readability) is shown here:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-dependency.diag.signed}
+~~~
+
+In hex format, the SUIT manifest is this:
+
+~~~
+{::include examples/suit-manifest-es-ecdh-dependency.hex.signed}
+~~~
+
 # Operational Considerations
 
 The algorithms described in this document assume that the party
