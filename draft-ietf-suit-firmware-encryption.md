@@ -1346,13 +1346,13 @@ In hex format, the SUIT manifest is this:
 The following SUIT manifest requests a parser to resolve the dependency.
 
 The dependent manifest is signed with another key:
-```
+~~~
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIIQa67e56m8CYL5zVaJFiLl30j0qxb8ray2DeUMqH+qYoAoGCCqGSM49
 AwEHoUQDQgAEDpCKqPBm2x8ITgw2UsY5Ur2Z8qW9si+eATZ6rQOrpot32hvYrE8M
 tJC6IQZIv3mrFk1JrTVR1x0xSydJ7kLSmg==
 -----END EC PRIVATE KEY-----
-```
+~~~
 
 The dependency manifest is embedded as an integrated-dependency
 and referred by uri "#dependency-manifest" .
