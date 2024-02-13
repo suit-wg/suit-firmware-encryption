@@ -1,34 +1,4 @@
 / SUIT_Envelope_Tagged / 107({
-  / delegation / 1: << [
-    [
-      / NOTE: signed by trust anchor /
-      << 18([
-        / protected: / << {
-          / alg / 1: -7 / ES256 /
-        } >>,
-        / unprotected / {
-        },
-        / payload: / << {
-          / cnf / 8: {
-            / NOTE: public key of delegated authority /
-            / COSE_Key / 1: {
-              / kty / 1: 2 / EC2 /,
-              / crv / -1: 1 / P-256 /,
-              / x / -2: h'0E908AA8F066DB1F084E0C3652C63952
-                          BD99F2A5BDB22F9E01367AAD03ABA68B',
-              / y / -3: h'77DA1BD8AC4F0CB490BA210648BF79AB
-                          164D49AD3551D71D314B2749EE42D29A'
-            }
-          }
-        } >>,
-        / signature: /
-          h'FB2D5ACF66B9C8573CE92E13BFB8D113
-            F798715CC10B5A0010B11925C155E724
-            5A64E131073B87AC50CAC71650A21315
-            B82D06CA2298CD1A95519AAE4C4B5315'
-      ]) >>
-    ]
-  ] >>,
   / authentication-wrapper / 2: << [
     << [
       / digest-algorithm-id: / -16 / SHA256 /,
