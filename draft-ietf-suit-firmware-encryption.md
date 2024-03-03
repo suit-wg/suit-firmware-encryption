@@ -152,7 +152,7 @@ between different SUIT manifest parser implementations.
 
 The goal of this specification is to protect payloads during end-to-end
 transport, and at rest when stored on a device. Constrained devices often
-make use of Execute in Place (XIP), which is a method of executing code
+make use of XIP, which is a method of executing code
 directly from flash memory rather than copying it into RAM. Since many of
 these devices today do not offer hardware-based, on-the-fly decryption of
 code stored in flash memory, it may be necessary to decrypt and store
@@ -176,6 +176,8 @@ The following abbreviations are used in this document:
 * Key-Encryption Key (KEK) {{RFC3394}}
 * Content-Encryption Key (CEK) {{RFC5652}}
 * Ephemeral-Static (ES) Diffie-Hellman (DH) {{RFC9052}}
+* Authenticated Encryption with Associated Data (AEAD)
+* Execute in Place (XIP)
 
 The terms sender and recipient have the following meaning:
 
@@ -1143,14 +1145,15 @@ bootloader, different versions of firmware images (in so-called slots), and
 configuration data. {{image-layout}} shows an example layout of a microcontroller
 flash area.
 
-- Microcontroller Design: Code on microcontrollers cannot be executed from an
-arbitrary place in flash memory, execute-in-place, without extra software
+- Microcontroller Design: Code on microcontrollers typically cannot be executed
+from an arbitrary place in flash memory without extra software
 development and design efforts. Hence, developers often compile firmware such
 that the bootloader can execute the code from a specific location in flash
-memory. Often, the primary slot is used for this purpose.
+memory. Often, the location where the to-be-booted firmware image is found is
+called "primary slot".
 
 When the encrypted firmware image has been transferred to the device, it will
-typically be stored in a staging area, in the secondary slot in our example.
+typically be stored in a dedicated area called the "secondary slot".
 
 At the next boot, the bootloader will recognize a new firmware image and will
 start decrypting the downloaded image sector-by-sector and will swap it with
@@ -1170,11 +1173,11 @@ While there are performance optimizations possible, such as conveying hashes for
 each sector in the manifest rather than a hash of the entire firmware image,
 such optimizations are not described in this specification.
 
-Without support for hardware-based, on-the-fly decryption the image in primary
-slot is available in cleartext, it may need to be re-encrypted before copying it
+Without hardware-based, on-the-fly decryption the image in the primary
+slot is available in cleartext. It may need to be re-encrypted before copying it
 to the secondary slot. This may be necessary when the secondary slot has different
-access permissions or when the staging area is located in off-chip flash memory and
-is therefore more vulnerable to physical attacks.
+access permissions or when it is located in off-chip flash memory. Off-chip flash
+memory tends to be more vulnerable to physical attacks.
 
 ~~~ aasvg
 +--------------------------------------------------+
@@ -1213,7 +1216,8 @@ is therefore more vulnerable to physical attacks.
 {: #image-layout title="Example Flash Area Layout"}
 
 The ability to restart an interrupted firmware update is often a requirement
-for low-end IoT devices. To fulfill this requirement it is necessary to chunk
+for unattended devices and the same is true for low-end, constrained IoT devices.
+To fulfill this requirement it is necessary to chunk
 a firmware image into sectors and to encrypt each sector individually
 using a cipher that does not increase the size of the resulting ciphertext
 (i.e., by not adding an authentication tag after each encrypted block).
@@ -1231,8 +1235,7 @@ and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
 (AES-CBC) ciphers that do not offer integrity protection. These ciphers are useful
 for use cases that require firmware encryption on IoT devices. For many other use
 cases where software packages, configuration information or personalization data
-need to be encrypted, the use of Authenticated Encryption with Associated Data
-(AEAD) ciphers is RECOMMENDED.
+need to be encrypted, the use of AEAD ciphers is RECOMMENDED.
 
 The following sub-sections provide further information about the initialization vector
 (IV) selection for use with AES-CBC and AES-CTR in the firmware encryption context. An
@@ -1278,8 +1281,8 @@ Each example uses SHA-256 as the digest function.
 ## AES Key Wrap Example with Write Directive {#example-AES-KW-write}
 
 The following SUIT manifest requests a parser
-to authenticate the manifest with COSE_Mac0 HMAC256,
-and to write and to decrypt the
+to authenticate the manifest with COSE_Mac0 HMAC256, to write and 
+decrypt the
 encrypted payload into a component with the suit-directive-write
 directive.
 
@@ -1299,9 +1302,9 @@ In hex format, the SUIT manifest is this:
 ## AES Key Wrap Example with Fetch + Copy Directives {#example-AES-KW-copy}
 
 The following SUIT manifest requests a parser to fetch the encrypted
-payload and to stores it. Then, the payload is decrypted and stored into
+payload and to store it. Then, the payload is decrypted and stored into
 another component with the suit-directive-copy directive. This approach
-works well on constrained devices with execute-in-place flash memory.
+works well on constrained devices with XIP flash memory.
 
 The SUIT manifest in diagnostic notation (with line breaks added for
 readability) is shown here:
@@ -1320,7 +1323,7 @@ In hex format, the SUIT manifest is this:
 
 The following SUIT manifest requests a parser to authenticate
 the manifest with COSE_Sign1 ES256,
-and to write and to decrypt the
+to write and decrypt the
 encrypted payload into a component with the suit-directive-write
 directive.
 
@@ -1351,7 +1354,7 @@ tJC6IQZIv3mrFk1JrTVR1x0xSydJ7kLSmg==
 ~~~
 
 The dependency manifest is embedded as an integrated-dependency
-and referred by uri "#dependency-manifest" .
+and referred to by the  "#dependency-manifest" URI.
 
 The SUIT manifest in diagnostic notation (with line breaks added for
 readability) is shown here:
