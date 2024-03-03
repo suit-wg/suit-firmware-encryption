@@ -189,7 +189,8 @@ use of encryption, the distribution system either knows the public key
 of the recipient (for ES-DH), or the KEK (for AES-KW).
 
 The author, which is responsible for creating the payload, does not
-know the recipients.
+know the recipients. The authors may, for example, be a developer building
+a firmware image.
 
 The author and the distribution system are logical roles. In some
 deployments these roles are separated in different physical entities
@@ -200,12 +201,9 @@ and in others they are co-located.
 {{RFC9019}} describes the architecture for distributing payloads and
 manifests from an author to devices. It does, however, not detail the
 use of payload encryption. This document enhances the architecture to
-support encryption.
+support encryption and {{arch-fig}} shows it graphically.
 
-{{arch-fig}} shows the distribution system, which represents a file
-server and the device management infrastructure.
-
-The sender (author) needs to know the recipient (device) to use encryption.
+To encrypt a payload it is necessary to know the recipient.
 For AES-KW, the KEK needs to be known and, in case of ES-DH, the sender needs
 to be in possession of the public key of the recipient. The public key and
 parameters may be in the recipient's X.509 certificate {{RFC5280}}. For
@@ -215,12 +213,9 @@ a digital signature. When a MAC is used to protect the manifest then a
 symmetric key must be shared by the recipient and the sender.
 
 With encryption, the author cannot just create a manifest for the payload
-and sign it, since the subsequent encryption step by the distribution
-system would invalidate the signature over the manifest. (The content key
-distribution information is embedded inside the COSE_Encrypt structure,
-which is included in the SUIT manifest.) Hence, the author has to
-collaborate with the distribution system. The varying degree of
-collaboration is discussed below.
+and sign it, since it typically does not know the recipients. Hence, the
+author has to collaborate with the distribution system. The varying degree
+of collaboration is discussed below.
 
 ~~~ aasvg
  +----------+
@@ -282,7 +277,7 @@ the distributor's signing operations. This impacts the recommendations in
 Section 4.3.17 of {{RFC9124}}. This model nevertheless represent the current
 state of firmware updates for IoT devices.
 
-2. The distributor uses a two-manifest system. More precisely, the distributor
+2. The distributor uses a two-layer manifest system. More precisely, the distributor
 constructs a new manifest that overrides the COSE_Encrypt using the dependency
 system defined in {{I-D.ietf-suit-trust-domains}}. This incurs additional
 overhead: one additional signature verification and one additional manifest,
@@ -295,8 +290,8 @@ the distributor can only mount a limited attack: they can encrypt a modified
 binary, but the recipients will identify the attack as soon as they perform
 the required image digest check and revert back to a correct image immediately.
 
-It is RECOMMENDED that distributors are implemented using a two-manifest
-system in order to distribute content encryption keys without requiring
+It is RECOMMENDED that distributors implement the two-layer manifest
+approach in order to distribute content encryption keys without requiring
 re-signing of the manifest, despite the increase in complexity and greater
 number of signature verifications that this imposes on the recipient.
 
