@@ -359,8 +359,8 @@ The resulting plaintext payload is stored into component #0.
 In this example the encrypted payload is found at the URI indicated
 by the parameter-uri, i.e. "http://example.com/encrypted.bin". The
 encrypted payload will be downloaded and stored in component #1.
-Then, the information in the SUIT_Encryption_Info structure of the
-parameter-encryption-info, i.e. h'D86...1F0', will be used to
+Then, the information in the SUIT_Encryption_Info structure referred
+to by parameter-encryption-info, i.e. h'D86...1F0', will be used to
 decrypt the content in component #1 and the resulting plaintext
 payload will be stored into component #0.
 
@@ -416,8 +416,7 @@ following notation:
 
 ~~~
    - KEK(R1, S) refers to a KEK shared between recipient R1 and
-     the sender S. The KEK, as a concept, is used by AES Key Wrap
-     but not by ES-DH.
+     the sender S.
    - CEK(R1, S) refers to a CEK shared between R1 and S.
    - CEK(*, S) or KEK(*, S) are used when a single CEK or a single
      KEK is shared with all authorized recipients by a given sender
@@ -490,8 +489,8 @@ obtain the plaintext. The steps taken by the sender are:
 - The third option is to use different CEKs encrypted with KEKs of
 authorized recipients. This approach is appropriate when no benefits can
 be gained from encrypting and transmitting payloads only once. Assume there
-are n recipients with their unique KEKs - KEK(R1, S), ..., KEK(Rn, S).
-The sender needs to execute the following steps:
+are n recipients with their unique KEKs - KEK(R1, S), ..., KEK(Rn, S) and
+unique CEKs. The sender needs to execute the following steps:
 
 ~~~
     1.  for i=1 to n
@@ -538,16 +537,16 @@ As a result, the two layers combine ES-DH with AES-KW and HKDF,
 and it is called ECDH-ES + AES-KW.
 An example is given in {{esdh-aesgcm-example}}.
 
-ECDH-ES + HKDF, another version of ES-DH algorithm which doesn't use AES Key Wrap
-can be also used for Content Key Distribution.
+There exists another version of ES-DH algorithm, namely ECDH-ES + HKDF, which
+does not use AES Key Wrap. It is not specified in this document.
 
 ### Deployment Options
 
-There are two deployment options with this approach. We assume that recipients
-are always configured with a device-unique public / private key pair.
+There are only two deployment options with this approach since we assume that
+recipients are always configured with a device-unique public / private key pair.
 
-- A sender wants to transmit a payload to multiple recipients. All recipients
-shall receive the same encrypted payload, i.e. the same CEK is used.
+- A sender wants to transmit a payload to multiple recipients and all recipients
+receive the same encrypted payload, i.e. the same CEK is used to encrypt the payload.
 One COSE\_recipient structure per recipient is used and it contains the
 CEK encrypted with the KEK. To generate the KEK each COSE\_recipient structure
 contains a COSE_recipient_inner structure to carry the sender's ephemeral key
