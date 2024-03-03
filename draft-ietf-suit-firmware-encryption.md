@@ -150,13 +150,15 @@ Our design aims to reduce the number of content key distribution methods
 for use with payload encryption and thereby increase interoperability
 between different SUIT manifest parser implementations.
 
-The goal of this specification is to protect payloads during transportation
-end-to-end, and at rest when stored inside a device. Since many of the
-devices today do not offer hardware-based, on-the-fly decryption of
+The goal of this specification is to protect payloads during end-to-end
+transport, and at rest when stored on a device. Constrained devices often
+make use of Execute in Place (XIP), which is a method of executing code
+directly from flash memory rather than copying it into RAM. Since many of
+these devices today do not offer hardware-based, on-the-fly decryption of
 code stored in flash memory, it may be necessary to decrypt and store
-firmware images in on-chip flash before code can be executed. Since
-devices with hardware-based, on-the-fly decryption become more common,
-the goal of accomplishing confidentiality at rest may be better accomplished.
+firmware images in on-chip flash before code can be executed. We do, however,
+expect that hardware-based, on-the-fly decryption will become more common in
+the future, which will improve confidentiality at rest.
 
 # Conventions and Terminology
 
