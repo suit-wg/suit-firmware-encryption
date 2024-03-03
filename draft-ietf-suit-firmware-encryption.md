@@ -652,7 +652,7 @@ structure.
 This section summarizes the steps taken for content encryption, which
 applies to both content key distribution methods.
 
-For use with AEAD ciphers such as AES-GCM and ChaCha20/Poly1305,
+For use with AEAD ciphers, such as AES-GCM and ChaCha20/Poly1305,
 the COSE specification requires a consistent byte
 stream for the authenticated data structure to be created. This structure
 is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
@@ -668,10 +668,10 @@ is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
 
 This Enc_structure needs to be populated as follows:
 
-The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
+- The protected field in the Enc_structure from {{cddl-enc-aeskw}} refers
 to the content of the protected field from the COSE_Encrypt structure.
 
-The value of the external_aad MUST be set to a zero-length byte string,
+- The value of the external_aad MUST be set to a zero-length byte string,
 i.e., h'' in diagnostic notation and encoded as 0x40.
 
 Some ciphers provide confidentiality witout integrity protection, such
@@ -686,9 +686,10 @@ structure MUST be a zero-length byte string.
 
 ### Introduction
 
-AES-GCM is an AEAD cipher, provides confidentiality and integrity protection.
+AES-GCM is an AEAD cipher and provides confidentiality and integrity protection.
 
-Examples in this section uses the following parameters:
+Examples in this section use the following parameters:
+
 - Algorithm for payload encryption: AES-GCM-128
   - k: h'15F785B5C931414411B4B71373A9C0F7'
   - IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
@@ -768,7 +769,7 @@ The encrypted payload (with a line feed added) was:
 
 ### Introduction
 
-AES-CTR is a non AEAD cipher, provides confidentiality but no integrity protection.
+AES-CTR is a non-AEAD cipher, provides confidentiality but no integrity protection.
 Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}.
 Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
 start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
@@ -800,7 +801,8 @@ Legend:
 ~~~
 {: #aes-ctr-fig title="AES-CTR Operation"}
 
-Examples in this section uses the following parameters:
+Examples in this section use the following parameters:
+
 - Algorithm for payload encryption: AES-CTR-128
   - k: h'261DE6165070FB8951EC5D7B92A065FE'
   - IV: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
@@ -880,7 +882,7 @@ The encrypted payload (with a line feed added) was:
 
 ### Introduction
 
-AES-CBC is a non AEAD cipher, provides confidentiality but no integrity protection.
+AES-CBC is a non-AEAD cipher, provides confidentiality but no integrity protection.
 In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
 since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
 numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
@@ -919,7 +921,8 @@ Legend:
 ~~~
 {: #aes-cbc-fig title="AES-CBC Operation"}
 
-Examples in this section uses the following parameters:
+Examples in this section use the following parameters:
+
 - Algorithm for payload encryption: AES-CTR-128
   - k: h'627FCF0EA82C967D5ED8981EB325F303'
   - IV: h'93702C81590F845D9EC866CCAC767BD1'
@@ -1006,14 +1009,13 @@ SUIT Manifest for encrypted payloads.
 
 ## Validating Payload Integrity
 
-With encrypted payloads, validating them is also a way
-to validate the integrity of components.
-This sub-section explains three way to do it.
+This sub-section explains three ways to validate the integrity
+of payloads.
 
 ### Image Match after Decryption
 
-This is the basic one, that conducts suit-condition-image-match on plaintext payload after decryption.
-Example command sequences are shown in {{figure-image-match-after-decryption}}.
+The suit-condition-image-match on the plaintext payload is used after decryption.
+An example command sequence is shown in {{figure-image-match-after-decryption}}.
 
 ~~~
 / directive-set-component-index / 12, 1,
@@ -1039,10 +1041,11 @@ Example command sequences are shown in {{figure-image-match-after-decryption}}.
 
 ### Image Match before Decryption
 
-With encrypted payloads, suit-condition-image-match on encrypted payload
-before decryption is also available if it is stored in a component.
-Example command sequences are shown in {{figure-image-match-before-decryption}}.
-This option mitigates battery exhaustion attacks (See {{sec-cons}}).
+The suit-condition-image-match can also be applied on encrypted payloads
+before decryption takes place. An example command sequence is shown in
+{{figure-image-match-before-decryption}}.
+
+This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
 
 ~~~
 / directive-set-component-index / 12, 1,
@@ -1068,16 +1071,14 @@ This option mitigates battery exhaustion attacks (See {{sec-cons}}).
 
 ### Checking Authentication Tag while Decryption
 
-AEAD encryption algorithms such as AES-GCM and ChaCha20/Poly1305 provide authenticated tags.
-Recipients can authenticate that the tag is created by the sender
-and validate the integrity of decrypted payload with it.
-With AEAD encryption algorithm, validating integrity after decryption is redundant and not required.
+AEAD algorithms, such as AES-GCM and ChaCha20/Poly1305, verify the integrity of
+the encrypted concent.
 
 ## Payload Integrity in SUIT Manifest
 
 This sub-section provides a guideline to decide
 how to validate the integrity of the payloads with SUIT Manifest.
-Figure {{payload-integrity-classification-tree}} illustrates a classification tree
+{{payload-integrity-classification-tree}} illustrates a classification tree
 to decide how to establish payload integrity.
 
 ~~~ aasvg
@@ -1107,21 +1108,20 @@ to decide how to establish payload integrity.
 ~~~
 {: #payload-integrity-classification-tree title="Classification Tree: Appropriate Location of Image Match"}
 
-There are mainly three conditions:
+There are three conditions:
 
-- Q1. How does Recipient Get the Encrypted Payload?
-If the encrypted payload are in the content,
-its integrity is already validated with suit-authentication-wrapper,
+- Q1. How does the recipient get the encrypted payload?
+If the encrypted payload is an integrated payload,
+its integrity is already validated with the suit-authentication-wrapper,
 so additional integrity check is not required.
 
-- Q2. Does Sender want to Mitigate Battery Exhaustion Attacks?
-If yes, the encrypted payload can be validated before decryption to mitigate 
-battery exhaustion attacks.
+- Q2. Does the sender want to mitigate battery exhaustion attacks?
+If yes, the encrypted payload has to be validated before decryption.
 
-- Q3. Does Sender encrypt the plaintext payload with AEAD cipher?
-If yes, additional integrity check is not required because Recipient validates
-integrity of the payload while decrypting it. If no, validating its integrity
-is RECOMMENDED after/before decryption.
+- Q3. Is the payload encrypted with an AEAD cipher?
+If yes, the additional integrity check is not required because the recipient validates
+the integrity of the payload while decrypting it. If no, validating its integrity
+must take place either before or after decryption.
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
