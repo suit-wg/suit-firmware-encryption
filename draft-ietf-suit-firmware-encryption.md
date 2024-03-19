@@ -676,7 +676,7 @@ to the content of the protected field from the COSE_Encrypt structure.
 - The value of the external_aad MUST be set to a zero-length byte string,
 i.e., h'' in diagnostic notation and encoded as 0x40.
 
-Some ciphers provide confidentiality witout integrity protection, such
+Some ciphers provide confidentiality without integrity protection, such
 as AES-CTR and AES-CBC (see {{RFC9459}}). For these ciphers the
 Enc_structure, shown in {{cddl-enc-aeskw}}, MUST NOT be used because
 the Additional Authenticated Data (AAD) byte string is only consumable
