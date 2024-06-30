@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-19
+docname: draft-ietf-suit-firmware-encryption-20
 category: std
 
 ipr: trust200902
@@ -317,14 +317,14 @@ An implementation claiming conformance with this specification
 must implement support for these two parameters. Since a device will
 typically only support one of the content key distribution methods,
 the distribution system needs to know which of two specified methods
-wis supported. Mandating only a single content key distribution
+is supported. Mandating only a single content key distribution
 method for a constrained device also reduces the code size.
 
 ~~~
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 
-suit-parameter-encryption-info = 19
+suit-parameter-encryption-info = TBD19
 ~~~
 {: #parameter-fig title="CDDL of the SUIT_Parameters Extension."}
 
@@ -351,11 +351,14 @@ The resulting plaintext payload is stored into component #0.
 ~~~
 / directive-override-parameters / 20, {
   / parameter-content / 18: h'EA1...CED',
-  / parameter-encryption-info / 19: h'D86...1F0'
+  / parameter-encryption-info / TBD19: h'D86...1F0'
 },
 / directive-write / 18, 15
 ~~~
 {: #encryption-info-consumed-with-write title="Example showing the extended suit-directive-write."}
+
+RFC Editor's Note (TBD19): The value for the parameter-encryption-info
+parameter is set to 19, as the proposed value.
 
 {{encryption-info-consumed-with-copy}} illustrates the Directive Copy.
 In this example the encrypted payload is found at the URI indicated
@@ -374,12 +377,15 @@ payload will be stored into component #0.
 / directive-fetch / 21, 15,
 / directive-set-component-index / 12, 0,
 / directive-override-parameters / 20, {
-  / parameter-encryption-info / 19: h'D86...1F0',
+  / parameter-encryption-info / TBD19: h'D86...1F0',
   / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15
 ~~~
 {: #encryption-info-consumed-with-copy title="Example showing the extended suit-directive-copy."}
+
+RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
+parameter is set to 19, as the proposed value.
 
 The payload to be encrypted may be detached and, in that case, it is
 not covered by the digital signature or the MAC protecting the manifest.
@@ -403,7 +409,7 @@ These steps apply to both content key distribution methods.
 
 The sub-sections below describe two content key distribution methods,
 namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH).
-Many other methods are specified in the literature, and even supported
+Many other methods are specified in the literature, and are even supported
 by COSE. AES-KW and ES-DH cover the popular methods used in the market
 today and they were selected due to their maturity, different
 security properties, and because of their interoperability properties.
@@ -676,7 +682,7 @@ to the content of the protected field from the COSE_Encrypt structure.
 - The value of the external_aad MUST be set to a zero-length byte string,
 i.e., h'' in diagnostic notation and encoded as 0x40.
 
-Some ciphers provide confidentiality witout integrity protection, such
+Some ciphers provide confidentiality without integrity protection, such
 as AES-CTR and AES-CBC (see {{RFC9459}}). For these ciphers the
 Enc_structure, shown in {{cddl-enc-aeskw}}, MUST NOT be used because
 the Additional Authenticated Data (AAD) byte string is only consumable
@@ -1033,13 +1039,16 @@ An example command sequence is shown in {{figure-image-match-after-decryption}}.
     / digest-bytes: / h'3B1...92A' / digest of plaintext payload /
   } >>,
   / parameter-image-size / 14: 30 / size of plaintext payload /,
-  / parameter-encryption-info / 19: h'369...50F',
+  / parameter-encryption-info / TBD19: h'369...50F',
   / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15,
 / condition-image-match / 3, 15 / integrity check on decrypted payload /,
 ~~~
 {: #figure-image-match-after-decryption title="Check Image Match After Decryption"}
+
+RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
+parameter is set to 19, as the proposed value.
 
 ### Image Match before Decryption
 
@@ -1064,12 +1073,15 @@ This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
 
 / directive-set-component-index / 12, 0,
 / directive-override-parameters / 20, {
-  / parameter-encryption-info / 19: h'D86...1F0',
+  / parameter-encryption-info / TBD19: h'D86...1F0',
   / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15,
 ~~~
 {: #figure-image-match-before-decryption title="Check Image Match Before Decryption"}
+
+RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
+parameter is set to 19, as the proposed value.
 
 ### Checking Authentication Tag while Decryption
 
@@ -1480,7 +1492,8 @@ Label      Name                 Reference
 TBD19      Encryption Info      Section 4
 ~~~
 
-[Editor's Note: TBD19: Proposed 19]
+RFC Editor's Note (TBD19): The value for the Encryption Info
+parameter is set to 19, as the proposed value.
 
 --- back
 
@@ -1501,3 +1514,5 @@ Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, D
 Lundblade, Christian Amsüss, Ruud Derwig, and Carsten Bormann for their review feedback. Finally,
 we would like to thank Dick Brooks for making us aware of the challenges encryption imposes on
 binary analysis.
+
+Reviews from the IESG include Deb Cooley and Roman Danyliw.
