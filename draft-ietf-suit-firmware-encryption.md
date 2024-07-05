@@ -1008,7 +1008,7 @@ The encrypted payload (with a line feed added) was:
 
 # Integrity Check on Encrypted and Decrypted Payloads
 
-In addition to suit-condition-image-match (Section 8.4.9.2 of 
+In addition to suit-condition-image-match (see Section 8.4.9.2 of 
 {{I-D.ietf-suit-manifest}}),
 AEAD algorithms used for content encryption provides another way
 to validate the integrity of components.
@@ -1083,16 +1083,16 @@ This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
 RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
 parameter is set to 19, as the proposed value.
 
-### Checking Authentication Tag while Decryption
+### Checking Authentication Tag while Decrypting
 
 AEAD algorithms, such as AES-GCM and ChaCha20/Poly1305, verify the integrity of
 the encrypted concent.
 
-## Payload Integrity in SUIT Manifest
+## Payload Integrity Validation
 
 This sub-section provides a guideline to decide
-how to validate the integrity of the payloads with SUIT Manifest.
-{{payload-integrity-classification-tree}} illustrates a classification tree
+how to validate the integrity of the payloads with the SUIT manifest.
+{{payload-integrity-decision-tree}} illustrates a decision tree
 to decide how to establish payload integrity.
 
 ~~~ aasvg
@@ -1120,14 +1120,14 @@ to decide how to establish payload integrity.
 | Required |    | Decryption  |    | Decryption  |
  '--------'      '-----------'      '-----------'
 ~~~
-{: #payload-integrity-classification-tree title="Classification Tree: Appropriate Location of Image Match"}
+{: #payload-integrity-decision-tree title="Decision Tree: Validating the Payload"}
 
 There are three conditions:
 
 - Q1. How does the recipient get the encrypted payload?
 If the encrypted payload is an integrated payload,
-its integrity is already validated with the suit-authentication-wrapper,
-so additional integrity check is not required.
+its integrity is already validated with the suit-authentication-wrapper.
+Hence, an additional integrity check is not required.
 
 - Q2. Does the sender want to mitigate battery exhaustion attacks?
 If yes, the encrypted payload has to be validated before decryption.
@@ -1135,7 +1135,8 @@ If yes, the encrypted payload has to be validated before decryption.
 - Q3. Is the payload encrypted with an AEAD cipher?
 If yes, the additional integrity check is not required because the recipient validates
 the integrity of the payload while decrypting it. If no, validating its integrity
-must take place either before or after decryption.
+may take place either before or after decryption. Validating the integrity
+before decryption is RECOMMENDED.
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
@@ -1477,9 +1478,7 @@ See {{flash}} for further discussion about IoT devices using flash memory.
 
 Including the digest of the encrypted payload in the manifest allows the
 device to detect a battery exhaustion attack before energy consuming decryption
-and flash memory copy or swap operations took place. When battery exhaustion
-attacks are not a concern, it is adequate to use the digest of the plaintet
-payload instead.
+and flash memory copy or swap operations took place.
 
 #  IANA Considerations
 
