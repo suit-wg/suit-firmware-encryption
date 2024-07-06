@@ -750,8 +750,8 @@ This example uses the following parameters:
   - Algorithm ID: 1 (A128GCM)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
-    - other = 'SUIT Payload Encryption'
+    - protected: { / alg / 1: -29 / ECDH-ES+A128KW / }
+    - other: 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -860,11 +860,11 @@ This example uses the following parameters:
   - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
   - kid: 'kid-2'
 - KDF Context
-  - ALgorithm ID: -3 (A128KW)
+  - Algorithm ID: -65534 (A128CTR)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = << { / alg / 1: -3 / A128KW / } >>
-    - other = 'SUIT Payload Encryption'
+    - protected: { / alg / 1: -29 / ECDH-ES+A128KW / }
+    - other: 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
@@ -983,8 +983,8 @@ This example uses the following parameters:
   - Algorithm ID: -65531 (A128CBC)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected = h''
-    - other = 'SUIT Payload Encryption'
+    - protected: { / alg / 1: -29 / ECDH-ES+A128KW / }
+    - other: 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
