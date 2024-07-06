@@ -89,15 +89,14 @@ kdf_context_a128cbc = {
     "alg": "A128CBC",
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {},
+        "protected": {"alg": "ECDH-ES+A128KW"},
         "other": "SUIT Payload Encryption",
     }
 }
 
 # The sender side:
 r = Recipient.new(
-    protected={},
-    unprotected={"alg": "ECDH-ES+A128KW"},
+    protected={"alg": "ECDH-ES+A128KW"},
     sender_key=COSEKey.from_jwk(sender_private_key_jwk),
     recipient_key=COSEKey.from_jwk(receiver_public_key_jwk),
     context=kdf_context_a128cbc
@@ -216,15 +215,14 @@ kdf_context_a128ctr = {
     "alg": "A128CTR",
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {},
+        "protected": {"alg": "ECDH-ES+A128KW"},
         "other": "SUIT Payload Encryption",
     }
 }
 
 # The sender side:
 r = Recipient.new(
-    protected={},
-    unprotected={"alg": "ECDH-ES+A128KW"},
+    protected={"alg": "ECDH-ES+A128KW"},
     sender_key=COSEKey.from_jwk(sender_private_key_jwk),
     recipient_key=COSEKey.from_jwk(receiver_public_key_jwk),
     context=kdf_context_a128ctr
