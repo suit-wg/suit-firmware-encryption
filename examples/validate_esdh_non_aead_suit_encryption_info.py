@@ -36,7 +36,7 @@ kdf_context = {
     "alg": kdf_algorithm,
     "supp_pub": {
         "key_data_length": 128,
-        "protected": {},
+        "protected": {"alg": "ECDH-ES+A128KW"},
         "other": "SUIT Payload Encryption",
     },
 }
