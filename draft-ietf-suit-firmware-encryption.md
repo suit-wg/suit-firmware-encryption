@@ -304,7 +304,7 @@ This specification introduces a new extension to the SUIT_Parameters structure.
 The SUIT_Encryption_Info structure (called suit-parameter-encryption-info in
 {{parameter-fig}}) contains the content key distribution information. The
 content of the SUIT_Encryption_Info structure is explained in {{AES-KW}}
-(for AES-KW) and in {{ES-DH}} (for ES-DH). 
+(for AES-KW) and in {{ES-DH}} (for ES-DH).
 
 Once a CEK is available, the steps described in {{content-enc}} are applicable.
 These steps apply to both content key distribution methods described in this
@@ -340,7 +340,10 @@ suit-parameter-content with suit-parameter-encryption-info.
 - Directive Copy (suit-directive-copy) to decrypt the content of the component
 specified by suit-parameter-source-component with suit-parameter-encryption-info.
 
-Examples of the two directives are shown below.
+Examples of the two directives are shown below. These example focus on the
+essential aspects. A complete example for AES Key Wrap with the Fetch and Copy
+Directives can be found in {{example-AES-KW-copy}}. An example illustrating
+the Write Directive is shown in {{example-AES-KW-write}}.
 
 {{encryption-info-consumed-with-write}} illustrates the Directive Write.
 The encrypted payload specified with parameter-content, namely
@@ -1299,18 +1302,19 @@ decrypt the
 encrypted payload into a component with the suit-directive-write
 directive.
 
-The SUIT manifest in diagnostic notation (with line breaks added
-for readability) is shown here:
+The SUIT manifest in diagnostic notation (with line breaks added for
+readability) is shown here:
 
 ~~~
 {::include examples/suit-manifest-aes-kw-content.diag.signed}
 ~~~
 
-In hex format, the SUIT manifest is this:
+In hex format, the SUIT manifest is:
 
 ~~~
 {::include examples/suit-manifest-aes-kw-content.hex.signed}
 ~~~
+
 
 ## AES Key Wrap Example with Fetch + Copy Directives {#example-AES-KW-copy}
 
@@ -1319,17 +1323,135 @@ payload and to store it. Then, the payload is decrypted and stored into
 another component with the suit-directive-copy directive. This approach
 works well on constrained devices with XIP flash memory.
 
-The SUIT manifest in diagnostic notation (with line breaks added for
-readability) is shown here:
+The SUIT manifest in diagnostic notation (with line breaks added
+for readability) is shown below. Line numbers and additional notes
+(see /!!! text !!!/ ) have been inserted to provide further
+information about the manifest processing.
 
 ~~~
 {::include examples/suit-manifest-aes-kw.diag.signed}
 ~~~
 
-In hex format, the SUIT manifest is this:
+The default storage area is defined by the component identifier (see Section 8.4.5.1 of {{I-D.ietf-suit-manifest}}). In this example, the component identifier for component #0 is ['plaintext-firmware'] and the file path "/plaintext-firmware" is the expected location.
+
+While parsing the manifest, the behavior of SUIT manifest processor would be
+
+- [L1-L17] authenticates the manifest part on [L18-L65]
+- [L22-L25] gets two component identifiers; ['plaintext-firmware'] for component #0, and ['encrypted-firmware'] for component # 1 respectively
+- [L29] sets current component index # 1 (the lasting directives target ['encrypted-firmware'])
+- [L32] sets source uri parameter "https://example.com/encrypted-firmware"
+- [L34] fetches content from source uri into ['encrypted-firmware']
+- [L37] sets current component index # 0 (the lasting directives target ['plaintext-firmware'])
+- [L39-L60] sets SUIT encryption info parameter
+- [L61] sets source component index parameter # 1
+- [L63] decrypts component # 1 (source component index) and stores the result into component # 0 (current component index)
+
+The following attributes and features from the SUIT manifest specification are used:
+
+~~~
+| Attribute Name                             | Abbreviation  | Manifest Reference |
+|--------------------------------------------|---------------|--------------------|
+| component identifier                       | CI            | Section 8.4.5.1    |
+| (destination) component index              | dst-CI        | Section 8.4.10.1   |
+| (destination) component slot OPTIONAL param| dst-CS        | Section 8.4.8.8    |
+| (source) uri OPTIONAL parameter            | src-URI       | Section 8.4.8.10   |
+| source component index OPTIONAL parameter  | src-CI        | Section 8.4.8.11   |
+~~~
+
+The resulting state of SUIT manifest processor is shown in the following table:
+
+~~~
+| Abbreviation  | Plaintext              | Ciphertext                               |
+|---------------|------------------------|------------------------------------------|
+| CI            | ['plaintext-firmware'] | ['encrypted-firmware']                   |
+| dst-CI        | 0                      | 1                                        |
+| dst-CS        | N/A                    | N/A                                      |
+| src-URI       | N/A                    | "https://example.com/encrypted-firmware" |
+| src-CI        | 1                      | N/A                                      |
+~~~
+
+In hex format, the SUIT manifest shown above is:
 
 ~~~
 {::include examples/suit-manifest-aes-kw.hex.signed}
+~~~
+
+The example above does not use storage slots. However, it is possible to specify this functionality for devices that support slots in flash memory. In the augmented example below we refer to the slots using [h'00'] and [h'01']. The component identifier [h'00'] would, in this example, specify the component slot #0.
+
+~~~
+1   / SUIT_Envelope_Tagged / 107({
+2     / authentication-wrapper / 2: << [
+3       << [
+4         / digest-algorithm-id: / -16 / SHA256 /,
+5         / digest-bytes: / h'AAB6A7868C4E43D5983BDE019EF22779
+6                             21F6F8EF1FCAF9403CA97255BED2CD30'
+7       ] >>,
+8       << / COSE_Mac0_Tagged / 17([
+9         / protected: / << {
+10          / algorithm-id / 1: 5 / HMAC256 /
+11        } >>,
+12        / unprotected: / {},
+13        / payload: / null,
+14        / tag: / h'93B4B774A5D0421ED6FB5EBF890A284C
+15                   DAC7816CBC048BF47EE7FA7FF3BC02C3'
+16      ]) >>
+17    ] >>,
+18    / manifest / 3: << {
+19      / manifest-version / 1: 1,
+20      / manifest-sequence-number / 2: 1,
+21      / common / 3: << {
+22        / components / 2: [
+ *          /!!! component identifier for component index #0 !!!/
+23          [h'00'],
+ *          /!!! component identifier for component index #1 !!!/
+24          [h'01']
+25        ]
+26      } >>,
+27      / install / 17: << [
+28        / fetch encrypted firmware /
+ *         /!!! destination component index #1 = [h'01'] !!!/
+29        / directive-set-component-index / 12, 1,
+30        / directive-override-parameters / 20, {
+31          / parameter-image-size / 14: 46,
+ *          /!!! source uri of #1 !!!/
+32          / parameter-uri / 21: "https://example.com/encrypted-firmware"
+33        },
+34        / directive-fetch / 21, 15,
+35
+36        / decrypt encrypted firmware /
+ *        /!!! destination component index #0 = [h'00'] !!!/
+37        / directive-set-component-index / 12, 0,
+38        / directive-override-parameters / 20, {
+39          / parameter-encryption-info / 19: << 96([
+40            / protected: / << {
+41              / alg / 1: 1 / AES-GCM-128 /
+42            } >>,
+43            / unprotected: / {
+44              / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+45            },
+46            / payload: / null / detached ciphertext /,
+47            / recipients: / [
+48              [
+49                / protected: / << {
+50                } >>,
+51                / unprotected: / {
+52                  / alg / 1: -3 / A128KW /,
+53                  / kid / 4: 'kid-1'
+54                },
+55                / payload: /
+56                  h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
+57                  / CEK encrypted with KEK /
+58              ]
+59            ]
+60          ]) >>,
+ *          /!!! source component index #1 = [h'01'] !!!/
+61          / parameter-source-component / 22: 1
+62        },
+ *        /!!! consumes the SUIT_Encryption_Info above !!!/
+63        / directive-copy / 22, 15
+64      ] >>
+65    } >>
+66  })
 ~~~
 
 ## ES-DH Example with Write + Copy Directives {#example-ES-DH-write}
