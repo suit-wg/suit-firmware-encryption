@@ -24,7 +24,7 @@ encoded = sender.encode_and_encrypt(
         "alg": "A128GCM"
     },
     unprotected={
-        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87AF4F70CD")
+        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87")
     },
     recipients=[r],
 )
@@ -108,7 +108,7 @@ encoded = sender.encode(
         "alg": "A128GCM"
     },
     unprotected={
-        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87AF4F70CD")
+        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87")
     },
     recipients=[r],
 )
