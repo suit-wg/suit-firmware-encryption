@@ -3,7 +3,7 @@
     / alg / 1: 1 / A128GCM /
   } >>,
   / unprotected: / {
-    / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+    / IV / 5: h'F14AAB9D81D51F7AD943FE87'
   },
   / payload: / null / detached ciphertext /,
   / recipients: / [
@@ -15,14 +15,14 @@
         / ephemeral key / -1: {
           / kty / 1: 2 / EC2 /,
           / crv / -1: 1 / P-256 /,
-          / x / -2: h'D3CB3FE8470BF5A6589FAF14E66CDC38
-                      76DC7AC242D1ADC4D97664C817BF54EB',
-          / y / -3: h'F9C4FA53979580F5FE5A36538FCDA829
-                      AD4225661CBBC8F230F6A550FA0DC7A3'
+          / x / -2: h'73024F415AA51529A66CCEFD88F3F62A
+                      734492FF45F6AD37FD2888E73EAF19DA',
+          / y / -3: h'4005B48A6FD091AA6ABFE3CFBEEDE88B
+                      347E521D43405FDBD7D2CFF0EBC21B26'
         }
       },
       / payload:
-        / h'DC1787D6715EBC23D02F6D2C6B8F470FE11F482AFF04F53A'
+        / h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
         / CEK encrypted with KEK /
     ]
   ]

@@ -55,6 +55,7 @@ draft-ietf-suit-trust-domains.cddl:
 
 draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-trust-domains.cddl
 	curl --retry 3 https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
+	sed -i -e 's/suit-install = 17/suit-install = 20/' $@
 	cat draft-ietf-suit-firmware-encryption.cddl >> $@
 	cat draft-ietf-suit-trust-domains.cddl >> $@
 
