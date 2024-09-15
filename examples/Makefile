@@ -111,9 +111,9 @@ validate_decrypted_plaintext:
 	@echo "\n# ECDH-ES+AES-KW + A128GCM (Example 2)"
 	python3 ./validate_esdh_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-gcm.hex encrypted-payload-es-ecdh-aes-gcm.hex
 	@echo "\n# ECDH-ES+AES-KW + A128CTR"
-	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex A128CTR
+	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex
 	@echo "\n# ECDH-ES+AES-KW + A128CBC"
-	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex A128CBC
+	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex
 	@echo [SUCCESS] The expected plaintext firmware can be decrypted
 
 .PHONY: clean

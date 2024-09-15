@@ -32,7 +32,7 @@ private_key = COSEKey.from_jwk(receiver_private_key_jwk)
 # See Section 6.2.4 Context Information Structure
 # https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-context-information-structu
 kdf_context = {
-    "alg": "A128GCM",
+    "alg": "A128KW",
     "supp_pub": {
         "key_data_length": 128,
         "protected": {"alg": "ECDH-ES+A128KW"},
