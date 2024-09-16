@@ -2,8 +2,8 @@
 /  2/   / authentication-wrapper / 2: << [
 /  3/     << [
 /  4/       / digest-algorithm-id: / -16 / SHA256 /,
-/  5/       / digest-bytes: / h'8814BC46089ACA6A863A7BA8393F9747
-/  6/                           589940EFA40641335EF86155598F06C3'
+/  5/       / digest-bytes: / h'A6D2C13A0DEFD57A09FA65C24206A9A8
+/  6/                           747261E6EA017532B3DAB0419C42A2FC'
 /  7/     ] >>,
 /  8/     << / COSE_Mac0_Tagged / 17([
 /  9/       / protected: / << {
@@ -11,8 +11,8 @@
 / 11/       } >>,
 / 12/       / unprotected: / {},
 / 13/       / payload: / null,
-/ 14/       / tag: / h'B68572F6F0494FEAF390CE44B462F2A7
-/ 15/                  BDF73EF5DFE9FB8E12585A12F8F641AD'
+/ 14/       / tag: / h'DB350AC9603B0BBA3895B85019699363
+/ 15/                  3F314A9066634B31BF62E596FD870434'
 / 16/     ]) >>
 / 17/   ] >>,
 / 18/   / manifest / 3: << {
