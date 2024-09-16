@@ -7,8 +7,9 @@ SUIT_ENCRYPTION_INFO := \
 	suit-encryption-info-es-ecdh-aes-ctr.cose
 
 SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := \
-	suit-manifest-aes-kw.suit \
 	suit-manifest-aes-kw-content.suit \
+	suit-manifest-aes-kw.suit \
+	suit-manifest-aes-kw-slot.suit \
 	suit-manifest-es-ecdh-content.suit \
 	suit-manifest-es-ecdh-dependency.suit
 
@@ -93,8 +94,9 @@ validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
-	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-slot.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
