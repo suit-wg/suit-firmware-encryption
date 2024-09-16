@@ -47,13 +47,13 @@ jobs:
         make -C libcsuit -f Makefile.process
     - name: Run
       run: |
-        ./libcsuit/bin/suit_manifest_parser ./examples/suit-manifest-aes-kw-content.suit
-        ./libcsuit/bin/suit_manifest_process ./examples/suit-manifest-aes-kw-content.suit
-        ./libcsuit/bin/suit_manifest_parser ./examples/suit-manifest-aes-kw.suit
-        ./libcsuit/bin/suit_manifest_process ./examples/suit-manifest-aes-kw.suit
-        ./libcsuit/bin/suit_manifest_parser ./examples/suit-manifest-aes-kw-slot.suit
-        ./libcsuit/bin/suit_manifest_process ./examples/suit-manifest-aes-kw-slot.suit
-        ./libcsuit/bin/suit_manifest_parser ./examples/suit-manifest-es-ecdh-content.suit
-        ./libcsuit/bin/suit_manifest_process ./examples/suit-manifest-es-ecdh-content.suit
-        ./libcsuit/bin/suit_manifest_parser ./examples/suit-manifest-es-ecdh-dependency.suit
-        ./libcsuit/bin/suit_manifest_process ./examples/suit-manifest-es-ecdh-dependency.suit
+        ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw-content.suit
+        ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-content.suit
+        ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw.suit
+        ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw.suit
+        ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw-slot.suit
+        ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-slot.suit
+        ./libcsuit/bin/suit_manifest_parser ./suit-manifest-es-ecdh-content.suit
+        ./libcsuit/bin/suit_manifest_process ./suit-manifest-es-ecdh-content.suit
+        ./libcsuit/bin/suit_manifest_parser ./suit-manifest-es-ecdh-dependency.suit
+        ./libcsuit/bin/suit_manifest_process ./suit-manifest-es-ecdh-dependency.suit
