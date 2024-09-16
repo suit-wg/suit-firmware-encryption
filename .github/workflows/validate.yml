@@ -39,9 +39,9 @@ jobs:
       run: |
         sudo apt-get install -y git make gcc libssl-dev
         git clone --depth 1 https://github.com/laurencelundblade/QCBOR.git
-        make -C QCBOR install
+        sudo make -C QCBOR install
         git clone --depth 1 --branch dev https://github.com/laurencelundblade/t_cose.git
-        make -C t_cose -f Makefile.ossl install
+        sudo make -C t_cose -f Makefile.ossl install
         git clone --depth 1 https://github.com/kentakayama/libcsuit.git
         make -C libcsuit -f Makefile.parser
         make -C libcsuit -f Makefile.process
