@@ -2,7 +2,7 @@ name: Validating SUIT Encrypted Payloads examples
 on: pull_request
 
 jobs:
-  test:
+  cddl-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -17,3 +17,51 @@ jobs:
     - run: sudo apt-get update && sudo apt-get install -y xxd
     - name: Vaildate examples
       run: make -C examples/ validate
+    - name: Upload *.suit files
+      uses: actions/upload-artifact@v4
+      with:
+        name: suit-encrypted-payloads
+        path: |
+          ./examples/suit-manifest-aes-kw-content.suit
+          ./examples/suit-manifest-aes-kw.suit
+          ./examples/suit-manifest-aes-kw-slot.suit
+          ./examples/suit-manifest-es-ecdh-content.suit
+          ./examples/suit-manifest-es-ecdh-dependency.suit
+  parse-test:
+    runs-on: ubuntu-latest
+    needs: cddl-test
+    steps:
+    - name: Download *.suit files
+      uses: actions/download-artifact@v4
+      with:
+        name: suit-encrypted-payloads
+    - name: Build parsers
+      run: |
+        sudo apt-get install -y git make gcc libssl-dev
+        git clone --depth 1 https://github.com/laurencelundblade/QCBOR.git
+        sudo make -C QCBOR install
+        git clone --depth 1 --branch dev https://github.com/laurencelundblade/t_cose.git
+        sudo make -C t_cose -f Makefile.ossl install
+        git clone --depth 1 https://github.com/kentakayama/libcsuit.git
+        make -C libcsuit -f Makefile.parser
+        make -C libcsuit -f Makefile.process
+    - name: Parse suit-manifest-aes-kw-content.suit
+      run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw-content.suit
+    - name: Process suit-manifest-aes-kw-content.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-content.suit
+    - name: Parse suit-manifest-aes-kw.suit
+      run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw.suit
+    - name: Process suit-manifest-aes-kw.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw.suit
+    - name: Parse suit-manifest-aes-kw-slot.suit
+      run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw-slot.suit
+    - name: Process suit-manifest-aes-kw-slot.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-slot.suit
+    - name: Parse suit-manifest-es-ecdh-content.suit
+      run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-es-ecdh-content.suit
+    - name: Process suit-manifest-es-ecdh-content.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-es-ecdh-content.suit
+    - name: Parse suit-manifest-es-ecdh-dependency.suit
+      run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-es-ecdh-dependency.suit
+    - name: Process suit-manifest-es-ecdh-dependency.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-es-ecdh-dependency.suit
