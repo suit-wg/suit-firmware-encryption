@@ -7,8 +7,9 @@ SUIT_ENCRYPTION_INFO := \
 	suit-encryption-info-es-ecdh-aes-ctr.cose
 
 SUIT_MANIFEST_WITH_ENCRYPTED_PAYLOAD := \
-	suit-manifest-aes-kw.suit \
 	suit-manifest-aes-kw-content.suit \
+	suit-manifest-aes-kw.suit \
+	suit-manifest-aes-kw-slot.suit \
 	suit-manifest-es-ecdh-content.suit \
 	suit-manifest-es-ecdh-dependency.suit
 
@@ -55,6 +56,7 @@ draft-ietf-suit-trust-domains.cddl:
 
 draft-ietf-suit-manifest.cddl: draft-ietf-suit-firmware-encryption.cddl draft-ietf-suit-trust-domains.cddl
 	curl --retry 3 https://raw.githubusercontent.com/suit-wg/manifest-spec/master/draft-ietf-suit-manifest.cddl -o $@
+	sed -i -e 's/suit-install = 17/suit-install = 20/' $@
 	cat draft-ietf-suit-firmware-encryption.cddl >> $@
 	cat draft-ietf-suit-trust-domains.cddl >> $@
 
@@ -92,8 +94,9 @@ validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
 	@echo [SUCCESS] Each SUIT_Encryption_Info matches to its CDDL
-	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-content.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw.suit
+	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-aes-kw-slot.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-content.suit
 	RUBYOPT="-W0" cddl draft-ietf-suit-manifest.cddl validate suit-manifest-es-ecdh-dependency.suit
 	@echo [SUCCESS] Each SUIT Manifest with Encrypted Payloads matches to its CDDL
@@ -111,9 +114,9 @@ validate_decrypted_plaintext:
 	@echo "\n# ECDH-ES+AES-KW + A128GCM (Example 2)"
 	python3 ./validate_esdh_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-gcm.hex encrypted-payload-es-ecdh-aes-gcm.hex
 	@echo "\n# ECDH-ES+AES-KW + A128CTR"
-	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex A128CTR
+	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex
 	@echo "\n# ECDH-ES+AES-KW + A128CBC"
-	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex A128CBC
+	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex
 	@echo [SUCCESS] The expected plaintext firmware can be decrypted
 
 .PHONY: clean

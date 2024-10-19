@@ -24,7 +24,7 @@ encoded = sender.encode_and_encrypt(
         "alg": "A128GCM"
     },
     unprotected={
-        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87AF4F70CD")
+        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87")
     },
     recipients=[r],
 )
@@ -84,7 +84,7 @@ for key in ["x", "y"]:
     receiver_public_key_jwk[key] = base64.b64encode(bytes.fromhex(receiver_public_key_jwk[key])).decode()
 
 kdf_context_a128gcm = {
-    "alg": "A128GCM",
+    "alg": "A128KW",
     "supp_pub": {
         "key_data_length": 128,
         "protected": {"alg": "ECDH-ES+A128KW"},
@@ -108,7 +108,7 @@ encoded = sender.encode(
         "alg": "A128GCM"
     },
     unprotected={
-        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87AF4F70CD")
+        "iv": bytes.fromhex("F14AAB9D81D51F7AD943FE87")
     },
     recipients=[r],
 )

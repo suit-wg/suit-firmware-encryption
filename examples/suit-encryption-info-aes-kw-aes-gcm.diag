@@ -1,9 +1,9 @@
 96([
   / protected: / << {
-    / alg / 1: 1 / AES-GCM-128 /
+    / alg / 1: 1 / A128GCM /
   } >>,
   / unprotected: / {
-    / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+    / IV / 5: h'F14AAB9D81D51F7AD943FE87'
   },
   / payload: / null / detached ciphertext /,
   / recipients: / [

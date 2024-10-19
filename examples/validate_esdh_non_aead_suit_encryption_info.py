@@ -4,13 +4,12 @@ import sys
 import base64
 from cwt import COSE, COSEKey
 
-if len(sys.argv) != 4:
-    print(f"{sys.argv[0]} [hex-encryption-info] [hex-encrypted-payload] [KDF-ALGORITHM]")
+if len(sys.argv) != 3:
+    print(f"{sys.argv[0]} [hex-encryption-info] [hex-encrypted-payload]")
 
 filename_hex_suit_encryption_info = sys.argv[1]
 filename_hex_encrypted_payload = sys.argv[2]
 filename_diag_suit_encryption_info = filename_hex_suit_encryption_info.replace(".hex", ".diag")
-kdf_algorithm = sys.argv[3]
 
 expected_plaintext_payload = b'This is a real firmware image.'
 
@@ -33,7 +32,7 @@ private_key = COSEKey.from_jwk(receiver_private_key_jwk)
 # See Section 6.2.4 Context Information Structure
 # https://datatracker.ietf.org/doc/html/draft-ietf-suit-firmware-encryption#name-context-information-structu
 kdf_context = {
-    "alg": kdf_algorithm,
+    "alg": "A128KW",
     "supp_pub": {
         "key_data_length": 128,
         "protected": {"alg": "ECDH-ES+A128KW"},
