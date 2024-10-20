@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-20
+docname: draft-ietf-suit-firmware-encryption-28
 category: std
 
 ipr: trust200902
@@ -25,9 +25,10 @@ pi:
 
 author:
  -
-       ins: H. Tschofenig
        name: Hannes Tschofenig
-       email: hannes.tschofenig@gmx.net
+       org: University of Applied Sciences Bonn-Rhein-Sieg
+       abbrev: H-BRS
+       email: Hannes.Tschofenig@gmx.net
 
  -
        ins: R. Housley
