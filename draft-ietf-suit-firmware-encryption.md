@@ -277,7 +277,7 @@ presenting the distributor with full control over the recipient. Because
 distributors typically perform their re-encryption online in order to handle
 a large number of devices in a timely fashion, it is not possible to air-gap
 the distributor's signing operations. This impacts the recommendations in
-Section 4.3.17 of {{RFC9124}}. This model nevertheless represent the current
+{{Section 4.3.17 of RFC9124}}. This model nevertheless represent the current
 state of firmware updates for IoT devices.
 
 2. The distributor uses a two-layer manifest system. More precisely, the distributor
@@ -403,8 +403,8 @@ used.
 To provide authentication and integrity protection of the payload
 in the detached payload case a SUIT Digest Container with the hash
 of the encrypted and/or plaintext payload MUST be included in the
-manifest. See suit-parameter-image-digest parameter in Section
-8.4.8.6 of {{I-D.ietf-suit-manifest}}.
+manifest. See suit-parameter-image-digest parameter in {{Section
+8.4.8.6 of I-D.ietf-suit-manifest}}.
 
 Once a CEK is available, the steps described in {{content-enc}} are applicable.
 These steps apply to both content key distribution methods.
@@ -444,8 +444,8 @@ following notation:
 The AES Key Wrap (AES-KW) algorithm is described in {{RFC3394}}, and
 can be used to encrypt a randomly generated content-encryption key (CEK)
 with a pre-shared key-encryption key (KEK). The COSE conventions for using
-AES-KW are specified in Section 8.5.2 of {{RFC9052}} and in Section 6.2.1 of
-{{RFC9053}}. The encrypted CEK is carried in the COSE\_recipient structure
+AES-KW are specified in {{Section 8.5.2 of RFC9052}} and in {{Section 6.2.1 of
+RFC9053}}. The encrypted CEK is carried in the COSE\_recipient structure
 alongside the information needed for AES-KW. The COSE\_recipient structure,
 which is a substructure of the COSE\_Encrypt structure, contains the CEK
 encrypted by the KEK.
@@ -524,7 +524,7 @@ empty_or_serialized_map and header_map are structures defined in {{RFC9052}}.
 ~~~
 {: #cddl-aeskw title="CDDL for AES-KW-based Content Key Distribution"}
 
-Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of {{RFC3394}},
+Note that the AES-KW algorithm, as defined in {{Section 2.2.3.1 of RFC3394}},
 does not have public parameters that vary on a per-invocation basis. Hence,
 the protected header in the COSE_recipient structure is a byte string
 of zero length.
@@ -535,8 +535,8 @@ of zero length.
 
 Ephemeral-Static Diffie-Hellman (ES-DH) is a scheme that provides public key
 encryption given a recipient's public key. There are multiple variants
-of this scheme; this document re-uses the variant specified in Section 8.5.5
-of {{RFC9052}}.
+of this scheme; this document re-uses the variant specified in {{Section 8.5.5
+of RFC9052}}.
 
 The following two layer structure is used:
 
@@ -610,7 +610,7 @@ See {{content-enc}} for a description on how to encrypt the payload.
 
 The context information structure is used to ensure that the derived keying material
 is "bound" to the context of the transaction. This specification re-uses the structure
-defined in Section 5.2 of {{RFC9053}} and tailors it accordingly.
+defined in {{Section 5.2 of RFC9053}} and tailors it accordingly.
 
 The following information elements are bound to the context:
 
@@ -645,7 +645,7 @@ the identifier of the content key distribution method.
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
 
 The HKDF-based key derivation function MAY contain a salt value,
-as described in Section 5.1 of {{RFC9053}}. This optional value is used to
+as described in {{Section 5.1 of RFC9053}}. This optional value is used to
 influence the key generation process. This specification does not mandate the
 use of a salt value. If the salt is public and carried in the message, then
 the "salt" algorithm header parameter MUST be used. The purpose of the salt
@@ -667,7 +667,7 @@ applies to both content key distribution methods.
 For use with AEAD ciphers, such as AES-GCM and ChaCha20/Poly1305,
 the COSE specification requires a consistent byte
 stream for the authenticated data structure to be created. This structure
-is shown in {{cddl-enc-aeskw}} and is defined in Section 5.3 of {{RFC9052}}.
+is shown in {{cddl-enc-aeskw}} and is defined in {{Section 5.3 of RFC9052}}.
 
 ~~~
  Enc_structure = [
@@ -1012,8 +1012,8 @@ The encrypted payload (with a line feed added) was:
 
 # Integrity Check on Encrypted and Decrypted Payloads
 
-In addition to suit-condition-image-match (see Section 8.4.9.2 of 
-{{I-D.ietf-suit-manifest}}),
+In addition to suit-condition-image-match (see {{Section 8.4.9.2 of 
+I-D.ietf-suit-manifest}}),
 AEAD algorithms used for content encryption provides another way
 to validate the integrity of components.
 This section provides a guideline to construct secure but not redundant
@@ -1245,8 +1245,8 @@ technique offers robustness and better performance.
 
 For this purpose, ciphers without integrity protection are used to encrypt the
 firmware image. Integrity protection of the firmware image MUST be provided
-and the suit-parameter-image-digest, defined in Section 8.4.8.6 of
-{{I-D.ietf-suit-manifest}}, MUST be used.
+and the suit-parameter-image-digest, defined in {{Section 8.4.8.6 of
+I-D.ietf-suit-manifest}}, MUST be used.
 
 {{RFC9459}} registers AES Counter (AES-CTR) mode and AES Cipher Block Chaining
 (AES-CBC) ciphers that do not offer integrity protection. These ciphers are useful
@@ -1331,7 +1331,10 @@ for readability) is shown below.
 {::include examples/suit-manifest-aes-kw.diag.signed}
 ~~~
 
-The default storage area is defined by the component identifier (see Section 8.4.5.1 of {{I-D.ietf-suit-manifest}}). In this example, the component identifier for component #0 is ['plaintext-firmware'] and the file path "/plaintext-firmware" is the expected location.
+The default storage area is defined by the component identifier (see
+{{Section 8.4.5.1 of I-D.ietf-suit-manifest}}). In this example,
+the component identifier for component #0 is ['plaintext-firmware']
+and the file path "/plaintext-firmware" is the expected location.
 
 While parsing the manifest, the behavior of SUIT manifest processor would be
 
@@ -1529,7 +1532,7 @@ and flash memory copy or swap operations took place.
 #  IANA Considerations
 
 IANA is asked to add the following value to the SUIT Parameters
-registry established by Section 11.5 of {{I-D.ietf-suit-manifest}}:
+registry established by {{Section 11.5 of I-D.ietf-suit-manifest}}:
 
 ~~~
 Label      Name                 Reference
