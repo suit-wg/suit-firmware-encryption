@@ -68,7 +68,7 @@
 / 68/                 / kid / 4: 'kid-2'
 / 69/               },
 / 70/               / payload: /
-/ 71/                 h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
+/ 71/               h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
 / 72/                 / CEK encrypted with KEK /
 / 73/             ]
 / 74/           ]
@@ -125,28 +125,29 @@
 /125/             / directive-override-parameters / 20, {
 /126/               / parameter-image-digest / 3: << [
 /127/                 / algorithm-id / -16 / SHA256 /,
-/128/                 / digest-bytes / h'36921488FE6680712F734E11F58D87EE
-/129/                                    B66D4B21A8A1AD3441060814DA16D50F'
-/130/               ] >>,
-/131/               / parameter-image-size / 14: 30
-/132/             }
-/133/           ] >>
-/134/         } >>,
-/135/         / manifest-component-id / 5: [
-/136/           'dependency-manifest.suit'
-/137/         ],
-/138/         / validate / 7: << [
-/139/           / condition-image-match / 3, 15
-/140/         ] >>,
-/141/         / install / 20: << [
-/142/           / directive-set-component-index / 12, 0
-/143/             / ['decrypted-firmware'] /,
-/144/           / directive-write / 18, 15
-/145/             / consumes the SUIT_Encryption_Info set by dependent /,
-/146/           / condition-image-match / 3, 15
-/147/             / check the integrity of the decrypted payload /
-/148/         ] >>
-/149/       } >>
-/150/     })
-/151/   >>
-/152/ })
+/128/                 / digest-bytes /
+/129/                   h'36921488FE6680712F734E11F58D87EE
+/130/                     B66D4B21A8A1AD3441060814DA16D50F'
+/131/               ] >>,
+/132/               / parameter-image-size / 14: 30
+/133/             }
+/134/           ] >>
+/135/         } >>,
+/136/         / manifest-component-id / 5: [
+/137/           'dependency-manifest.suit'
+/138/         ],
+/139/         / validate / 7: << [
+/140/           / condition-image-match / 3, 15
+/141/         ] >>,
+/142/         / install / 20: << [
+/143/           / directive-set-component-index / 12, 0
+/144/             / ['decrypted-firmware'] /,
+/145/           / directive-write / 18, 15
+/146/             / consumes the SUIT_Encryption_Info in dependent /,
+/147/           / condition-image-match / 3, 15
+/148/             / check the integrity of the decrypted payload /
+/149/         ] >>
+/150/       } >>
+/151/     })
+/152/   >>
+/153/ })
