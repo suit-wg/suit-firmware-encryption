@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-28
+docname: draft-ietf-suit-firmware-encryption-21
 category: std
 
 ipr: trust200902
@@ -427,10 +427,10 @@ are different deployment options. To explain these options we use the
 following notation:
 
 ~~~
-   - KEK(R1, S) refers to a KEK shared between recipient R1 and
+   - KEK[R1, S] refers to a KEK shared between recipient R1 and
      the sender S.
-   - CEK(R1, S) refers to a CEK shared between R1 and S.
-   - CEK(*, S) or KEK(*, S) are used when a single CEK or a single
+   - CEK[R1, S] refers to a CEK shared between R1 and S.
+   - CEK[*, S] or KEK[*, S] are used when a single CEK or a single
      KEK is shared with all authorized recipients by a given sender
      S in a certain context.
    - ENC(plaintext, k) refers to the encryption of plaintext with
@@ -470,7 +470,7 @@ a single COSE\_recipient structure contains the encrypted CEK. The sender execut
 the following steps:
 
 ~~~
-     1. Fetch KEK(*, S)
+     1. Fetch KEK[*, S]
      2. Generate CEK
      3. ENC(CEK, KEK)
      4. ENC(payload, CEK)
@@ -492,8 +492,8 @@ obtain the plaintext. The steps taken by the sender are:
     1.  Generate CEK
     2.  for i=1 to n
         {
-    2a.    Fetch KEK(Ri, S)
-    2b.    ENC(CEK, KEK(Ri, S))
+    2a.    Fetch KEK[Ri, S]
+    2b.    ENC(CEK, KEK[Ri, S])
         }
     3.  ENC(payload, CEK)
 ~~~
@@ -501,16 +501,16 @@ obtain the plaintext. The steps taken by the sender are:
 - The third option is to use different CEKs encrypted with KEKs of
 authorized recipients. This approach is appropriate when no benefits can
 be gained from encrypting and transmitting payloads only once. Assume there
-are n recipients with their unique KEKs - KEK(R1, S), ..., KEK(Rn, S) and
+are n recipients with their unique KEKs - KEK[R1, S], ..., KEK[Rn, S] and
 unique CEKs. The sender needs to execute the following steps:
 
 ~~~
     1.  for i=1 to n
         {
-    1a.    Fetch KEK(Ri, S)
-    1b.    Generate CEK(Ri, S)
-    1c.    ENC(CEK(Ri, S), KEK(Ri, S))
-    1d.    ENC(payload, CEK(Ri, S))
+    1a.    Fetch KEK[Ri, S]
+    1b.    Generate CEK[Ri, S]
+    1c.    ENC(CEK[Ri, S], KEK[Ri, S])
+    1d.    ENC(payload, CEK[Ri, S])
     2.  }
 ~~~
 
@@ -570,8 +570,8 @@ The steps taken by the sender are:
     1.  Generate CEK
     2.  for i=1 to n
         {
-    2a.     Generate KEK(Ri, S) using ES-DH
-    2b.     ENC(CEK, KEK(Ri, S))
+    2a.     Generate KEK[Ri, S] using ES-DH
+    2b.     ENC(CEK, KEK[Ri, S])
         }
     3.  ENC(payload,CEK)
 ~~~
@@ -579,17 +579,17 @@ The steps taken by the sender are:
 - The alternative is to encrypt a payload with a different CEK for each
 recipient. This results in n-manifests. This approach is useful when payloads contain
 information unique to a device. The encryption operation then effectively becomes
-ENC(payload_i, CEK(Ri, S)). Assume that KEK(R1, S),..., KEK(Rn, S) have been generated
+ENC(payload_i, CEK[Ri, S]). Assume that KEK[R1, S],..., KEK[Rn, S] have been generated
 for the different recipients using ES-DH. The following steps need to be made
 by the sender:
 
 ~~~
     1.  for i=1 to n
         {
-    1a.     Generate KEK(Ri, S) using ES-DH
-    1b.     Generate CEK(Ri, S)
-    1c.     ENC(CEK(Ri, S), KEK(Ri, S))
-    1d.     ENC(payload, CEK(Ri, S))
+    1a.     Generate KEK[Ri, S] using ES-DH
+    1b.     Generate CEK[Ri, S]
+    1c.     ENC(CEK[Ri, S], KEK[Ri, S])
+    1d.     ENC(payload, CEK[Ri, S])
         }
 ~~~
 
@@ -688,11 +688,20 @@ i.e., h'' in diagnostic notation and encoded as 0x40.
 
 Some ciphers provide confidentiality without integrity protection, such
 as AES-CTR and AES-CBC (see {{RFC9459}}). For these ciphers the
-Enc_structure, shown in {{cddl-enc-aeskw}}, MUST NOT be used because
+Enc_structure, shown in {{cddl-enc-aeskw}}, cannot be used because
 the Additional Authenticated Data (AAD) byte string is only consumable
 by AEAD ciphers. Hence, the AAD structure is not supplied to the 
 API of those ciphers and the protected header in the SUIT_Encryption_Info
 structure MUST be a zero-length byte string.
+
+AES-CTR and AES-CBC are discussed in separate sub-sections below and
+{{aes-ctr-fig}} and {{aes-cbc-fig }} use the following abbreviations:
+
+- Pi = Plaintext blocks
+- Ci = Ciphertext blocks
+- E = Encryption function
+- k = Symmetric key
+- ⊕ = XOR operation
 
 ## AES-GCM
 
@@ -803,15 +812,15 @@ and 16 * 256 IVs for the remaining sectors in the slot.
       |       |      |       |
       +-------+      +-------+
           |              |
-     P1--(+)        P2--(+)
+     P1---⊕        P2---⊕
           |              |
           |              |
           C1             C2
-
-Legend: 
-  See previous diagram.
 ~~~
 {: #aes-ctr-fig title="AES-CTR Operation"}
+
+Note: The abbreviations shown in {{aes-ctr-fig}} are described
+in {{content-enc}}.
 
 Examples in this section use the following parameters:
 
@@ -897,7 +906,7 @@ The encrypted payload (with a line feed added) was:
 AES-CBC is a non-AEAD cipher, provides confidentiality but no integrity protection.
 In AES-CBC, a single IV is used for encryption of firmware belonging to a single sector,
 since individual AES blocks are chained together, as shown in {{aes-cbc-fig}}. The
-numbering  of sectors in a slot MUST start with zero (0) and MUST increase by one with
+numbering  of sectors in a slot start with zero (0) and increase by one with
 every sector till the end of the slot is reached. The IV follows this numbering.
 
 For example, let us assume the slot size of a specific flash controller on an IoT device
@@ -909,7 +918,7 @@ ranging from 0 to 15.
 ~~~ aasvg
        P1              P2
         |              |
-   IV--(+)    +-------(+)
+   IV---⊕    +--------⊕
         |     |        |
         |     |        |
     +-------+ |    +-------+
@@ -923,19 +932,15 @@ ranging from 0 to 15.
         |              |
         |              |
         C1             C2
-
-Legend: 
-  Pi = Plaintext blocks
-  Ci = Ciphertext blocks
-  E = Encryption function
-  k = Symmetric key
-  (+) = XOR operation
 ~~~
 {: #aes-cbc-fig title="AES-CBC Operation"}
 
+Note: The abbreviations shown in {{aes-cbc-fig}} are described
+in {{content-enc}}.
+
 Examples in this section use the following parameters:
 
-- Algorithm for payload encryption: AES-CTR-128
+- Algorithm for payload encryption: AES-CBC-128
   - k: h'627FCF0EA82C967D5ED8981EB325F303'
   - IV: h'93702C81590F845D9EC866CCAC767BD1'
 - Plaintext: "This is a real firmware image."
@@ -1481,7 +1486,7 @@ two methods are utilized, namely AES Key Wrap (AES-KW) and Ephemeral-Static
 Diffie-Hellman (ES-DH). In this table we summarize the main properties with
 respect to their deployment:
 
-~~~ aasvg
+~~~
 +---------------++------------+---------------+----------------+
 |               ||            |               |                |
 |  Number of    ||  Same key  |  One key      |  One Key       |
@@ -1559,7 +1564,7 @@ Appendix A of {{I-D.ietf-suit-manifest}}
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
 Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Christian Amsüss, Ruud Derwig, and Carsten Bormann for their review feedback. Finally,
+Lundblade, Christian Amsüss, Ruud Derwig, Martin Thomson and Carsten Bormann for their review feedback. Finally,
 we would like to thank Dick Brooks for making us aware of the challenges encryption imposes on
 binary analysis.
 
