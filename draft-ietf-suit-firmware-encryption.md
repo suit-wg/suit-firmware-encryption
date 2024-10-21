@@ -1486,35 +1486,11 @@ two methods are utilized, namely AES Key Wrap (AES-KW) and Ephemeral-Static
 Diffie-Hellman (ES-DH). In this table we summarize the main properties with
 respect to their deployment:
 
-~~~
-+---------------++------------+---------------+----------------+
-|               ||            |               |                |
-|  Number of    ||  Same key  |  One key      |  One Key       |
-|  Long-Term    ||  for all   |  per device   |  per device    |
-|  Keys         ||  devices   |               |                |
-|               ||            |               |                |
-+---------------++------------+---------------+----------------+
-|               ||            |               |                |
-|  Number of    ||  Single    |  Single       |  One CEK       |
-|  Content      ||  CEK per   |  CEK per      |  per payload   |
-|  Encryption   ||  payload   |  payload      |  encryption    |
-|  Keys (CEKs)  ||  shared    |  shared       |  transaction   |
-|               ||  with all  |  with all     |  per device    |
-|               ||  devies    |  devies       |                |
-|               ||            |               |                |
-+---------------++------------+---------------+----------------+
-|               ||            |               |                |
-|  Use Case     ||  Legacy    |  Efficient    |  Point-to-     |
-|               ||  Usage     |  Payload      |  Point Payload |
-|               ||            |  Distribution |  Distribution  |
-|               ||            |               |                |
-+---------------++------------+---------------+----------------+
-|               ||            |               |                |
-|  Recommended? ||  No, bad   |  Yes          |  Yes           |
-|               ||  practice  |               |                |
-|               ||            |               |                |
-+---------------++------------+---------------+----------------+
-~~~
+| Number of<br/>Long-Term<br/>Keys | Number of<br/>Content<br/>Encryption<br/>Keys (CEKs)                  | Use Case                                     | Recommended?         |
+|----------------------------------|-----------------------------------------------------------------------|----------------------------------------------|----------------------|
+| Same key<br/>for all<br/>devices | Single<br/>CEK per<br/>payload<br/>shared<br/>with all<br/>devies     | Legacy<br/>Usage                             | No, bad<br/>practice |
+| One key<br/>per device           | Single<br/>CEK per<br/>payload<br/>shared<br/>with all<br/>devies     | Efficient<br/>Payload<br/>Distribution       | Yes                  |
+| One Key<br/>per device           | One CEK<br/>per payload<br/>encryption<br/>transaction<br/>per device | Point-to-<br/>Point Payload<br/>Distribution | Yes                  |
 
 The use of firmware encryption with IoT devices introduces an battery
 exhaustion attack. This attack utilizes the fact that flash memory
