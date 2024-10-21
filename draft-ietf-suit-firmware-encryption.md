@@ -695,7 +695,7 @@ API of those ciphers and the protected header in the SUIT_Encryption_Info
 structure MUST be a zero-length byte string.
 
 AES-CTR and AES-CBC are discussed in separate sub-sections below and
-{{aes-ctr-fig}} and {{aes-cbc-fig }} use the following abbreviations:
+{{aes-ctr-fig}} and {{aes-cbc-fig}} use the following abbreviations:
 
 - Pi = Plaintext blocks
 - Ci = Ciphertext blocks
