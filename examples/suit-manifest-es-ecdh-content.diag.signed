@@ -57,7 +57,7 @@
 / 57/                 / kid / 4: 'kid-2'
 / 58/               },
 / 59/               / payload: /
-/ 60/                 h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
+/ 60/               h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
 / 61/                 / CEK encrypted with KEK /
 / 62/             ]
 / 63/           ]

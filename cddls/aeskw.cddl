@@ -18,7 +18,7 @@ empty_map = {}
 
 recipient_header_unpr_map_aeskw =
 {
-    1 => int,         ; algorithm identifier
-  ? 4 => bstr,        ; identifier of the KEK pre-shared with the recipient
+    1 => int,     ; algorithm identifier
+  ? 4 => bstr,    ; identifier of the KEK pre-shared with the recipient
   * label => values   ; extension point
 }

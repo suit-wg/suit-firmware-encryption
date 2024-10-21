@@ -1052,7 +1052,7 @@ An example command sequence is shown in {{figure-image-match-after-decryption}}.
   / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15,
-/ condition-image-match / 3, 15 / integrity check on decrypted payload /,
+/ condition-image-match / 3, 15 / check decrypted payload integrity /,
 ~~~
 {: #figure-image-match-after-decryption title="Check Image Match After Decryption"}
 
@@ -1078,7 +1078,7 @@ This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
   / parameter-uri / 21: "http://example.com/encrypted.bin"
 },
 / directive-fetch / 21, 15,
-/ condition-image-match / 3, 15 / integrity check on encrypted payload /,
+/ condition-image-match / 3, 15 / check decrypted payload integrity /,
 
 / directive-set-component-index / 12, 0,
 / directive-override-parameters / 20, {
@@ -1346,12 +1346,12 @@ While parsing the manifest, the behavior of SUIT manifest processor would be
 - [L2-L17] authenticates the manifest part on [L18-L68]
 - [L22-L25] gets two component identifiers; ['plaintext-firmware'] for component #0, and ['encrypted-firmware'] for component # 1 respectively
 - [L29] sets current component index # 1 (the lasting directives target ['encrypted-firmware'])
-- [L33] sets source uri parameter "https://example.com/encrypted-firmware"
-- [L35] fetches content from source uri into ['encrypted-firmware']
-- [L38] sets current component index # 0 (the lasting directives target ['plaintext-firmware'])
-- [L41-L61] sets SUIT encryption info parameter
-- [L62] sets source component index parameter # 1
-- [L65] decrypts component # 1 (source component index) and stores the result into component # 0 (current component index)
+- [L33-L34] sets source uri parameter "https://example.com/encrypted-firmware"
+- [L36] fetches content from source uri into ['encrypted-firmware']
+- [L39] sets current component index # 0 (the lasting directives target ['plaintext-firmware'])
+- [L42-L62] sets SUIT encryption info parameter
+- [L63-L64] sets source component index parameter # 1
+- [L66] decrypts component # 1 (source component index) and stores the result into component # 0 (current component index)
 
 The following attributes and features from the SUIT manifest specification are used:
 
