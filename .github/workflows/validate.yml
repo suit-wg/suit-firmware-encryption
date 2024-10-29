@@ -52,11 +52,11 @@ jobs:
     - name: Parse suit-manifest-aes-kw.suit
       run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw.suit
     - name: Process suit-manifest-aes-kw.suit
-      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw.suit -u "https://example.com/encrypted-firmware" -b "758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59"
     - name: Parse suit-manifest-aes-kw-slot.suit
       run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw-slot.suit
     - name: Process suit-manifest-aes-kw-slot.suit
-      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-slot.suit
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-slot.suit -u "https://example.com/encrypted-firmware" -b "758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59"
     - name: Parse suit-manifest-es-ecdh-content.suit
       run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-es-ecdh-content.suit
     - name: Process suit-manifest-es-ecdh-content.suit
