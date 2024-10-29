@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
-import sys
+import argparse
 import base64
 from cwt import COSE, COSEKey
 
-if len(sys.argv) != 3:
-    print(f"{sys.argv[0]} [hex-encryption-info] [hex-encrypted-payload]")
+parser = argparse.ArgumentParser()
+parser.add_argument("suit_encryption_info")
+parser.add_argument("encrypted_payload")
+parser.add_argument("--enable-non-aead", action="store_true")
+args = parser.parse_args()
 
-filename_hex_suit_encryption_info = sys.argv[1]
-filename_hex_encrypted_payload = sys.argv[2]
+filename_hex_suit_encryption_info = args.suit_encryption_info
+filename_hex_encrypted_payload = args.encrypted_payload
 filename_diag_suit_encryption_info = filename_hex_suit_encryption_info.replace(".hex", ".diag")
+enable_non_aead = args.enable_non_aead
 
 expected_plaintext_payload = b'This is a real firmware image.'
 
@@ -58,7 +62,7 @@ encrypted_payload_bytes = bytes.fromhex(encrypted_payload_hex)
 
 # 2. Decrypt the Encrypted Payload using SUIT_Encryption_Info
 ctx = COSE.new()
-result = ctx.decode(suit_encryption_info_bytes, keys=[private_key], context=kdf_context, detached_payload=encrypted_payload_bytes)
+result = ctx.decode(suit_encryption_info_bytes, keys=[private_key], context=kdf_context, detached_payload=encrypted_payload_bytes, enable_non_aead=enable_non_aead)
 print(f"\nDecrypted Payload: {result}")
 assert result == expected_plaintext_payload
 print("Successfully decrypted")

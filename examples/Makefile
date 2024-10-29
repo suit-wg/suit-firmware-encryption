@@ -106,17 +106,17 @@ validate_cddl_match: all cddl
 .PHONY: validate_decrypted_plaintext
 validate_decrypted_plaintext:
 	@echo "\n# AES-KW + A128GCM (Example 1)"
-	python3 ./validate_aeskw_suit_encryption_info.py suit-encryption-info-aes-kw-aes-gcm.hex encrypted-payload-aes-kw-aes-gcm.hex
+	python3 ./validate_aeskw_encrypted_payload.py suit-encryption-info-aes-kw-aes-gcm.hex encrypted-payload-aes-kw-aes-gcm.hex
 	@echo "\n# AES-KW + A128CTR"
-	python3 ./validate_aeskw_suit_encryption_info.py suit-encryption-info-aes-kw-aes-ctr.hex encrypted-payload-aes-kw-aes-ctr.hex
+	python3 ./validate_aeskw_encrypted_payload.py suit-encryption-info-aes-kw-aes-ctr.hex encrypted-payload-aes-kw-aes-ctr.hex --enable-non-aead
 	@echo "\n# AES-KW + A128CBC"
-	python3 ./validate_aeskw_suit_encryption_info.py suit-encryption-info-aes-kw-aes-cbc.hex encrypted-payload-aes-kw-aes-cbc.hex
+	python3 ./validate_aeskw_encrypted_payload.py suit-encryption-info-aes-kw-aes-cbc.hex encrypted-payload-aes-kw-aes-cbc.hex --enable-non-aead
 	@echo "\n# ECDH-ES+AES-KW + A128GCM (Example 2)"
-	python3 ./validate_esdh_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-gcm.hex encrypted-payload-es-ecdh-aes-gcm.hex
+	python3 ./validate_esdh_encrypted_payload.py suit-encryption-info-es-ecdh-aes-gcm.hex encrypted-payload-es-ecdh-aes-gcm.hex
 	@echo "\n# ECDH-ES+AES-KW + A128CTR"
-	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex
+	python3 ./validate_esdh_encrypted_payload.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex --enable-non-aead
 	@echo "\n# ECDH-ES+AES-KW + A128CBC"
-	python3 ./validate_esdh_non_aead_suit_encryption_info.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex
+	python3 ./validate_esdh_encrypted_payload.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex --enable-non-aead
 	@echo [SUCCESS] The expected plaintext firmware can be decrypted
 
 .PHONY: clean

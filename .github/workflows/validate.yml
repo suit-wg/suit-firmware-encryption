@@ -11,9 +11,9 @@ jobs:
         ruby-version: '3.2' # Not needed with a .ruby-version file
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - run: gem install cbor-diag
-    - run: gem install cddl -v 0.10.3
+    - run: gem install cddl
     - uses: actions/setup-python@v4
-    - run: python -m pip install cwt>=2.7.0
+    - run: python -m pip install cwt>=2.8.0
     - run: sudo apt-get update && sudo apt-get install -y xxd
     - name: Vaildate examples
       run: make -C examples/ validate
@@ -51,12 +51,12 @@ jobs:
       run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-content.suit
     - name: Parse suit-manifest-aes-kw.suit
       run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw.suit
-    - name: Process suit-manifest-aes-kw.suit
-      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw.suit
+    - name: Process suit-manifest-aes-kw.suit fetching encrypted payload from command line
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw.suit -u "https://example.com/encrypted-firmware" -b "758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59"
     - name: Parse suit-manifest-aes-kw-slot.suit
       run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-aes-kw-slot.suit
-    - name: Process suit-manifest-aes-kw-slot.suit
-      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-slot.suit
+    - name: Process suit-manifest-aes-kw-slot.suit fetching encrypted payload from command line
+      run: ./libcsuit/bin/suit_manifest_process ./suit-manifest-aes-kw-slot.suit -u "https://example.com/encrypted-firmware" -b "758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59"
     - name: Parse suit-manifest-es-ecdh-content.suit
       run: ./libcsuit/bin/suit_manifest_parser ./suit-manifest-es-ecdh-content.suit
     - name: Process suit-manifest-es-ecdh-content.suit
