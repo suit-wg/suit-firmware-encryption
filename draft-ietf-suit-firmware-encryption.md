@@ -1308,6 +1308,12 @@ In hex format, the SUIT manifest shown above is:
 {::include-fold examples/suit-manifest-aes-kw.hex.signed}
 ~~~
 
+The encrypted payload (with a line feed added) to be fetched from "https://example.com/encrypted-firmware" is:
+
+~~~
+{::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
+~~~
+
 The previous example does not utilize storage slots. However, it is possible to
 implement this functionality for devices that support slots in flash memory. In
 the enhanced example below, we reference the slots using [h'00'] and [h'01']. In
