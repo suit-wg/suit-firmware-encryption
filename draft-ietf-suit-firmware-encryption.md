@@ -240,7 +240,7 @@ the distribution system needs to know which method is supported. Limiting a
 constrained device to a single content key distribution method also helps
 reduce code size.
 
-~~~
+~~~ cddl
 SUIT_Parameters //= (suit-parameter-encryption-info
     => bstr .cbor SUIT_Encryption_Info)
 
@@ -302,6 +302,7 @@ payload will be stored into component #0.
   / parameter-uri / 21: "http://example.com/encrypted.bin",
 },
 / directive-fetch / 21, 15,
+
 / directive-set-component-index / 12, 0,
 / directive-override-parameters / 20, {
   / parameter-encryption-info / TBD19: h'D86...1F0',
@@ -437,12 +438,12 @@ unique CEKs. The sender needs to execute the following steps:
     2.  }
 ~~~
 
-### CDDL
+### The CDDL of SUIT_Encryption_Info for AES-KW binary
 
 The CDDL for the AES-KW binary is shown in {{cddl-aeskw}}.
 empty_or_serialized_map and header_map are structures defined in {{RFC9052}}.
 
-~~~
+~~~ cddl
 {::include-fold cddls/aeskw.cddl}
 ~~~
 {: #cddl-aeskw title="CDDL for AES-KW-based Content Key Distribution"}
@@ -519,13 +520,13 @@ The sender must then follow these steps:
         }
 ~~~
 
-### CDDL
+### The CDDL of SUIT_Encryption_Info for ES-DH binary
 
 The CDDL for the ECDH-ES+AES-KW binary is provided in {{cddl-esdh}}.
 Only the essential parameters are included. The structures empty_or_serialized_map
 and header_map are defined in {{RFC9052}}.
 
-~~~
+~~~ cddl
 {::include-fold cddls/esdh_aeskw.cddl}
 ~~~
 {: #cddl-esdh title="CDDL for ES-DH-based Content Key Distribution"}
@@ -566,7 +567,7 @@ the constant string "SUIT Payload Encryption".
 content of the recipient_header_map_esdh field, which contains (among other
 elements) the identifier of the content key distribution method.
 
-~~~ CDDL
+~~~ cddl
 {::include-fold cddls/kdf-context.cddl}
 ~~~
 {: #cddl-context-info title="CDDL for COSE_KDF_Context Structure"}
@@ -596,7 +597,7 @@ COSE specification requires a consistent byte stream to create the
 authenticated data structure. This structure is illustrated in
 {{cddl-enc-aeskw}} and defined in {{Section 5.3 of RFC9052}}.
 
-~~~
+~~~ cddl
  Enc_structure = [
    context : "Encrypt",
    protected : empty_or_serialized_map,
@@ -656,21 +657,21 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-encryption-info-aes-kw-aes-gcm.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{aeskw-aesgcm-example}}.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-encryption-info-aes-kw-aes-gcm.diag}
 ~~~
 {: #aeskw-aesgcm-example title="COSE_Encrypt Example for AES Key Wrap"}
 
 The encrypted payload (with a line feed added) was:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
 ~~~
 
@@ -695,21 +696,21 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-gcm.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{esdh-aesgcm-example}}.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-gcm.diag}
 ~~~
 {: #esdh-aesgcm-example title="COSE_Encrypt Example for ES-DH"}
 
 The encrypted payload (with a line feed added) was:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-gcm.hex}
 ~~~
 
@@ -774,21 +775,21 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-encryption-info-aes-kw-aes-ctr.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{aeskw-aesctr-example}}.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-encryption-info-aes-kw-aes-ctr.diag}
 ~~~
 {: #aeskw-aesctr-example title="COSE_Encrypt Example for AES Key Wrap"}
 
 The encrypted payload (with a line feed added) was:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-ctr.hex}
 ~~~
 
@@ -813,21 +814,21 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-ctr.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{esdh-aesctr-example}}.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-ctr.diag}
 ~~~
 {: #esdh-aesctr-example title="COSE_Encrypt Example for ES-DH"}
 
 The encrypted payload (with a line feed added) was:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-ctr.hex}
 ~~~
 
@@ -891,21 +892,21 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-encryption-info-aes-kw-aes-cbc.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{aeskw-aescbc-example}}.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-encryption-info-aes-kw-aes-cbc.diag}
 ~~~
 {: #aeskw-aescbc-example title="COSE_Encrypt Example for AES Key Wrap"}
 
 The encrypted payload (with a line feed added) was:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-cbc.hex}
 ~~~
 
@@ -930,21 +931,21 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
 ~~~
 
 The resulting COSE_Encrypt structure in a diagnostic format is shown in
 {{esdh-aescbc-example}}.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-cbc.diag}
 ~~~
 {: #esdh-aescbc-example title="COSE_Encrypt Example for ES-DH"}
 
 The encrypted payload (with a line feed added) was:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-cbc.hex}
 ~~~
 
@@ -985,7 +986,7 @@ An example command sequence is shown in {{figure-image-match-after-decryption}}.
   / parameter-source-component / 22: 1
 },
 / directive-copy / 22, 15,
-/ condition-image-match / 3, 15 / check decrypted payload integrity /,
+/ condition-image-match / 3, 15 / check decrypted payload integrity /
 ~~~
 {: #figure-image-match-after-decryption title="Check Image Match After Decryption"}
 
@@ -1010,6 +1011,7 @@ This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
   / parameter-image-size / 14: 30 / size of encrypted payload /,
   / parameter-uri / 21: "http://example.com/encrypted.bin"
 },
+
 / directive-fetch / 21, 15,
 / condition-image-match / 3, 15 / check decrypted payload integrity /,
 
@@ -1018,7 +1020,7 @@ This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
   / parameter-encryption-info / TBD19: h'D86...1F0',
   / parameter-source-component / 22: 1
 },
-/ directive-copy / 22, 15,
+/ directive-copy / 22, 15
 ~~~
 {: #figure-image-match-before-decryption title="Check Image Match Before Decryption"}
 
@@ -1237,13 +1239,13 @@ the encrypted payload into a component using the suit-directive-write directive.
 
 The SUIT manifest in diagnostic notation (with line breaks added for clarity) is displayed below:
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-manifest-aes-kw-content.diag.signed}
 ~~~
 
 In hex format, the SUIT manifest is:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-manifest-aes-kw-content.hex.signed}
 ~~~
 
@@ -1259,7 +1261,7 @@ is particularly effective for constrained devices with execute-in-place
 The SUIT manifest in diagnostic notation (with line breaks added for
 clarity) is displayed below:
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-manifest-aes-kw.diag.signed}
 ~~~
 
@@ -1302,8 +1304,14 @@ The resulting state of SUIT manifest processor is shown in the following table:
 
 In hex format, the SUIT manifest shown above is:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-manifest-aes-kw.hex.signed}
+~~~
+
+The encrypted payload (with a line feed added) to be fetched from "https://example.com/encrypted-firmware" is:
+
+~~~ test-vectors
+{::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
 ~~~
 
 The previous example does not utilize storage slots. However, it is possible to
@@ -1311,7 +1319,7 @@ implement this functionality for devices that support slots in flash memory. In
 the enhanced example below, we reference the slots using [h'00'] and [h'01']. In
 this context, the component identifier [h'00'] designates component slot #0.
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-manifest-aes-kw-slot.diag.signed}
 ~~~
 
@@ -1324,13 +1332,13 @@ the encrypted payload into a component via the suit-directive-write directive.
 The SUIT manifest in diagnostic notation (formatted with line breaks for clarity)
 is presented below:
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-manifest-es-ecdh-content.diag.signed}
 ~~~
 
 In hex format, the SUIT manifest is this:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-manifest-es-ecdh-content.hex.signed}
 ~~~
 
@@ -1354,13 +1362,13 @@ and referred to by the "#dependency-manifest" URI.
 The SUIT manifest in diagnostic notation (with line breaks added for
 readability) is shown here:
 
-~~~
+~~~ cbor-diag
 {::include-fold examples/suit-manifest-es-ecdh-dependency.diag.signed}
 ~~~
 
 In hex format, the SUIT manifest is this:
 
-~~~
+~~~ test-vectors
 {::include-fold examples/suit-manifest-es-ecdh-dependency.hex.signed}
 ~~~
 
@@ -1461,7 +1469,7 @@ parameter is set to 19, as the proposed value.
 The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
 Appendix A of {{I-D.ietf-suit-manifest}}
 
-~~~ CDDL
+~~~ cddl
 {::include-fold draft-ietf-suit-firmware-encryption.cddl}
 ~~~
 
