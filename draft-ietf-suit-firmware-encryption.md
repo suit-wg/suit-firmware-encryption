@@ -184,14 +184,14 @@ Note: It is assumed that the communication between the author and the distributi
  +----------+
  |  Device  |                              +----------+
  |    1     |<--+                          |  Author  |
- |          |   |                          +----------+
+ |          |   |                          +----+-----+
  +----------+   |                               |
                 |                               | Payload +
                 |                               | Manifest
                 |                               v
  +----------+   |                        +--------------+
  |  Device  |   |  Payload + Manifest    | Distribution |
- |    2     |<--+------------------------|    System    |
+ |    2     |<--+------------------------+    System    |
  |          |   |                        +--------------+
  +----------+   |
                 |
@@ -737,14 +737,14 @@ remaining sectors in the slot.
           |              |
           |              |
           |              |
-      +-------+      +-------+
+      +---+---+      +---+---+
       |       |      |       |
       |       |      |       |
-   k--|  E    |   k--|  E    |
+   k--+   E   |   k--+   E   |
       |       |      |       |
-      +-------+      +-------+
+      +---+---+      +---+---+
           |              |
-     P1---⊕        P2---⊕
+     P1---⊕         P2---⊕
           |              |
           |              |
           C1             C2
@@ -849,17 +849,17 @@ If the firmware image occupies the entire slot, it will contain 16 sectors, corr
 to IVs ranging from 0 to 15.
 
 ~~~ aasvg
-       P1              P2
+        P1             P2
         |              |
-   IV---⊕    +--------⊕
+   IV---⊕     +--------⊕
         |     |        |
         |     |        |
-    +-------+ |    +-------+
+    +---+---+ |    +---+---+
     |       | |    |       |
     |       | |    |       |
- k--|  E    | | k--|  E    |
+ k--+   E   | | k--+   E   |
     |       | |    |       |
-    +-------+ |    +-------+
+    +---+---+ |    +---+---+
         |     |        |
         +-----+        |
         |              |
