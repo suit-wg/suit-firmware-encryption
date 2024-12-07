@@ -3,20 +3,20 @@
 
 
 SUIT                                                       H. Tschofenig
-Internet-Draft                                                          
+Internet-Draft                                                     H-BRS
 Intended status: Standards Track                              R. Housley
-Expires: 9 January 2025                                   Vigil Security
+Expires: 10 June 2025                                     Vigil Security
                                                                 B. Moran
                                                              Arm Limited
                                                                 D. Brown
                                                                   Linaro
                                                              K. Takayama
                                                          SECOM CO., LTD.
-                                                             8 July 2024
+                                                         7 December 2024
 
 
                   Encrypted Payloads in SUIT Manifests
-                 draft-ietf-suit-firmware-encryption-20
+                 draft-ietf-suit-firmware-encryption-22
 
 Abstract
 
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 January 2025.
+   This Internet-Draft will expire on 10 June 2025.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                 [Page 1]
+Tschofenig, et al.        Expires 10 June 2025                  [Page 1]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -72,89 +72,89 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
    2.  Conventions and Terminology . . . . . . . . . . . . . . . . .   4
    3.  Architecture  . . . . . . . . . . . . . . . . . . . . . . . .   5
-   4.  Encryption Extensions . . . . . . . . . . . . . . . . . . . .   8
+   4.  Encryption Extensions . . . . . . . . . . . . . . . . . . . .   7
    5.  Extended Directives . . . . . . . . . . . . . . . . . . . . .   8
    6.  Content Key Distribution  . . . . . . . . . . . . . . . . . .  10
-     6.1.  Content Key Distribution with AES Key Wrap  . . . . . . .  11
-       6.1.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  11
+     6.1.  Content Key Distribution with AES Key Wrap  . . . . . . .  10
+       6.1.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  10
        6.1.2.  Deployment Options  . . . . . . . . . . . . . . . . .  11
        6.1.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  12
      6.2.  Content Key Distribution with Ephemeral-Static
            Diffie-Hellman  . . . . . . . . . . . . . . . . . . . . .  13
        6.2.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  13
-       6.2.2.  Deployment Options  . . . . . . . . . . . . . . . . .  14
-       6.2.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  15
-       6.2.4.  Context Information Structure . . . . . . . . . . . .  16
+       6.2.2.  Deployment Options  . . . . . . . . . . . . . . . . .  13
+       6.2.3.  CDDL  . . . . . . . . . . . . . . . . . . . . . . . .  14
+       6.2.4.  Context Information Structure . . . . . . . . . . . .  15
    7.  Content Encryption  . . . . . . . . . . . . . . . . . . . . .  17
      7.1.  AES-GCM . . . . . . . . . . . . . . . . . . . . . . . . .  18
-       7.1.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  18
+       7.1.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  19
        7.1.2.  AES-KW + AES-GCM Example  . . . . . . . . . . . . . .  19
        7.1.3.  ECDH-ES+AES-KW + AES-GCM Example  . . . . . . . . . .  20
-     7.2.  AES-CTR . . . . . . . . . . . . . . . . . . . . . . . . .  21
+     7.2.  AES-CTR . . . . . . . . . . . . . . . . . . . . . . . . .  22
        7.2.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  22
        7.2.2.  AES-KW + AES-CTR Example  . . . . . . . . . . . . . .  23
        7.2.3.  ECDH-ES+AES-KW + AES-CTR Example  . . . . . . . . . .  24
-     7.3.  AES-CBC . . . . . . . . . . . . . . . . . . . . . . . . .  25
-       7.3.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  25
+     7.3.  AES-CBC . . . . . . . . . . . . . . . . . . . . . . . . .  26
+       7.3.1.  Introduction  . . . . . . . . . . . . . . . . . . . .  26
        7.3.2.  AES-KW + AES-CBC Example  . . . . . . . . . . . . . .  27
-       7.3.3.  ECDH-ES+AES-KW + AES-CBC Example  . . . . . . . . . .  28
-   8.  Integrity Check on Encrypted and Decrypted Payloads . . . . .  29
-     8.1.  Validating Payload Integrity  . . . . . . . . . . . . . .  29
-       8.1.1.  Image Match after Decryption  . . . . . . . . . . . .  30
-       8.1.2.  Image Match before Decryption . . . . . . . . . . . .  30
-       8.1.3.  Checking Authentication Tag while Decrypting  . . . .  31
-     8.2.  Payload Integrity Validation  . . . . . . . . . . . . . .  31
-   9.  Firmware Updates on IoT Devices with Flash Memory . . . . . .  33
-   10. Complete Examples . . . . . . . . . . . . . . . . . . . . . .  35
+       7.3.3.  ECDH-ES+AES-KW + AES-CBC Example  . . . . . . . . . .  29
+   8.  Integrity Check on Encrypted and Decrypted Payloads . . . . .  30
+     8.1.  Validating Payload Integrity  . . . . . . . . . . . . . .  31
+       8.1.1.  Image Match after Decryption  . . . . . . . . . . . .  31
+       8.1.2.  Image Match before Decryption . . . . . . . . . . . .  31
+       8.1.3.  Checking Authentication Tag while Decrypting  . . . .  32
+     8.2.  Payload Integrity Validation  . . . . . . . . . . . . . .  32
+   9.  Firmware Updates on IoT Devices with Flash Memory . . . . . .  34
+   10. Complete Examples . . . . . . . . . . . . . . . . . . . . . .  36
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                 [Page 2]
+Tschofenig, et al.        Expires 10 June 2025                  [Page 2]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-     10.1.  AES Key Wrap Example with Write Directive  . . . . . . .  36
-     10.2.  AES Key Wrap Example with Fetch + Copy Directives  . . .  38
-     10.3.  ES-DH Example with Write + Copy Directives . . . . . . .  43
-     10.4.  ES-DH Example with Dependency  . . . . . . . . . . . . .  45
-   11. Operational Considerations  . . . . . . . . . . . . . . . . .  49
-   12. Security Considerations . . . . . . . . . . . . . . . . . . .  50
-   13. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  52
-   14. References  . . . . . . . . . . . . . . . . . . . . . . . . .  52
-     14.1.  Normative References . . . . . . . . . . . . . . . . . .  52
-     14.2.  Informative References . . . . . . . . . . . . . . . . .  53
-   Appendix A.  Full CDDL  . . . . . . . . . . . . . . . . . . . . .  54
-   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  54
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  54
+     10.1.  AES Key Wrap Example with Write Directive  . . . . . . .  37
+     10.2.  AES Key Wrap Example with Fetch + Copy Directives  . . .  39
+     10.3.  ES-DH Example with Write + Copy Directives . . . . . . .  44
+     10.4.  ES-DH Example with Dependency  . . . . . . . . . . . . .  46
+   11. Operational Considerations  . . . . . . . . . . . . . . . . .  51
+   12. Security Considerations . . . . . . . . . . . . . . . . . . .  52
+   13. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  54
+   14. References  . . . . . . . . . . . . . . . . . . . . . . . . .  54
+     14.1.  Normative References . . . . . . . . . . . . . . . . . .  54
+     14.2.  Informative References . . . . . . . . . . . . . . . . .  55
+   Appendix A.  Full CDDL  . . . . . . . . . . . . . . . . . . . . .  56
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  56
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  56
 
 1.  Introduction
 
-   Vulnerabilities with Internet of Things (IoT) devices have raised the
-   need for a reliable and secure firmware update mechanism that is also
-   suitable for constrained devices.  To protect firmware images, the
-   SUIT manifest format was developed [I-D.ietf-suit-manifest].  It
-   provides a bundle of metadata, including where to find the payload,
-   the devices to which it applies and a security wrapper.
+   Vulnerabilities in Internet of Things (IoT) devices have highlighted
+   the need for a reliable and secure firmware update mechanism,
+   especially for constrained devices.  To protect firmware images, the
+   SUIT manifest format was developed [I-D.ietf-suit-manifest].  A
+   manifest is a bundle of metadata about the firmware for an IoT
+   device, where to find the firmware, and the devices to which it
+   applies.  [RFC9124] outlines the necessary information a SUIT
+   manifest has to provide.  In addition to protecting against
+   modification via digital signatures or message authentication codes,
+   the format can also offer confidentiality.
 
-   [RFC9124] details the information that has to be provided by the SUIT
-   manifest format.  In addition to offering protection against
-   modification, via a digital signature or a message authentication
-   code, confidentiality may also be afforded.
-
-   Encryption prevents third parties, including attackers, from gaining
-   access to the payload.  Attackers typically need intimate knowledge
-   of a binary, such as a firmware image, to mount their attacks.  For
-   example, return-oriented programming (ROP) [ROP] requires access to
-   the binary and encryption makes it much more difficult to write
-   exploits.  Beside confidentiality of the binary, confidentiality of
-   the sources (e.g. in case of open source software) may be required as
-   well to prevent reverse engineering and/or reproduction of the binary
+   Encryption prevents third parties, including attackers, from
+   accessing the payload.  Attackers often require detailed knowledge of
+   a binary, such as a firmware image, to launch successful attacks.
+   For instance, return-oriented programming (ROP) [ROP] requires access
+   to the binary, and encryption makes writing exploits significantly
+   more difficult.  Beyond ensuring the confidentiality of the binary
+   itself, protecting the confidentiality of the source code will also
+   be necessary to prevent reverse engineering and reproduction of the
    firmware.
 
-   While the original motivating use case of this document was firmware
-   encryption, the use of SUIT manifests has been extended to other use
-   cases requiring integrity and confidentiality protection, such as:
+   While the initial motivation for this document was firmware
+   encryption, the use of SUIT manifests has expanded to cover other
+   scenarios requiring integrity and confidentiality protection, such
+   as:
 
    *  software packages,
 
@@ -165,42 +165,41 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                 [Page 3]
+Tschofenig, et al.        Expires 10 June 2025                  [Page 3]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    *  machine learning models.
 
-   Hence, we use the term payload to generically refer to all those
+   Thus, the term "payload" is used generically to refer to all these
    objects.
 
    The payload is encrypted using a symmetric content encryption key,
-   which can be established using a variety of mechanisms; this document
+   which can be established through various mechanisms.  This document
    defines two content key distribution methods for use with the IETF
-   SUIT manifest, namely:
+   SUIT manifest:
 
    *  Ephemeral-Static (ES) Diffie-Hellman (DH), and
 
    *  AES Key Wrap (AES-KW).
 
-   The former method relies on asymmetric key cryptography while the
-   latter uses symmetric key cryptography.
+   The first method relies on asymmetric cryptography, while the second
+   uses symmetric cryptography.
 
    Our design aims to reduce the number of content key distribution
-   methods for use with payload encryption and thereby increase
-   interoperability between different SUIT manifest parser
-   implementations.
+   methods for payload encryption, thereby increasing interoperability
+   between different SUIT manifest parser implementations.
 
-   The goal of this specification is to protect payloads during end-to-
-   end transport, and at rest when stored on a device.  Constrained
-   devices often make use of XIP, which is a method of executing code
-   directly from flash memory rather than copying it into RAM.  Since
-   many of these devices today do not offer hardware-based, on-the-fly
-   decryption of code stored in flash memory, it may be necessary to
-   decrypt and store firmware images in on-chip flash before code can be
-   executed.  We do, however, expect that hardware-based, on-the-fly
-   decryption will become more common in the future, which will improve
+   The goal of this specification is to protect payloads both during
+   end-to-end transport (from the distribution system to the device) and
+   at rest when stored on the device.  Constrained devices often employ
+   eXecute In Place (XIP), a method of executing code directly from
+   flash memory rather than loading it into RAM.  Many of these devices
+   lack hardware-based, on-the-fly decryption for code stored in flash
+   memory, which may require decrypting and storing firmware images in
+   on-chip flash before execution.  However, we expect hardware-based,
+   on-the-fly decryption to become more common in the future, enhancing
    confidentiality at rest.
 
 2.  Conventions and Terminology
@@ -221,9 +220,10 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                 [Page 4]
+
+Tschofenig, et al.        Expires 10 June 2025                  [Page 4]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    *  Key-Encryption Key (KEK) [RFC3394]
@@ -250,7 +250,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    the KEK (for AES-KW).
 
    The author, which is responsible for creating the payload, does not
-   know the recipients.  The authors may, for example, be a developer
+   know the recipients.  The author may, for example, be a developer
    building a firmware image.
 
    The author and the distribution system are logical roles.  In some
@@ -259,33 +259,45 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 3.  Architecture
 
-   [RFC9019] describes the architecture for distributing payloads and
-   manifests from an author to devices.  It does, however, not detail
-   the use of payload encryption.  This document enhances the
-   architecture to support encryption and Figure 1 shows it graphically.
+   [RFC9019] outlines the architecture for distributing payloads and
+   manifests from an author to devices.  However, it does not cover
+   payload encryption in detail.  This document extends that
+   architecture to support encryption, as illustrated in Figure 1.
 
-   To encrypt a payload it is necessary to know the recipient.  For AES-
-   KW, the KEK needs to be known and, in case of ES-DH, the sender needs
-   to be in possession of the public key of the recipient.  The public
-   key and parameters may be in the recipient's X.509 certificate
-   [RFC5280].  For authentication of the sender and for integrity
-   protection the recipients must be provisioned with a trust anchor
-   when a manifest is protected using a digital signature.  When a MAC
-   is used to protect the manifest then a symmetric key must be shared
-   by the recipient and the sender.
-
-
+   To encrypt a payload, it is essential to know the recipient.  For
+   AES-KW, the Key Encryption Key (KEK) must be known, and for ES-DH,
+   the sender needs access to the recipient's public key.  This public
+   key and its associated parameters may be found in the recipient's
+   X.509 certificate [RFC5280].  For authentication and integrity
+   protection, recipients must be provisioned with a trust anchor when
+   the manifest is protected by a digital signature.  If a MAC is used
+   for manifest protection, a symmetric key must be shared between the
+   recipient and the sender.
 
 
-Tschofenig, et al.       Expires 9 January 2025                 [Page 5]
+
+
+Tschofenig, et al.        Expires 10 June 2025                  [Page 5]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   With encryption, the author cannot just create a manifest for the
-   payload and sign it, since it typically does not know the recipients.
-   Hence, the author has to collaborate with the distribution system.
-   The varying degree of collaboration is discussed below.
+   With encryption, the author cannot simply create and sign a manifest
+   for the payload, as the recipients are often unknown.  Therefore, the
+   author must collaborate with the distribution system.  The degree of
+   this collaboration is discussed below.
+
+   The primary purpose of encryption is to protect against adversaries
+   along the path between the distribution system and the device.  There
+   is also a risk that adversaries may extract the decrypted firmware
+   image from the device itself.  Consequently, the device must be
+   safeguarded against physical attacks, though such countermeasures are
+   typically beyond the scope of IETF specifications.
+
+   Note: It is assumed that the communication between the author and the
+   distribution system is secure.  For example, the author might upload
+   the manifest and firmware image to the distribution system using a
+   secure HTTPS REST API.
 
     +----------+
     |  Device  |                              +----------+
@@ -311,119 +323,88 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
      Figure 1: Architecture for the distribution of Encrypted Payloads.
 
-   The author has several deployment options, namely:
-
-   *  The author, as the sender, obtains information about the
-      recipients and their keys from the distribution system.  There are
-      proprietary as well as standardized device management solutions
-      available providing this functionality, as discussed in [RFC9019].
-      Then, it performs the necessary steps to encrypt the payload.  As
-      a last step it creates one or more manifests.  The device(s)
-      perform decryption and act as recipients.
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                 [Page 6]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-   *  The author treats the distribution system as the initial
-      recipient.  The author typically uses REST APIs or web user
-      interfaces to interact with the distribution system.  Then, the
-      distribution system decrypts and re-encrypts the payload for
-      consumption by the device (or the devices).  Delegating the task
-      of re-encrypting the payload to the distribution system offers
-      flexibility when the number of devices that need to receive
-      encrypted payloads changes dynamically or when updates to KEKs or
-      recipient public keys are necessary.  As a downside, the author
-      needs to trust the distribution system with performing the re-
-      encryption of the payload.
-
-   If the author delegates encryption rights to the distributor two
+   When the author delegates encryption rights to the distributor, two
    models are possible:
 
-   1.  The distributor replaces the COSE_Encrypt in the manifest and
-       then signs the manifest again.  However, the COSE_Encrypt
-       structure is contained within a signed container, which presents
-       a problem: replacing the COSE_Encrypt with a new one will cause
-       the digest of the manifest to change, thereby changing the
-       signature.  This means that the distributor must be able to sign
-       the new manifest.  If this is the case, then the distributor
-       gains the ability to construct and sign manifests, which allows
-       the distributor the authority to sign code, effectively
-       presenting the distributor with full control over the recipient.
-       Because distributors typically perform their re-encryption online
-       in order to handle a large number of devices in a timely fashion,
-       it is not possible to air-gap the distributor's signing
-       operations.  This impacts the recommendations in Section 4.3.17
-       of [RFC9124].  This model nevertheless represent the current
-       state of firmware updates for IoT devices.
-
-   2.  The distributor uses a two-layer manifest system.  More
-       precisely, the distributor constructs a new manifest that
-       overrides the COSE_Encrypt using the dependency system defined in
-       [I-D.ietf-suit-trust-domains].  This incurs additional overhead:
-       one additional signature verification and one additional
-       manifest, as well as the additional machinery in the recipient
-       needed for dependency processing.  This extra complexity offers
-       extra security.
-
-   These two models also present different threat profiles for the
-   distributor.  If the distributor only has encryption rights, then an
-   attacker who breaches the distributor can only mount a limited
-   attack: they can encrypt a modified binary, but the recipients will
-   identify the attack as soon as they perform the required image digest
-   check and revert back to a correct image immediately.
+   1.  Replacing the COSE_Encrypt and Re-signing the Manifest: The
+       distributor replaces the COSE_Encrypt structure in the manifest
+       and then signs the manifest again.  However, since the
+       COSE_Encrypt structure is within a signed container, this
 
 
 
-
-Tschofenig, et al.       Expires 9 January 2025                 [Page 7]
+Tschofenig, et al.        Expires 10 June 2025                  [Page 6]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   It is RECOMMENDED that distributors implement the two-layer manifest
-   approach in order to distribute content encryption keys without
-   requiring re-signing of the manifest, despite the increase in
-   complexity and greater number of signature verifications that this
-   imposes on the recipient.
+       presents a challenge: replacing COSE_Encrypt alters the digest of
+       the manifest, thereby invalidating the signature.  As a result,
+       the distributor must be able to sign the new manifest.  If this
+       is the case, the distributor gains the authority to construct and
+       sign manifests, effectively allowing them to sign code and giving
+       them full control over the recipient.  Distributors typically
+       perform re-encryption online to manage large numbers of devices
+       efficiently, which prevents air-gapping the signing operations.
+       This has implications for the recommendations in Section 4.3.17
+       of [RFC9124].  Despite these issues, this model represents the
+       current standard practice for IoT firmware updates.
+
+   2.  Two-Layer Manifest System: The distributor creates a new manifest
+       that overrides the COSE_Encrypt using the dependency system
+       defined in [I-D.ietf-suit-trust-domains].  This method introduces
+       additional overhead, including one more signature verification,
+       one extra manifest, and the need for extra mechanisms on the
+       recipient side to handle dependency processing.  While this adds
+       complexity, it also enhances security.
+
+   These two models offer different threat profiles for the distributor.
+   If the distributor is limited to encryption rights, an attacker who
+   breaches the distributor can only launch a limited attack by
+   encrypting a modified binary.  However, recipients will detect the
+   attack during the image digest check and immediately revert to the
+   correct image.
+
+   It is RECOMMENDED that distributors adopt the two-layer manifest
+   approach to distribute content encryption keys without re-signing the
+   manifest, despite the added complexity and the increased number of
+   signature verifications required on the recipient side.
 
 4.  Encryption Extensions
 
    This specification introduces a new extension to the SUIT_Parameters
    structure.
 
-   The SUIT_Encryption_Info structure (called suit-parameter-encryption-
-   info in Figure 2) contains the content key distribution information.
-   The content of the SUIT_Encryption_Info structure is explained in
-   Section 6.1 (for AES-KW) and in Section 6.2 (for ES-DH).
+   The SUIT_Encryption_Info structure (referred to as suit-parameter-
+   encryption-info in Figure 2) contains the content key distribution
+   information.  The details of the SUIT_Encryption_Info structure are
+   provided in Section 6.1 (for AES-KW) and Section 6.2 (for ES-DH).
 
-   Once a CEK is available, the steps described in Section 7 are
-   applicable.  These steps apply to both content key distribution
-   methods described in this section.
+   Once a CEK is available, the steps outlined in Section 7 apply to
+   both content key distribution methods described in this section.
 
-   The SUIT_Encryption_Info structure is either carried inside the suit-
-   directive-override-parameters or the suit-directive-set-parameters
-   parameters used in the "Directive Write" and "Directive Copy"
-   directives.  An implementation claiming conformance with this
-   specification must implement support for these two parameters.  Since
-   a device will typically only support one of the content key
-   distribution methods, the distribution system needs to know which of
-   two specified methods is supported.  Mandating only a single content
-   key distribution method for a constrained device also reduces the
-   code size.
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                  [Page 7]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   The SUIT_Encryption_Info structure is carried within either the suit-
+   directive-override-parameters or suit-directive-set-parameters used
+   in the "Directive Write" and "Directive Copy" operations.  An
+   implementation conforming to this specification must support these
+   two parameters.
+
+   Interoperability requirements for content key distribution methods
+   vary: since a device will typically support only one of the two
+   specified methods, the distribution system needs to know which method
+   is supported.  Limiting a constrained device to a single content key
+   distribution method also helps reduce code size.
 
    SUIT_Parameters //= (suit-parameter-encryption-info
        => bstr .cbor SUIT_Encryption_Info)
@@ -437,33 +418,37 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 5.  Extended Directives
 
-   This specification extends these directives:
+   This specification extends the following directives:
 
-   *  Directive Write (suit-directive-write) to decrypt the content
-      specified by suit-parameter-content with suit-parameter-
+   *  Directive Write (suit-directive-write): Used to decrypt the
+      content specified by suit-parameter-content using suit-parameter-
       encryption-info.
 
+   *  Directive Copy (suit-directive-copy): Used to decrypt the content
+      of the component specified by suit-parameter-source-component
+      using suit-parameter-encryption-info.
 
-
-Tschofenig, et al.       Expires 9 January 2025                 [Page 8]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-   *  Directive Copy (suit-directive-copy) to decrypt the content of the
-      component specified by suit-parameter-source-component with suit-
-      parameter-encryption-info.
-
-   Examples of the two directives are shown below.  These example focus
-   on the essential aspects.  A complete example for AES Key Wrap with
-   the Fetch and Copy Directives can be found in Section 10.2.  An
-   example illustrating the Write Directive is shown in Section 10.1.
+   Examples of these two directives are provided below, focusing on the
+   essential aspects.  A complete example for AES Key Wrap with the
+   Fetch and Copy directives can be found in Section 10.2, while an
+   example illustrating the Write directive is shown in Section 10.1.
 
    Figure 3 illustrates the Directive Write.  The encrypted payload
-   specified with parameter-content, namely h'EA1...CED' in the example,
-   is decrypted using the SUIT_Encryption_Info structure referred to by
-   parameter-encryption-info, i.e., h'D86...1F0'.  The resulting
-   plaintext payload is stored into component #0.
+   specified by parameter-content, represented as h'EA1...CED' in the
+   example, is decrypted using the SUIT_Encryption_Info structure
+   referenced by parameter-encryption-info, i.e., h'D86...1F0'.  The
+   resulting plaintext payload is then stored in component #0.
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                  [Page 8]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    / directive-override-parameters / 20, {
      / parameter-content / 18: h'EA1...CED',
@@ -478,10 +463,10 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    Figure 4 illustrates the Directive Copy.  In this example the
    encrypted payload is found at the URI indicated by the parameter-uri,
-   i.e. "http://example.com/encrypted.bin".  The encrypted payload will
+   i.e., "http://example.com/encrypted.bin".  The encrypted payload will
    be downloaded and stored in component #1.  Then, the information in
    the SUIT_Encryption_Info structure referred to by parameter-
-   encryption-info, i.e. h'D86...1F0', will be used to decrypt the
+   encryption-info, i.e., h'D86...1F0', will be used to decrypt the
    content in component #1 and the resulting plaintext payload will be
    stored into component #0.
 
@@ -499,13 +484,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
         Figure 4: Example showing the extended suit-directive-copy.
 
-
-
-Tschofenig, et al.       Expires 9 January 2025                 [Page 9]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
    RFC Editor's Note (TBD19): The value for the suit-parameter-
    encryption-info parameter is set to 19, as the proposed value.
 
@@ -519,6 +497,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    particularly a concern when a cipher without integrity protection is
    used.
 
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                  [Page 9]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
    To provide authentication and integrity protection of the payload in
    the detached payload case a SUIT Digest Container with the hash of
    the encrypted and/or plaintext payload MUST be included in the
@@ -531,70 +518,60 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 6.  Content Key Distribution
 
-   The sub-sections below describe two content key distribution methods,
-   namely AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-
-   DH).  Many other methods are specified in the literature, and are
-   even supported by COSE.  AES-KW and ES-DH cover the popular methods
-   used in the market today and they were selected due to their
-   maturity, different security properties, and because of their
-   interoperability properties.
+   The following sub-sections describe two content key distribution
+   methods: AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman
+   (ES-DH).  While many other methods are specified in the literature
+   and supported by COSE, AES-KW and ES-DH were chosen for their
+   widespread use in the market today.  They were selected for their
+   maturity, differing security properties, and strong interoperability.
 
-   The two content key distribution methods require the CEKs to be
-   randomly generated.  The guidelines for random number generation in
-   [RFC8937] MUST be followed.
+   Both content key distribution methods require the CEKs to be randomly
+   generated.  The guidelines for random number generation in [RFC8937]
+   MUST be followed.
 
-   When an encrypted payload is sent to multiple recipients, there are
-   different deployment options.  To explain these options we use the
-   following notation:
+   When sending an encrypted payload to multiple recipients, various
+   deployment options are available.  The following notation is used to
+   explain these options:
 
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 10]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-      - KEK(R1, S) refers to a KEK shared between recipient R1 and
-        the sender S.
-      - CEK(R1, S) refers to a CEK shared between R1 and S.
-      - CEK(*, S) or KEK(*, S) are used when a single CEK or a single
-        KEK is shared with all authorized recipients by a given sender
-        S in a certain context.
-      - ENC(plaintext, k) refers to the encryption of plaintext with
-        a key k.
+     - KEK[R1, S] refers to a KEK shared between recipient R1 and
+       the sender S.
+     - CEK[R1, S] refers to a CEK shared between R1 and S.
+     - CEK[*, S] or KEK[*, S] are used when a single CEK or a single
+       KEK is shared with all authorized recipients by a given sender
+       S in a certain context.
+     - ENC(plaintext, k) refers to the encryption of plaintext with
+       a key k.
 
 6.1.  Content Key Distribution with AES Key Wrap
 
 6.1.1.  Introduction
 
-   The AES Key Wrap (AES-KW) algorithm is described in [RFC3394], and
-   can be used to encrypt a randomly generated content-encryption key
-   (CEK) with a pre-shared key-encryption key (KEK).  The COSE
-   conventions for using AES-KW are specified in Section 8.5.2 of
-   [RFC9052] and in Section 6.2.1 of [RFC9053].  The encrypted CEK is
-   carried in the COSE_recipient structure alongside the information
-   needed for AES-KW.  The COSE_recipient structure, which is a
-   substructure of the COSE_Encrypt structure, contains the CEK
-   encrypted by the KEK.
+   The AES Key Wrap (AES-KW) algorithm, as described in [RFC3394], is
+   used to encrypt a randomly generated content-encryption key (CEK)
+   with a pre-shared key-encryption key (KEK).  The COSE conventions for
+   using AES-KW are specified in Section 8.5.2 of [RFC9052] and in
+   Section 6.2.1 of [RFC9053].  The encrypted CEK is carried within the
+   COSE_recipient structure , which includes the necessary information
+   for AES-KW.  The COSE_recipient structure, a substructure of
+   COSE_Encrypt, contains the CEK encrypted by the KEK.
 
-   To provide high security for AES Key Wrap, it is important that the
-   KEK is of high entropy, and that implementations protect the KEK from
-   disclosure.  Compromise of the KEK may result in the disclosure of
-   all data protected with that KEK, including binaries, and
-   configuration data.
 
-   The COSE_Encrypt structure conveys information for encrypting the
-   payload, which includes information like the algorithm and the IV,
-   even though the payload may not be embedded in the
-   COSE_Encrypt.ciphertext if it is conveyed as detached content.
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 10]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   To ensure high security when using AES Key Wrap, it is important that
+   the KEK is of high entropy and that implementations protect the KEK
+   from disclosure.  A compromised KEK could expose all data encrypted
+   with it, including binaries and configuration data.
+
+   The COSE_Encrypt structure conveys the information needed to encrypt
+   the payload, including details such as the algorithm and IV.  Even
+   though the payload may be conveyed as detached content, the
+   encryption information is still embedded in the
+   COSE_Encrypt.ciphertext structure.
 
 6.1.2.  Deployment Options
 
@@ -605,18 +582,10 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
       same KEK, a single COSE_recipient structure contains the encrypted
       CEK.  The sender executes the following steps:
 
-        1. Fetch KEK(*, S)
+        1. Fetch KEK[*, S]
         2. Generate CEK
         3. ENC(CEK, KEK)
         4. ENC(payload, CEK)
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 11]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
 
    This deployment option is strongly discouraged.  An attacker gaining
    access to the KEK will be able to encrypt and send payloads to all
@@ -635,24 +604,33 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
        1.  Generate CEK
        2.  for i=1 to n
            {
-       2a.    Fetch KEK(Ri, S)
-       2b.    ENC(CEK, KEK(Ri, S))
+       2a.    Fetch KEK[Ri, S]
+       2b.    ENC(CEK, KEK[Ri, S])
            }
        3.  ENC(payload, CEK)
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 11]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    *  The third option is to use different CEKs encrypted with KEKs of
       authorized recipients.  This approach is appropriate when no
       benefits can be gained from encrypting and transmitting payloads
       only once.  Assume there are n recipients with their unique KEKs -
-      KEK(R1, S), ..., KEK(Rn, S) and unique CEKs.  The sender needs to
+      KEK[R1, S], ..., KEK[Rn, S] and unique CEKs.  The sender needs to
       execute the following steps:
 
        1.  for i=1 to n
            {
-       1a.    Fetch KEK(Ri, S)
-       1b.    Generate CEK(Ri, S)
-       1c.    ENC(CEK(Ri, S), KEK(Ri, S))
-       1d.    ENC(payload, CEK(Ri, S))
+       1a.    Fetch KEK[Ri, S]
+       1b.    Generate CEK[Ri, S]
+       1c.    ENC(CEK[Ri, S], KEK[Ri, S])
+       1d.    ENC(payload, CEK[Ri, S])
        2.  }
 
 6.1.3.  CDDL
@@ -661,45 +639,42 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    empty_or_serialized_map and header_map are structures defined in
    [RFC9052].
 
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
+
+   SUIT_Encryption_Info_AESKW = #6.96([
+     protected   : outer_header_map_protected,
+     unprotected : outer_header_map_unprotected,
+     ciphertext  : bstr / nil,
+     recipients  : [ + COSE_recipient_AESKW ]
+   ])
+
+   outer_header_map_protected = empty_or_serialized_map
+   outer_header_map_unprotected = header_map
+
+   COSE_recipient_AESKW = [
+     protected   : bstr .size 0 / bstr .cbor empty_map,
+     unprotected : recipient_header_unpr_map_aeskw,
+     ciphertext  : bstr        ; CEK encrypted with KEK
+   ]
+
+   empty_map = {}
+
+   recipient_header_unpr_map_aeskw =
+   {
+       1 => int,     ; algorithm identifier
+     ? 4 => bstr,    ; identifier of the KEK pre-shared with the \
+                                                               recipient
+     * label => values   ; extension point
+   }
 
 
 
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 12]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 12]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-SUIT_Encryption_Info_AESKW = #6.96([
-  protected   : outer_header_map_protected,
-  unprotected : outer_header_map_unprotected,
-  ciphertext  : bstr / nil,
-  recipients  : [ + COSE_recipient_AESKW ]
-])
-
-outer_header_map_protected = empty_or_serialized_map
-outer_header_map_unprotected = header_map
-
-COSE_recipient_AESKW = [
-  protected   : bstr .size 0 / bstr .cbor empty_map,
-  unprotected : recipient_header_unpr_map_aeskw,
-  ciphertext  : bstr        ; CEK encrypted with KEK
-]
-
-empty_map = {}
-
-recipient_header_unpr_map_aeskw =
-{
-    1 => int,         ; algorithm identifier
-  ? 4 => bstr,        ; identifier of the KEK pre-shared with the recipient
-  * label => values   ; extension point
-}
-
-       Figure 5: CDDL for AES-KW-based Content Key Distribution
+          Figure 5: CDDL for AES-KW-based Content Key Distribution
 
    Note that the AES-KW algorithm, as defined in Section 2.2.3.1 of
    [RFC3394], does not have public parameters that vary on a per-
@@ -710,95 +685,106 @@ recipient_header_unpr_map_aeskw =
 
 6.2.1.  Introduction
 
-   Ephemeral-Static Diffie-Hellman (ES-DH) is a scheme that provides
-   public key encryption given a recipient's public key.  There are
-   multiple variants of this scheme; this document re-uses the variant
-   specified in Section 8.5.5 of [RFC9052].
+   Ephemeral-Static Diffie-Hellman (ES-DH) is a public key encryption
+   scheme that enables encryption using the recipient's public key.
+   There are several variations of this scheme; this document adopts the
+   version specified in Section 8.5.5 of [RFC9052].
 
-   The following two layer structure is used:
+   The structure is composed of two layers:
 
-   *  Layer 0: Has a content encrypted with the CEK.  The content may be
-      detached.
+   *  Layer 0: Contains content encrypted with a Content Encryption Key
+      (CEK).  The content may be provided separately.
 
+   *  Layer 1: Uses the AES Key Wrap (AES-KW) algorithm to encrypt the
+      randomly generated CEK with a Key Encryption Key (KEK) derived via
+      ES-DH.  The resulting symmetric key is processed through an HKDF-
+      based key derivation function [RFC5869].
 
+   This two-layer structure combines ES-DH with AES-KW and HKDF,
+   referred to as ECDH-ES + AES-KW.  An example can be found in
+   Figure 10.
 
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 13]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-   *  Layer 1: Uses the AES Key Wrap algorithm to encrypt the randomly
-      generated CEK with the KEK derived with ES-DH, whereby the
-      resulting symmetric key is fed into the HKDF-based key derivation
-      function.
-
-   As a result, the two layers combine ES-DH with AES-KW and HKDF, and
-   it is called ECDH-ES + AES-KW.  An example is given in Figure 10.
-
-   There exists another version of ES-DH algorithm, namely ECDH-ES +
-   HKDF, which does not use AES Key Wrap.  It is not specified in this
-   document.
+   Another variant of the ES-DH algorithm, called ECDH-ES + HKDF, does
+   not utilize AES Key Wrap.  However, this version is not covered in
+   this document.
 
 6.2.2.  Deployment Options
 
-   There are only two deployment options with this approach since we
-   assume that recipients are always configured with a device-unique
-   public / private key pair.
+   This approach supports only two deployment options, as it assumes
+   that each recipient is always equipped with a device-specific public/
+   private key pair.
 
-   *  A sender wants to transmit a payload to multiple recipients and
-      all recipients receive the same encrypted payload, i.e. the same
-      CEK is used to encrypt the payload.  One COSE_recipient structure
-      per recipient is used and it contains the CEK encrypted with the
-      KEK.  To generate the KEK each COSE_recipient structure contains a
-      COSE_recipient_inner structure to carry the sender's ephemeral key
-      and an identifier for the recipients public key.
+   *  When a sender transmits a payload to multiple recipients, all
+      recipients receive the same encrypted payload, meaning the same
+      CEK is used to encrypt the content.  For each recipient, a
+      separate COSE_recipient structure is used, which contains the CEK
+      encrypted with the recipient-specific KEK.  To derive the KEK,
+      each COSE_recipient structure includes a COSE_recipient_inner
+      structure that carries the sender's ephemeral key and an
+      identifier for the recipient's public key.
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 13]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    The steps taken by the sender are:
 
        1.  Generate CEK
        2.  for i=1 to n
            {
-       2a.     Generate KEK(Ri, S) using ES-DH
-       2b.     ENC(CEK, KEK(Ri, S))
+       2a.     Generate KEK[Ri, S] using ES-DH
+       2b.     ENC(CEK, KEK[Ri, S])
            }
        3.  ENC(payload,CEK)
 
-   *  The alternative is to encrypt a payload with a different CEK for
-      each recipient.  This results in n-manifests.  This approach is
-      useful when payloads contain information unique to a device.  The
-      encryption operation then effectively becomes ENC(payload_i,
-      CEK(Ri, S)).  Assume that KEK(R1, S),..., KEK(Rn, S) have been
-      generated for the different recipients using ES-DH.  The following
-      steps need to be made by the sender:
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 14]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
+   *  The alternative is to encrypt the payload with a unique CEK for
+      each recipient, resulting in multiple manifests.  This approach is
+      useful when payloads contain device-specific information.  In this
+      case, the encryption operation becomes ENC(payload_i, CEK[Ri, S])
+      where each recipient Ri receives a unique CEK.  Assume that
+      KEK[R1, S],..., KEK[Rn, S] have been generated for the recipients
+      using ES-DH.  The sender must then follow these steps:
 
        1.  for i=1 to n
            {
-       1a.     Generate KEK(Ri, S) using ES-DH
-       1b.     Generate CEK(Ri, S)
-       1c.     ENC(CEK(Ri, S), KEK(Ri, S))
-       1d.     ENC(payload, CEK(Ri, S))
+       1a.     Generate KEK[Ri, S] using ES-DH
+       1b.     Generate CEK[Ri, S]
+       1c.     ENC(CEK[Ri, S], KEK[Ri, S])
+       1d.     ENC(payload, CEK[Ri, S])
            }
 
 6.2.3.  CDDL
 
-   The CDDL for the ECDH-ES+AES-KW binary is shown in Figure 6.  Only
-   the minimum number of parameters is shown. empty_or_serialized_map
-   and header_map are structures defined in [RFC9052].
+   The CDDL for the ECDH-ES+AES-KW binary is provided in Figure 6.  Only
+   the essential parameters are included.  The structures
+   empty_or_serialized_map and header_map are defined in [RFC9052].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 14]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    SUIT_Encryption_Info_ESDH = #6.96([
      protected   : outer_header_map_protected,
@@ -833,28 +819,28 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    See Section 7 for a description on how to encrypt the payload.
 
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 15]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
 6.2.4.  Context Information Structure
 
-   The context information structure is used to ensure that the derived
-   keying material is "bound" to the context of the transaction.  This
-   specification re-uses the structure defined in Section 5.2 of
-   [RFC9053] and tailors it accordingly.
+   The context information structure ensures that the derived keying
+   material is "bound" to the specific context of the transaction.  This
+   specification reuses the structure defined in Section 5.2 of
+   [RFC9053], with modifications to fit the current use case.
 
-   The following information elements are bound to the context:
+   The following elements are bound to the context:
 
    *  the protocol employing the key-derivation method,
 
    *  information about the utilized AES Key Wrap algorithm, and the key
       length.
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 15]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    *  the protected header field, which contains the content key
       encryption algorithm.
@@ -863,24 +849,23 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    The following fields in Figure 7 require an explanation:
 
-   *  The COSE_KDF_Context.AlgorithmID field MUST contain the algorithm
-      identifier for AES Key Wrap algorithm utilized.  This
-      specification uses the following values: A128KW (value -3), A192KW
-      (value -4), or A256KW (value -5)
+   *  The COSE_KDF_Context.AlgorithmID field MUST contain the identifier
+      for the AES Key Wrap algorithm being used.  This specification
+      uses the following values: A128KW (value -3), A192KW (value -4),
+      or A256KW (value -5)
 
-   *  The COSE_KDF_Context.SuppPubInfo.keyDataLength field MUST contain
-      the key length of the algorithm in the
-      COSE_KDF_Context.AlgorithmID field expressed as the number of
-      bits.  For A128KW the value is 128, for A192KW the value is 192,
-      and for A256KW the value 256.
+   *  The COSE_KDF_Context.SuppPubInfo.keyDataLength field MUST specify
+      the key length, in bits, corresponding to the algorithm in the
+      AlgorithmID field.  For A128KW the value is 128, for A192KW the
+      value is 192, and for A256KW the value 256.
 
    *  The COSE_KDF_Context.SuppPubInfo.other field captures the protocol
-      in which the ES-DH content key distribution algorithm is used and
-      MUST be set to the constant string "SUIT Payload Encryption".
+      that uses the ES-DH content key distribution algorithm.  It MUST
+      be set to the constant string "SUIT Payload Encryption".
 
    *  The COSE_KDF_Context.SuppPubInfo.protected field MUST contain the
       serialized content of the recipient_header_map_esdh field, which
-      contains (among other fields) the identifier of the content key
+      contains (among other elements) the identifier of the content key
       distribution method.
 
 
@@ -893,9 +878,24 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 16]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 16]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    COSE_KDF_Context = [
@@ -925,39 +925,39 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
                Figure 7: CDDL for COSE_KDF_Context Structure
 
    The HKDF-based key derivation function MAY contain a salt value, as
-   described in Section 5.1 of [RFC9053].  This optional value is used
-   to influence the key generation process.  This specification does not
-   mandate the use of a salt value.  If the salt is public and carried
-   in the message, then the "salt" algorithm header parameter MUST be
-   used.  The purpose of the salt is to provide extra randomness in the
-   KDF context.  If the salt is sent in the 'salt' algorithm header
-   parameter, then the receiver MUST be able to process the salt and
-   MUST pass it into the key derivation function.  For more information
-   about the salt, see [RFC5869] and NIST SP800-56 [SP800-56].
+   described in Section 5.1 of [RFC9053].  This optional value
+   influences the key generation process, though this specification does
+   not require the use of a salt.  If the salt is public and included in
+   the message, the "salt" algorithm header parameter MUST be used.  The
+   salt adds extra randomness to the KDF context.  When the salt is
+   transmitted via the "salt" algorithm header parameter, the receiver
+   MUST be capable of processing it and MUST pass it into the key
+   derivation function.  For more details on salt usage, refer to
+   [RFC5869] and NIST SP800-56 [SP800-56].
 
-   Profiles of this specification MAY specify an extended version of the
-   context information structure or MAY utilize a different context
+   Profiles of this specification MAY define an extended version of the
+   context information structure or MAY employ a different context
    information structure.
 
 7.  Content Encryption
 
-   This section summarizes the steps taken for content encryption, which
-   applies to both content key distribution methods.
+   This section summarizes the steps involved in content encryption,
+   applicable to both content key distribution methods.
 
 
 
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 17]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 17]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   For use with AEAD ciphers, such as AES-GCM and ChaCha20/Poly1305, the
-   COSE specification requires a consistent byte stream for the
-   authenticated data structure to be created.  This structure is shown
-   in Figure 8 and is defined in Section 5.3 of [RFC9052].
+   When using AEAD ciphers, such as AES-GCM or ChaCha20/Poly1305, the
+   COSE specification requires a consistent byte stream to create the
+   authenticated data structure.  This structure is illustrated in
+   Figure 8 and defined in Section 5.3 of [RFC9052].
 
     Enc_structure = [
       context : "Encrypt",
@@ -967,24 +967,48 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
               Figure 8: CDDL for Enc_structure Data Structure
 
-   This Enc_structure needs to be populated as follows:
+   This Enc_structure must be populated as follows:
 
    *  The protected field in the Enc_structure from Figure 8 refers to
-      the content of the protected field from the COSE_Encrypt
-      structure.
+      the content of the protected field in the COSE_Encrypt structure.
 
-   *  The value of the external_aad MUST be set to a zero-length byte
-      string, i.e., h'' in diagnostic notation and encoded as 0x40.
+   *  The value of external_aad MUST be set to a zero-length byte
+      string, represented as h'' in diagnostic notation and encoded as
+      0x40.
 
-   Some ciphers provide confidentiality without integrity protection,
-   such as AES-CTR and AES-CBC (see [RFC9459]).  For these ciphers the
-   Enc_structure, shown in Figure 8, MUST NOT be used because the
-   Additional Authenticated Data (AAD) byte string is only consumable by
-   AEAD ciphers.  Hence, the AAD structure is not supplied to the API of
-   those ciphers and the protected header in the SUIT_Encryption_Info
+   Some ciphers, such as AES-CTR and AES-CBC, provide confidentiality
+   without integrity protection (see [RFC9459]).  For these ciphers, the
+   Enc_structure shown in Figure 8 cannot be used, as the Additional
+   Authenticated Data (AAD) byte string is only applicable to AEAD
+   ciphers.  Therefore, the AAD structure is not passed to the API for
+   these ciphers, and the protected header in the SUIT_Encryption_Info
    structure MUST be a zero-length byte string.
 
+   AES-CTR and AES-CBC are discussed in separate sub-sections below and
+   Figure 11 and Figure 14 use the following abbreviations:
+
+   *  Pi = Plaintext blocks
+
+   *  Ci = Ciphertext blocks
+
+   *  E = Encryption function
+
+   *  k = Symmetric key
+
+   *  &#8853; = XOR operation
+
 7.1.  AES-GCM
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 18]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
 7.1.1.  Introduction
 
@@ -1000,15 +1024,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
       -  IV: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
 
    *  Plaintext: "This is a real firmware image."
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 18]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
 
       -  in hex:
          546869732069732061207265616C206669726D7761726520696D6167652E
@@ -1030,19 +1045,33 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
 
-   D8608443A10101A10550F14AAB9D81D51F7AD943FE87AF4F70CDF6818340
-   A2012204456B69642D31581875603FFC9518D794713C8CA8A115A7FB3256
-   5A6D59534D62
+   D8608443A10101A1054CF14AAB9D81D51F7AD943FE87F6818340A2012204
+   456B69642D31581875603FFC9518D794713C8CA8A115A7FB32565A6D5953
+   4D62
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 9.
 
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 19]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
    96([
      / protected: / << {
-       / alg / 1: 1 / AES-GCM-128 /
+       / alg / 1: 1 / A128GCM /
      } >>,
      / unprotected: / {
-       / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+       / IV / 5: h'F14AAB9D81D51F7AD943FE87'
      },
      / payload: / null / detached ciphertext /,
      / recipients: / [
@@ -1059,19 +1088,12 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
      ]
    ])
 
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 19]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
               Figure 9: COSE_Encrypt Example for AES Key Wrap
 
    The encrypted payload (with a line feed added) was:
 
-   2F59C3A34D9570FB99A5382E66466A3221A8AD85CE508BA306FB431A60EF
-   A5AAAA078355070205A4B196832DF17F
+   758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4BD6D7ED26AB32F
+   EB063385D4D3465927EC82CB5E198A59
 
 7.1.3.  ECDH-ES+AES-KW + AES-GCM Example
 
@@ -1091,6 +1113,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
       -  y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E
          258F1B'
 
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 20]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
       -  d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102
          C476B3'
 
@@ -1098,7 +1129,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    *  KDF Context
 
-      -  Algorithm ID: 1 (A128GCM)
+      -  Algorithm ID: -3 (A128KW)
 
       -  SuppPubInfo
 
@@ -1111,32 +1142,48 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    The COSE_Encrypt structure, in hex format, is (with a line break
    inserted):
 
-
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 20]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-   D8608443A10101A10550F14AAB9D81D51F7AD943FE87AF4F70CDF6818344
-   A101381CA120A40102200121582038876D8B4552E6BC9484A3F06E3646B3
-   0AEFF51B95583CFFA0B5776D5273494222582034577AB5DD17276BB6BF15
-   AA465310371557AFF61FAC5BA5A1EFF46698DD8B7B5818C36BF2E8843246
-   F0E148DBA607375204A040D8B19629B2B5
+   D8608443A10101A1054CF14AAB9D81D51F7AD943FE87F6818344A101381C
+   A120A40102200121582073024F415AA51529A66CCEFD88F3F62A734492FF
+   45F6AD37FD2888E73EAF19DA2258204005B48A6FD091AA6ABFE3CFBEEDE8
+   8B347E521D43405FDBD7D2CFF0EBC21B265818A06B8E6550F308712B1DF0
+   44B21B7D11D9B22792F1DE0997
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 10.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 21]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
    96([
      / protected: / << {
-       / alg / 1: 1 / AES-GCM-128 /
+       / alg / 1: 1 / A128GCM /
      } >>,
      / unprotected: / {
-       / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
+       / IV / 5: h'F14AAB9D81D51F7AD943FE87'
      },
      / payload: / null / detached ciphertext /,
      / recipients: / [
@@ -1148,14 +1195,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
            / ephemeral key / -1: {
              / kty / 1: 2 / EC2 /,
              / crv / -1: 1 / P-256 /,
-             / x / -2: h'38876D8B4552E6BC9484A3F06E3646B3
-                         0AEFF51B95583CFFA0B5776D52734942',
-             / y / -3: h'34577AB5DD17276BB6BF15AA46531037
-                         1557AFF61FAC5BA5A1EFF46698DD8B7B'
+             / x / -2: h'73024F415AA51529A66CCEFD88F3F62A
+                         734492FF45F6AD37FD2888E73EAF19DA',
+             / y / -3: h'4005B48A6FD091AA6ABFE3CFBEEDE88B
+                         347E521D43405FDBD7D2CFF0EBC21B26'
            }
          },
          / payload:
-           / h'C36BF2E8843246F0E148DBA607375204A040D8B19629B2B5'
+           / h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
            / CEK encrypted with KEK /
        ]
      ]
@@ -1165,31 +1212,32 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    The encrypted payload (with a line feed added) was:
 
-   2F59C3A34D9570FB99A5382E66466A3221A8AD85CE508BA306FB431A60EF
-   A5AAAA078355070205A4B196832DF17F
+   758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4BD6D7ED26AB32F
+   EB063385D4D3465927EC82CB5E198A59
 
 7.2.  AES-CTR
 
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 21]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
 7.2.1.  Introduction
 
-   AES-CTR is a non-AEAD cipher, provides confidentiality but no
-   integrity protection.  Unlike AES-CBC, AES-CTR uses an IV per AES
-   operation, as shown in Figure 11.  Hence, when an image is encrypted
-   using AES-CTR-128 or AES-CTR-256, the IV MUST start with zero (0) and
-   MUST be incremented by one for each 16-byte plaintext block within
-   the entire slot.
+   AES-CTR is a non-AEAD cipher that provides confidentiality but lacks
+   integrity protection.  Unlike AES-CBC, AES-CTR uses an IV per block,
+   as shown in Figure 11.  Hence, when an image is encrypted using AES-
+   CTR-128 or AES-CTR-256, the IV MUST start with zero (0) and MUST be
+   incremented by one for each 16-byte plaintext block within the entire
+   slot.
 
-   Using the previous example with a slot size of 64 KiB, the sector
-   size 4096 bytes and the AES plaintext block size of 16 byte requires
-   IVs from 0 to 255 in the first sector and 16 * 256 IVs for the
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 22]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   In our example, we assume the slot size of a specific flash
+   controller on an IoT device is 64 KiB, the sector size 4096 bytes (4
+   KiB) and an AES plaintext block size of 16 bytes, the IVs range from
+   0 to 255 in the first sector, and 16 * 256 IVs are required for the
    remaining sectors in the slot.
 
             IV1            IV2
@@ -1203,15 +1251,15 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
          |       |      |       |
          +-------+      +-------+
              |              |
-        P1--(+)        P2--(+)
+        P1---⊕        P2---⊕
              |              |
              |              |
              C1             C2
 
-   Legend:
-     See previous diagram.
-
                         Figure 11: AES-CTR Operation
+
+   Note: The abbreviations shown in Figure 11 are described in
+   Section 7.
 
    Examples in this section use the following parameters:
 
@@ -1226,14 +1274,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
       -  in hex:
          546869732069732061207265616C206669726D7761726520696D6167652E
 
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 22]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
 7.2.2.  AES-KW + AES-CTR Example
 
    This example uses the following parameters:
@@ -1241,6 +1281,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    *  Algorithm id for key wrap: A128KW
 
    *  KEK COSE_Key (Secret Key):
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 23]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
       -  kty: Symmetric
 
@@ -1283,13 +1331,6 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    The encrypted payload (with a line feed added) was:
 
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 23]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
    2BB8DB522AE978246CC775C3B0241BD4B0333FFDD2DB70C7EE7A4966E3B7
 
 7.2.3.  ECDH-ES+AES-KW + AES-CTR Example
@@ -1297,6 +1338,13 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    This example uses the following parameters:
 
    *  Algorithm for content key distribution: ECDH-ES + A128KW
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 24]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    *  KEK COSE_Key (Receiver's Private Key):
 
@@ -1317,7 +1365,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    *  KDF Context
 
-      -  Algorithm ID: -65534 (A128CTR)
+      -  Algorithm ID: -3 (A128KW)
 
       -  SuppPubInfo
 
@@ -1331,48 +1379,61 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    inserted):
 
    D8608440A20139FFFD0550DAE613B2E0DC55F4322BE38BDBA9DC68F68183
-   44A101381CA120A40102200121582050364E4DF3F5E8749D98E4378C04FA
-   FE643B6ACEE7138382D83F768C7186FB8522582099E6C96BEF3952B12EF8
-   3921B1749475D767284AA42D74D8923C137B01EDF5A05818E8599DCEE494
-   4EECA9781D3ECDE3D9C34E1C9FCE8906617F
+   44A101381CA120A401022001215820EE0718F6B019C29CC611C18CEDE221
+   4066DDCEDC2F0DBEF873CB224C715C1174225820279F2A88E4AB9E2ED30C
+   0FCB69515B31B5D36725BFDB9AE02032ED4D5AB52CB85818E28B4502E4F5
+   151884A995405579006E9465C3E94E3E0808
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 13.
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 24]
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 25]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-96([
-  / protected: / h'',
-  / unprotected: / {
-    / alg / 1: -65534 / A128CTR /,
-    / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-  },
-  / payload: / null / detached ciphertext /,
-  / recipients: / [
-    [
-      / protected: / << {
-        / alg / 1: -29 / ECDH-ES + A128KW /
-      } >>,
-      / unprotected: / {
-        / ephemeral key / -1: {
-          / kty / 1: 2 / EC2 /,
-          / crv / -1: 1 / P-256 /,
-          / x / -2: h'50364E4DF3F5E8749D98E4378C04FAFE643B6ACEE7138382D83F768C7186FB85',
-          / y / -3: h'99E6C96BEF3952B12EF83921B1749475D767284AA42D74D8923C137B01EDF5A0'
-        }
-      },
-      / payload: / h'E8599DCEE4944EECA9781D3ECDE3D9C34E1C9FCE8906617F'
-        / CEK encrypted with KEK /
-    ]
-  ]
-])
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
 
-              Figure 13: COSE_Encrypt Example for ES-DH
+   96([
+     / protected: / h'',
+     / unprotected: / {
+       / alg / 1: -65534 / A128CTR /,
+       / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
+     },
+     / payload: / null / detached ciphertext /,
+     / recipients: / [
+       [
+         / protected: / << {
+           / alg / 1: -29 / ECDH-ES + A128KW /
+         } >>,
+         / unprotected: / {
+           / ephemeral key / -1: {
+             / kty / 1: 2 / EC2 /,
+             / crv / -1: 1 / P-256 /,
+             / x / -2: h'EE0718F6B019C29CC611C18CEDE22140
+                         66DDCEDC2F0DBEF873CB224C715C1174',
+             / y / -3: h'279F2A88E4AB9E2ED30C0FCB69515B31
+                         B5D36725BFDB9AE02032ED4D5AB52CB8'
+           }
+         },
+         / payload: / h'\
+                       E28B4502E4F5151884A995405579006E9465C3E94E3E0808'
+           / CEK encrypted with KEK /
+       ]
+     ]
+   ])
+
+                 Figure 13: COSE_Encrypt Example for ES-DH
 
    The encrypted payload (with a line feed added) was:
 
@@ -1382,36 +1443,31 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 7.3.1.  Introduction
 
-   AES-CBC is a non-AEAD cipher, provides confidentiality but no
-   integrity protection.  In AES-CBC, a single IV is used for encryption
-   of firmware belonging to a single sector, since individual AES blocks
-   are chained together, as shown in Figure 14.  The numbering of
-   sectors in a slot MUST start with zero (0) and MUST increase by one
-   with every sector till the end of the slot is reached.  The IV
+   AES-CBC is a non-AEAD cipher that provides confidentiality but does
+   not offer integrity protection.  In AES-CBC, a single IV is used to
+   encrypt the firmware belonging to a single sector, as individual AES
+   blocks are chained together, as illustrated in Figure 14.  The
+   numbering of sectors in a slot start with zero (0) and increase by
+   one with every sector till the end of the slot is reached.  The IV
    follows this numbering.
 
 
 
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 25]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 26]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    For example, let us assume the slot size of a specific flash
    controller on an IoT device is 64 KiB, the sector size 4096 bytes (4
    KiB) and AES-128-CBC uses an AES-block size of 128 bit (16 bytes).
    Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
-   If the firmware image fills the entire slot, then that slot contains
-   16 sectors, i.e. IVs ranging from 0 to 15.
+   If the firmware image occupies the entire slot, it will contain 16
+   sectors, corresponding to IVs ranging from 0 to 15.
 
           P1              P2
            |              |
-      IV--(+)    +-------(+)
+      IV---⊕    +--------⊕
            |     |        |
            |     |        |
        +-------+ |    +-------+
@@ -1426,18 +1482,14 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
            |              |
            C1             C2
 
-   Legend:
-     Pi = Plaintext blocks
-     Ci = Ciphertext blocks
-     E = Encryption function
-     k = Symmetric key
-     (+) = XOR operation
-
                         Figure 14: AES-CBC Operation
+
+   Note: The abbreviations shown in Figure 14 are described in
+   Section 7.
 
    Examples in this section use the following parameters:
 
-   *  Algorithm for payload encryption: AES-CTR-128
+   *  Algorithm for payload encryption: AES-CBC-128
 
       -  k: h'627FCF0EA82C967D5ED8981EB325F303'
 
@@ -1448,21 +1500,19 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
       -  in hex:
          546869732069732061207265616C206669726D7761726520696D6167652E
 
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 26]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
 7.3.2.  AES-KW + AES-CBC Example
 
    This example uses the following parameters:
 
    *  Algorithm id for key wrap: A128KW
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 27]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
    *  KEK COSE_Key (Secret Key):
 
@@ -1507,15 +1557,18 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    The encrypted payload (with a line feed added) was:
 
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 27]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
    9C09156CF4ACE0401086D98586E0B09FA5B5CF78F2BCCBF6C914DDB42BF0
    E21E
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 28]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
 
 7.3.3.  ECDH-ES+AES-KW + AES-CBC Example
 
@@ -1542,7 +1595,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
    *  KDF Context
 
-      -  Algorithm ID: -65531 (A128CBC)
+      -  Algorithm ID: -3 (A128KW)
 
       -  SuppPubInfo
 
@@ -1556,50 +1609,55 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    inserted):
 
    D8608440A20139FFFA055093702C81590F845D9EC866CCAC767BD1F68183
-   44A101381CA120A401022001215820BC6A2DCD5025C8C0F7A5D120EB3E45
-   8CA722F8FB94BD56A24709CB15A869748922582010136574F673511540FE
-   2A8589A7EDA372CB7B1AF94A8E1B4B94F6BDBD98AA185818AC8CDFB54264
-   22298FCF235EB5F24D9E4C44C1689167473A
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 28]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
+   44A101381CA120A40102200121582084C1768A1AFA92BAF27C3289A3FAF7
+   5E7511B27C654947BBD391E8A12EB8295B225820F32B0AECA4F8B6C51C15
+   5037B1FB726CAE3D0C77976864EF725DB2B30ABCE6F6581804928D52CD34
+   AC8CA0427CEED6D7C5D06A21B5F4F79CAA18
 
    The resulting COSE_Encrypt structure in a diagnostic format is shown
    in Figure 16.
 
-96([
-  / protected: / h'',
-  / unprotected: / {
-    / alg / 1: -65531 / A128CBC /,
-    / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
-  },
-  / payload: / null / detached ciphertext /,
-  / recipients: / [
-    [
-      / protected: / << {
-        / alg / 1: -29 / ECDH-ES + A128KW /
-      } >>,
-      / unprotected: / {
-        / ephemeral key / -1: {
-          / kty / 1: 2 / EC2 /,
-          / crv / -1: 1 / P-256 /,
-          / x / -2: h'BC6A2DCD5025C8C0F7A5D120EB3E458CA722F8FB94BD56A24709CB15A8697489',
-          / y / -3: h'10136574F673511540FE2A8589A7EDA372CB7B1AF94A8E1B4B94F6BDBD98AA18'
-        }
-      },
-      / payload: / h'AC8CDFB5426422298FCF235EB5F24D9E4C44C1689167473A'
-        / CEK encrypted with KEK /
-    ]
-  ]
-])
 
-              Figure 16: COSE_Encrypt Example for ES-DH
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 29]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
+
+   96([
+     / protected: / h'',
+     / unprotected: / {
+       / alg / 1: -65531 / A128CBC /,
+       / IV / 5: h'93702C81590F845D9EC866CCAC767BD1'
+     },
+     / payload: / null / detached ciphertext /,
+     / recipients: / [
+       [
+         / protected: / << {
+           / alg / 1: -29 / ECDH-ES + A128KW /
+         } >>,
+         / unprotected: / {
+           / ephemeral key / -1: {
+             / kty / 1: 2 / EC2 /,
+             / crv / -1: 1 / P-256 /,
+             / x / -2: h'84C1768A1AFA92BAF27C3289A3FAF75E
+                         7511B27C654947BBD391E8A12EB8295B',
+             / y / -3: h'F32B0AECA4F8B6C51C155037B1FB726C
+                         AE3D0C77976864EF725DB2B30ABCE6F6'
+           }
+         },
+         / payload: / h'\
+                       04928D52CD34AC8CA0427CEED6D7C5D06A21B5F4F79CAA18'
+           / CEK encrypted with KEK /
+       ]
+     ]
+   ])
+
+                 Figure 16: COSE_Encrypt Example for ES-DH
 
    The encrypted payload (with a line feed added) was:
 
@@ -1614,43 +1672,46 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    components.  This section provides a guideline to construct secure
    but not redundant SUIT Manifest for encrypted payloads.
 
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 30]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
 8.1.  Validating Payload Integrity
 
    This sub-section explains three ways to validate the integrity of
    payloads.
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 29]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
 
 8.1.1.  Image Match after Decryption
 
    The suit-condition-image-match on the plaintext payload is used after
    decryption.  An example command sequence is shown in Figure 17.
 
-/ directive-set-component-index / 12, 1,
-/ directive-override-parameters / 20, {
-  / parameter-uri / 21: "http://example.com/encrypted.bin"
-},
-/ directive-fetch / 21, 15,
+  / directive-set-component-index / 12, 1,
+  / directive-override-parameters / 20, {
+    / parameter-uri / 21: "http://example.com/encrypted.bin"
+  },
+  / directive-fetch / 21, 15,
 
-/ directive-set-component-index / 12, 0,
-/ directive-override-parameters / 20, {
-  / parameter-image-digest / 3: << {
-    / algorithm-id: / -16 / SHA256 /,
-    / digest-bytes: / h'3B1...92A' / digest of plaintext payload /
-  } >>,
-  / parameter-image-size / 14: 30 / size of plaintext payload /,
-  / parameter-encryption-info / TBD19: h'369...50F',
-  / parameter-source-component / 22: 1
-},
-/ directive-copy / 22, 15,
-/ condition-image-match / 3, 15 / integrity check on decrypted payload /,
+  / directive-set-component-index / 12, 0,
+  / directive-override-parameters / 20, {
+    / parameter-image-digest / 3: << {
+      / algorithm-id: / -16 / SHA256 /,
+      / digest-bytes: / h'3B1...92A' / digest of plaintext payload /
+    } >>,
+    / parameter-image-size / 14: 30 / size of plaintext payload /,
+    / parameter-encryption-info / TBD19: h'369...50F',
+    / parameter-source-component / 22: 1
+  },
+  / directive-copy / 22, 15,
+  / condition-image-match / 3, 15 / check decrypted payload integrity /,
 
-            Figure 17: Check Image Match After Decryption
+              Figure 17: Check Image Match After Decryption
 
    RFC Editor's Note (TBD19): The value for the suit-parameter-
    encryption-info parameter is set to 19, as the proposed value.
@@ -1672,36 +1733,31 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 30]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 31]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-/ directive-set-component-index / 12, 1,
-/ directive-override-parameters / 20, {
-  / parameter-image-digest / 3: << {
-    / algorithm-id: / -16 / SHA256 /,
-    / digest-bytes: / h'8B4...D34' / digest of encrypted payload /
-  } >>,
-  / parameter-image-size / 14: 30 / size of encrypted payload /,
-  / parameter-uri / 21: "http://example.com/encrypted.bin"
-},
-/ directive-fetch / 21, 15,
-/ condition-image-match / 3, 15 / integrity check on encrypted payload /,
+  / directive-set-component-index / 12, 1,
+  / directive-override-parameters / 20, {
+    / parameter-image-digest / 3: << {
+      / algorithm-id: / -16 / SHA256 /,
+      / digest-bytes: / h'8B4...D34' / digest of encrypted payload /
+    } >>,
+    / parameter-image-size / 14: 30 / size of encrypted payload /,
+    / parameter-uri / 21: "http://example.com/encrypted.bin"
+  },
+  / directive-fetch / 21, 15,
+  / condition-image-match / 3, 15 / check decrypted payload integrity /,
 
-/ directive-set-component-index / 12, 0,
-/ directive-override-parameters / 20, {
-  / parameter-encryption-info / TBD19: h'D86...1F0',
-  / parameter-source-component / 22: 1
-},
-/ directive-copy / 22, 15,
+  / directive-set-component-index / 12, 0,
+  / directive-override-parameters / 20, {
+    / parameter-encryption-info / TBD19: h'D86...1F0',
+    / parameter-source-component / 22: 1
+  },
+  / directive-copy / 22, 15,
 
-            Figure 18: Check Image Match Before Decryption
+              Figure 18: Check Image Match Before Decryption
 
    RFC Editor's Note (TBD19): The value for the suit-parameter-
    encryption-info parameter is set to 19, as the proposed value.
@@ -1713,10 +1769,9 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 8.2.  Payload Integrity Validation
 
-   This sub-section provides a guideline to decide how to validate the
-   integrity of the payloads with the SUIT manifest.  Figure 19
-   illustrates a decision tree to decide how to establish payload
-   integrity.
+   This subsection offers guidelines for validating the integrity of
+   payloads within the SUIT manifest.  The decision tree in Figure 19
+   illustrates the process for establishing payload integrity.
 
 
 
@@ -1733,9 +1788,10 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 31]
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 32]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    +------------------------------------------------+
@@ -1764,23 +1820,21 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
               Figure 19: Decision Tree: Validating the Payload
 
-   There are three conditions:
+   There are three questions to ask:
 
-   *  Q1.  How does the recipient get the encrypted payload?  If the
-      encrypted payload is an integrated payload, its integrity is
-      already validated with the suit-authentication-wrapper.  Hence, an
-      additional integrity check is not required.
+   *  Q1.  How does the recipient receive the encrypted payload?  If the
+      encrypted payload is part of an integrated payload, its integrity
+      is already validated by the suit-authentication-wrapper.  Hence,
+      no additional integrity check is necessary.
 
-   *  Q2.  Does the sender want to mitigate battery exhaustion attacks?
-      If yes, the encrypted payload has to be validated before
-      decryption.
+   *  Q2.  Does the sender wish to mitigate battery exhaustion attacks?
+      If so, the encrypted payload must be validated before decryption.
 
-   *  Q3.  Is the payload encrypted with an AEAD cipher?  If yes, the
-      additional integrity check is not required because the recipient
-      validates the integrity of the payload while decrypting it.  If
-      no, validating its integrity may take place either before or after
-      decryption.  Validating the integrity before decryption is
-      RECOMMENDED.
+   *  Q3.  Is the payload encrypted with an AEAD cipher?  If yes, no
+      additional integrity check is required, as the recipient verifies
+      the payload's integrity during decryption.  If no, integrity
+      validation can occur either before or after decryption; however,
+      validating integrity before decryption is RECOMMENDED.
 
 
 
@@ -1789,80 +1843,80 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 32]
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 33]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
 9.  Firmware Updates on IoT Devices with Flash Memory
 
-   There are many flavors of embedded devices, the market is large and
-   fragmented.  Hence, it is likely that some implementations and
-   deployments implement their firmware update procedure differently
-   than described below.  On a positive note, the SUIT manifest allows
-   different deployment scenarios to be supported easily thanks to the
-   "scripting" functionality offered by the commands.
+   Embedded devices come in many forms, and the market is both large and
+   fragmented.  As a result, some implementations and deployments may
+   adopt firmware update procedures that differ from the descriptions
+   provided here.  On a positive note, the SUIT manifest accommodates
+   various deployment scenarios, thanks to the "scripting" functionality
+   offered by its commands.
 
-   This section is specific to firmware images on microcontrollers and
-   does not apply to generic software, configuration data, and machine
-   learning models.  The differences are the result of two aspects:
+   This section specifically addresses firmware images on
+   microcontrollers and does not pertain to generic software,
+   configuration data, or machine learning models.  The differences
+   arise from two main aspects:
 
-   *  Use of flash memory: Flash memory on microcontrollers is a type of
+   *  Use of Flash Memory: Flash memory in microcontrollers is a type of
       non-volatile memory that erases data in larger units called
-      blocks, pages, or sectors and re-writes data at the byte level
-      (often 4-bytes) or larger units.  Flash memory is furthermore
-      segmented into different memory regions, which store the
-      bootloader, different versions of firmware images (in so-called
-      slots), and configuration data.  Figure 20 shows an example layout
-      of a microcontroller flash area.
+      blocks, pages, or sectors, and rewrites data at the byte level
+      (often 4 bytes) or larger units.  Furthermore, flash memory is
+      segmented into different regions, storing the bootloader, various
+      versions of firmware images (in designated slots), and
+      configuration data.  An example layout of a microcontroller flash
+      area is illustrated in Figure 20.
 
    *  Microcontroller Design: Code on microcontrollers typically cannot
-      be executed from an arbitrary place in flash memory without extra
-      software development and design efforts.  Hence, developers often
-      compile firmware such that the bootloader can execute the code
-      from a specific location in flash memory.  Often, the location
-      where the to-be-booted firmware image is found is called "primary
-      slot".
+      be executed from arbitrary locations in flash memory without
+      additional software development and design efforts.  Consequently,
+      developers often compile firmware so that the bootloader can
+      execute code from a specific location in flash memory, commonly
+      referred to as the "primary slot."
 
-   When the encrypted firmware image has been transferred to the device,
-   it will typically be stored in a dedicated area called the "secondary
-   slot".
+   Once the encrypted firmware image is transferred to the device, it is
+   usually stored in a dedicated area known as the "secondary slot."
 
-   At the next boot, the bootloader will recognize a new firmware image
-   and will start decrypting the downloaded image sector-by-sector and
-   will swap it with the image found in the primary slot.  This approach
-   of swapping the newly downloaded image with the previously valid
-   image requires two slots to allow the update to be reversed in case
-   the newly obtained firmware image fails to boot.  This adds
-   robustness to the firmware update procedure.
+   During the next boot, the bootloader detects the new firmware image
+   and begins decrypting it sector by sector, swapping it with the image
+   located in the primary slot.  This method of swapping the newly
+   downloaded image with the previously valid one requires two slots,
+   allowing for a rollback if the new firmware fails to boot, thereby
+   enhancing the robustness of the firmware update process.
 
-   The swap will only take place after the signature on the plaintext is
-   verified.  Note that the plaintext firmware image is available in the
-   primary slot only after the swap has been completed, unless "dummy
-   decrypt" is used to compute the hash over the plaintext prior to
-   executing the decrypt operation during a swap.  Dummy decryption here
-   refers to the decryption of the firmware image found in the secondary
-
+   The swap occurs only after verifying the signature on the plaintext.
+   It is important to note that the plaintext firmware image is
+   available in the primary slot only after the swap is completed,
+   unless "dummy decrypt" is used to compute the hash over the plaintext
+   prior to executing the decryption during the swap.  In this context,
+   dummy decryption refers to decrypting the firmware image in the
+   secondary slot sector by sector while computing a rolling hash over
+   the resulting plaintext (also sector by sector) without performing
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 33]
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 34]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   slot sector-by-sector and computing a rolling hash over the resulting
-   plaintext firmware image (also sector-by-sector) without performing
-   the swap operation.  While there are performance optimizations
-   possible, such as conveying hashes for each sector in the manifest
-   rather than a hash of the entire firmware image, such optimizations
-   are not described in this specification.
+   the swap operation.  Although performance optimizations, such as
+   conveying hashes for each sector in the manifest rather than a hash
+   of the entire firmware image, are possible, these optimizations are
+   not detailed in this specification.
 
-   Without hardware-based, on-the-fly decryption the image in the
-   primary slot is available in cleartext.  It may need to be re-
-   encrypted before copying it to the secondary slot.  This may be
-   necessary when the secondary slot has different access permissions or
-   when it is located in off-chip flash memory.  Off-chip flash memory
-   tends to be more vulnerable to physical attacks.
+   Without hardware-based, on-the-fly decryption, the image in the
+   primary slot is available in cleartext and may need to be re-
+   encrypted before copying it to the secondary slot.  This step might
+   be necessary if the secondary slot has different access permissions
+   or is located in off-chip flash memory, which tends to be more
+   vulnerable to physical attacks.
 
    +--------------------------------------------------+
    | Bootloader                                       |
@@ -1901,53 +1955,56 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 34]
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 35]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   The ability to restart an interrupted firmware update is often a
-   requirement for unattended devices and the same is true for low-end,
-   constrained IoT devices.  To fulfill this requirement it is necessary
-   to chunk a firmware image into sectors and to encrypt each sector
-   individually using a cipher that does not increase the size of the
-   resulting ciphertext (i.e., by not adding an authentication tag after
-   each encrypted block).
+   The ability to resume an interrupted firmware update is often
+   essential for unattended devices, including low-end, constrained IoT
+   devices.  To meet this requirement, a firmware image must be divided
+   into sectors, with each sector encrypted individually using a cipher
+   that does not increase the size of the resulting ciphertext (i.e., by
+   avoiding the addition of an authentication tag after each encrypted
+   block).
 
-   When an update gets aborted while the bootloader is decrypting the
-   newly obtained image and swapping the sectors, the bootloader can
-   restart where it left off.  This technique offers robustness and
-   better performance.
+   If an update is aborted while the bootloader is decrypting the newly
+   received image and swapping the sectors, the bootloader can restart
+   from where it left off.  This technique enhances robustness and
+   performance.
 
-   For this purpose, ciphers without integrity protection are used to
-   encrypt the firmware image.  Integrity protection of the firmware
-   image MUST be provided and the suit-parameter-image-digest, defined
-   in Section 8.4.8.6 of [I-D.ietf-suit-manifest], MUST be used.
+   For this purpose, ciphers without integrity protection are employed
+   to encrypt the firmware image.  It is crucial that integrity
+   protection for the firmware image is provided, and the suit-
+   parameter-image-digest, defined in Section 8.4.8.6 of
+   [I-D.ietf-suit-manifest], MUST be utilized.
 
-   [RFC9459] registers AES Counter (AES-CTR) mode and AES Cipher Block
-   Chaining (AES-CBC) ciphers that do not offer integrity protection.
-   These ciphers are useful for use cases that require firmware
-   encryption on IoT devices.  For many other use cases where software
-   packages, configuration information or personalization data need to
-   be encrypted, the use of AEAD ciphers is RECOMMENDED.
+   [RFC9459] specifies the AES Counter (AES-CTR) mode and AES Cipher
+   Block Chaining (AES-CBC) ciphers, both of which do not provide
+   integrity protection.  These ciphers are suitable for firmware
+   encryption in IoT devices.  However, for many other scenarios
+   involving software packages, configuration information, or
+   personalization data, the use of AEAD ciphers is RECOMMENDED.
 
-   The following sub-sections provide further information about the
-   initialization vector (IV) selection for use with AES-CBC and AES-CTR
-   in the firmware encryption context.  An IV MUST NOT be re-used when
-   the same key is used.  For this application, the IVs are not random
-   but rather based on the slot/sector-combination in flash memory.  The
-   text below assumes that the block-size of AES is (much) smaller than
-   the sector size.  The typical sector-size of flash memory is in the
-   order of KiB.  Hence, multiple AES blocks need to be decrypted until
-   an entire sector is completed.
+   The following subsections offer additional information on the
+   selection of initialization vectors (IVs) for use with AES-CBC and
+   AES-CTR in the context of firmware encryption.  An IV MUST NOT be
+   reused when the same key is employed.  In this application, the IVs
+   are not random but are instead based on the slot/sector combination
+   in flash memory.  The discussion assumes that the block size of AES
+   is significantly smaller than the sector size.  Typically, flash
+   memory sectors are measured in KiB, necessitating the decryption of
+   multiple AES blocks to complete the decryption of an entire sector.
 
 10.  Complete Examples
 
-   The following manifests exemplify how to deliver encrypted payload
-   and its encryption info to devices.
+   The following manifests illustrate how to deliver an encrypted
+   payload along with its encryption information to devices.
 
-   HMAC-256 MAC are added in AES-KW examples using the following secret
-   key:
+   In the AES-KW examples, HMAC-256 MACs are included, utilizing the
+   following secret key:
 
      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
      (616161... in hex, and its length is 32)
@@ -1956,10 +2013,9 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 35]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 36]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    -----BEGIN PRIVATE KEY-----
@@ -1979,211 +2035,211 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 10.1.  AES Key Wrap Example with Write Directive
 
-   The following SUIT manifest requests a parser to authenticate the
-   manifest with COSE_Mac0 HMAC256, to write and decrypt the encrypted
-   payload into a component with the suit-directive-write directive.
+   The following SUIT manifest instructs a parser to authenticate the
+   manifest using COSE_Mac0 with HMAC256.  It also directs the parser to
+   write and decrypt the encrypted payload into a component using the
+   suit-directive-write directive.
 
    The SUIT manifest in diagnostic notation (with line breaks added for
-   readability) is shown here:
+   clarity) is displayed below:
 
-1   / SUIT_Envelope_Tagged / 107({
-2     / authentication-wrapper / 2: << [
-3       << [
-4         / digest-algorithm-id: / -16 / SHA256 /,
-5         / digest-bytes: / h'AAB6A7868C4E43D5983BDE019EF22779
-6                             21F6F8EF1FCAF9403CA97255BED2CD30'
-7       ] >>,
-8       << / COSE_Mac0_Tagged / 17([
-9         / protected: / << {
-10          / algorithm-id / 1: 5 / HMAC256 /
-11        } >>,
-12        / unprotected: / {},
-13        / payload: / null,
-14        / tag: / h'93B4B774A5D0421ED6FB5EBF890A284C
-15                   DAC7816CBC048BF47EE7FA7FF3BC02C3'
-16      ]) >>
-17    ] >>,
-18    / manifest / 3: << {
-19      / manifest-version / 1: 1,
-20      / manifest-sequence-number / 2: 1,
-21      / common / 3: << {
-22        / components / 2: [
- *          /!!! component identifier for component index #0 !!!/
-23          ['plaintext-firmware'],
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
 
+   /  1/ / SUIT_Envelope_Tagged / 107({
+   /  2/   / authentication-wrapper / 2: << [
+   /  3/     << [
+   /  4/       / digest-algorithm-id: / -16 / SHA256 /,
+   /  5/       / digest-bytes: / h'037A5C325CE14078A0AADF007428EAC6
+   /  6/                           59361AD9402A732410BDA542FAE94E2C'
+   /  7/     ] >>,
+   /  8/     << / COSE_Mac0_Tagged / 17([
+   /  9/       / protected: / << {
+   / 10/         / algorithm-id / 1: 5 / HMAC256 /
+   / 11/       } >>,
+   / 12/       / unprotected: / {},
+   / 13/       / payload: / null,
+   / 14/       / tag: / h'8D92599011C451A4C5FB69709FA6CA6C
+   / 15/                  0F846D692BDBB3F624EC91F82F9F620A'
+   / 16/     ]) >>
+   / 17/   ] >>,
+   / 18/   / manifest / 3: << {
+   / 19/     / manifest-version / 1: 1,
+   / 20/     / manifest-sequence-number / 2: 1,
+   / 21/     / common / 3: << {
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 36]
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 37]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
- *          /!!! component identifier for component index #1 !!!/
-24          ['encrypted-firmware']
-25        ]
-26      } >>,
-27      / install / 17: << [
-28        / fetch encrypted firmware /
- *        /!!! destination component index #1 = ['encrypted-firmware'] !!!/
-29        / directive-set-component-index / 12, 1,
-30        / directive-override-parameters / 20, {
-31          / parameter-image-size / 14: 46,
- *          /!!! source uri of #1 !!!/
-32          / parameter-uri / 21: "https://example.com/encrypted-firmware"
-33        },
-34        / directive-fetch / 21, 15,
-35
-36        / decrypt encrypted firmware /
- *        /!!! destination component index #0 = ['plaintext-firmware'] !!!/
-37        / directive-set-component-index / 12, 0,
-38        / directive-override-parameters / 20, {
-39          / parameter-encryption-info / 19: << 96([
-40            / protected: / << {
-41              / alg / 1: 1 / AES-GCM-128 /
-42            } >>,
-43            / unprotected: / {
-44              / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
-45            },
-46            / payload: / null / detached ciphertext /,
-47            / recipients: / [
-48              [
-49                / protected: / << {
-50                } >>,
-51                / unprotected: / {
-52                  / alg / 1: -3 / A128KW /,
-53                  / kid / 4: 'kid-1'
-54                },
-55                / payload: /
-56                  h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
-57                  / CEK encrypted with KEK /
-58              ]
-59            ]
-60          ]) >>,
- *          /!!! source component index #1 = ['encrypted-firmware'] !!!/
-61          / parameter-source-component / 22: 1
-62        },
- *        / consumes the SUIT_Encryption_Info above /
-63        / directive-copy / 22, 15
-64      ] >>
-65    } >>
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 37]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-66  })
+   / 22/       / components / 2: [
+   / 23/         ['plaintext-firmware']
+   / 24/       ]
+   / 25/     } >>,
+   / 26/     / install / 20: << [
+   / 27/       / fetch encrypted firmware /
+   / 28/       / directive-override-parameters / 20, {
+   / 29/         / parameter-content / 18:
+   / 30/           h'758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4
+   / 31/             BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59',
+   / 32/         / parameter-encryption-info / 19: << 96([
+   / 33/           / protected: / << {
+   / 34/             / alg / 1: 1 / A128GCM /
+   / 35/           } >>,
+   / 36/           / unprotected: / {
+   / 37/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
+   / 38/           },
+   / 39/           / payload: / null / detached ciphertext /,
+   / 40/           / recipients: / [
+   / 41/             [
+   / 42/               / protected: / h'',
+   / 43/               / unprotected: / {
+   / 44/                 / alg / 1: -3 / A128KW /,
+   / 45/                 / kid / 4: 'kid-1'
+   / 46/               },
+   / 47/               / payload: /
+   / 48/               h'\
+                       75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
+   / 49/                 / CEK encrypted with KEK /
+   / 50/             ]
+   / 51/           ]
+   / 52/         ]) >>
+   / 53/       },
+   / 54/
+   / 55/       / decrypt encrypted firmware /
+   / 56/       / directive-write / 18, 15
+   / 57/         / consumes the SUIT_Encryption_Info above /
+   / 58/     ] >>
+   / 59/   } >>
+   / 60/ })
 
    In hex format, the SUIT manifest is:
 
-   D86BA2025853825824822F5820536EC695E423342FF57FA89B3E3C12C0F9
-   257992F7D96F017281782D2DF1C50F582AD18443A10105A0F658203B7057
-   1169B0FEE5E6220BF86E5E973F7F32875495908EDAA91EC994BCA44B2903
-   589DA4010102010357A102818152706C61696E746578742D6669726D7761
-   726511587C8414A212582E2F59C3A34D9570FB99A5382E66466A3221A8AD
-   85CE508BA306FB431A60EFA5AAAA078355070205A4B196832DF17F135843
-   D8608443A10101A10550F14AAB9D81D51F7AD943FE87AF4F70CDF6818341
-   A0A2012204456B69642D31581875603FFC9518D794713C8CA8A115A7FB32
-   565A6D59534D62120F
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 38]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   D86BA2025853825824822F5820037A5C325CE14078A0AADF007428EAC659
+   361AD9402A732410BDA542FAE94E2C582AD18443A10105A0F658208D9259
+   9011C451A4C5FB69709FA6CA6C0F846D692BDBB3F624EC91F82F9F620A03
+   5898A4010102010357A102818152706C61696E746578742D6669726D7761
+   72651458778414A212582E758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B
+   85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A5913583E
+   D8608443A10101A1054CF14AAB9D81D51F7AD943FE87F6818340A2012204
+   456B69642D31581875603FFC9518D794713C8CA8A115A7FB32565A6D5953
+   4D62120F
 
 10.2.  AES Key Wrap Example with Fetch + Copy Directives
 
-   The following SUIT manifest requests a parser to fetch the encrypted
-   payload and to store it.  Then, the payload is decrypted and stored
-   into another component with the suit-directive-copy directive.  This
-   approach works well on constrained devices with XIP flash memory.
+   The following SUIT manifest instructs a parser to fetch and store the
+   encrypted payload.  Subsequently, the payload is decrypted and copied
+   into another component using the suit-directive-copy directive.  This
+   approach is particularly effective for constrained devices with
+   execute-in-place (XIP) flash memory.
 
    The SUIT manifest in diagnostic notation (with line breaks added for
-   readability) is shown below.  Line numbers and additional notes (see
-   /!!! text !!!/ ) have been inserted to provide further information
-   about the manifest processing.
+   clarity) is displayed below:
 
-/ SUIT_Envelope_Tagged / 107({
-  / authentication-wrapper / 2: << [
-    << [
-      / digest-algorithm-id: / -16 / SHA256 /,
-      / digest-bytes: / h'AAB6A7868C4E43D5983BDE019EF22779
-                          21F6F8EF1FCAF9403CA97255BED2CD30'
-    ] >>,
-    << / COSE_Mac0_Tagged / 17([
-      / protected: / << {
-        / algorithm-id / 1: 5 / HMAC256 /
-      } >>,
-      / unprotected: / {},
-      / payload: / null,
-      / tag: / h'93B4B774A5D0421ED6FB5EBF890A284C
-                 DAC7816CBC048BF47EE7FA7FF3BC02C3'
-    ]) >>
-  ] >>,
-  / manifest / 3: << {
-    / manifest-version / 1: 1,
-    / manifest-sequence-number / 2: 1,
-    / common / 3: << {
-      / components / 2: [
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
+
+   /  1/ / SUIT_Envelope_Tagged / 107({
+   /  2/   / authentication-wrapper / 2: << [
+   /  3/     << [
+   /  4/       / digest-algorithm-id: / -16 / SHA256 /,
+   /  5/       / digest-bytes: / h'8814BC46089ACA6A863A7BA8393F9747
+   /  6/                           589940EFA40641335EF86155598F06C3'
+   /  7/     ] >>,
+   /  8/     << / COSE_Mac0_Tagged / 17([
+   /  9/       / protected: / << {
+   / 10/         / algorithm-id / 1: 5 / HMAC256 /
+   / 11/       } >>,
+   / 12/       / unprotected: / {},
+   / 13/       / payload: / null,
+   / 14/       / tag: / h'B68572F6F0494FEAF390CE44B462F2A7
+   / 15/                  BDF73EF5DFE9FB8E12585A12F8F641AD'
+   / 16/     ]) >>
+   / 17/   ] >>,
+   / 18/   / manifest / 3: << {
+   / 19/     / manifest-version / 1: 1,
+   / 20/     / manifest-sequence-number / 2: 1,
+   / 21/     / common / 3: << {
+   / 22/       / components / 2: [
+   / 23/         ['plaintext-firmware'],
+   / 24/         ['encrypted-firmware']
+   / 25/       ]
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 38]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 39]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-        ['plaintext-firmware'],
-        ['encrypted-firmware']
-      ]
-    } >>,
-    / install / 17: << [
-      / fetch encrypted firmware /
-      / directive-set-component-index / 12, 1 / ['encrypted-firmware'] /,
-      / directive-override-parameters / 20, {
-        / parameter-image-size / 14: 46,
-        / parameter-uri / 21: "https://example.com/encrypted-firmware"
-      },
-      / directive-fetch / 21, 15,
-
-      / decrypt encrypted firmware /
-      / directive-set-component-index / 12, 0 / ['plaintext-firmware'] /,
-      / directive-override-parameters / 20, {
-        / parameter-encryption-info / 19: << 96([
-          / protected: / << {
-            / alg / 1: 1 / AES-GCM-128 /
-          } >>,
-          / unprotected: / {
-            / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
-          },
-          / payload: / null / detached ciphertext /,
-          / recipients: / [
-            [
-              / protected: / << {
-              } >>,
-              / unprotected: / {
-                / alg / 1: -3 / A128KW /,
-                / kid / 4: 'kid-1'
-              },
-              / payload: /
-                h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
-                / CEK encrypted with KEK /
-            ]
-          ]
-        ]) >>,
-        / parameter-source-component / 22: 1 / ['encrypted-firmware'] /
-      },
-      / directive-copy / 22, 15 / consumes the SUIT_Encryption_Info above /
-    ] >>
-  } >>
-})
-
-
-
-
+   / 26/     } >>,
+   / 27/     / install / 20: << [
+   / 28/       / fetch encrypted firmware /
+   / 29/       / directive-set-component-index / 12, 1
+   / 30/         / ['encrypted-firmware'] /,
+   / 31/       / directive-override-parameters / 20, {
+   / 32/         / parameter-image-size / 14: 46,
+   / 33/         / parameter-uri / 21:
+   / 34/           "https://example.com/encrypted-firmware"
+   / 35/       },
+   / 36/       / directive-fetch / 21, 15,
+   / 37/
+   / 38/       / decrypt encrypted firmware /
+   / 39/       / directive-set-component-index / 12, 0
+   / 40/         / ['plaintext-firmware'] /,
+   / 41/       / directive-override-parameters / 20, {
+   / 42/         / parameter-encryption-info / 19: << 96([
+   / 43/           / protected: / << {
+   / 44/             / alg / 1: 1 / A128GCM /
+   / 45/           } >>,
+   / 46/           / unprotected: / {
+   / 47/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
+   / 48/           },
+   / 49/           / payload: / null / detached ciphertext /,
+   / 50/           / recipients: / [
+   / 51/             [
+   / 52/               / protected: / h'',
+   / 53/               / unprotected: / {
+   / 54/                 / alg / 1: -3 / A128KW /,
+   / 55/                 / kid / 4: 'kid-1'
+   / 56/               },
+   / 57/               / payload: /
+   / 58/               h'\
+                       75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
+   / 59/                 / CEK encrypted with KEK /
+   / 60/             ]
+   / 61/           ]
+   / 62/         ]) >>,
+   / 63/         / parameter-source-component / 22: 1
+   / 64/           / ['encrypted-firmware'] /
+   / 65/       },
+   / 66/       / directive-copy / 22, 15
+   / 67/         / consumes the SUIT_Encryption_Info above /
+   / 68/     ] >>
+   / 69/   } >>
+   / 70/ })
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 39]
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 40]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    The default storage area is defined by the component identifier (see
@@ -2194,7 +2250,7 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    While parsing the manifest, the behavior of SUIT manifest processor
    would be
 
-   *  [L1-L17] authenticates the manifest part on [L18-L65]
+   *  [L2-L17] authenticates the manifest part on [L18-L68]
 
    *  [L22-L25] gets two component identifiers; ['plaintext-firmware']
       for component #0, and ['encrypted-firmware'] for component # 1
@@ -2203,292 +2259,330 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    *  [L29] sets current component index # 1 (the lasting directives
       target ['encrypted-firmware'])
 
-   *  [L32] sets source uri parameter "https://example.com/encrypted-
-      firmware"
+   *  [L33-L34] sets source uri parameter "https://example.com/
+      encrypted-firmware"
 
-   *  [L34] fetches content from source uri into ['encrypted-firmware']
+   *  [L36] fetches content from source uri into ['encrypted-firmware']
 
-   *  [L37] sets current component index # 0 (the lasting directives
+   *  [L39] sets current component index # 0 (the lasting directives
       target ['plaintext-firmware'])
 
-   *  [L39-L60] sets SUIT encryption info parameter
+   *  [L42-L62] sets SUIT encryption info parameter
 
-   *  [L61] sets source component index parameter # 1
+   *  [L63-L64] sets source component index parameter # 1
 
-   *  [L63] decrypts component # 1 (source component index) and stores
+   *  [L66] decrypts component # 1 (source component index) and stores
       the result into component # 0 (current component index)
 
    The following attributes and features from the SUIT manifest
    specification are used:
 
-| Attribute Name                             | Abbreviation  | Manifest Reference |
-|--------------------------------------------|---------------|--------------------|
-| component identifier                       | CI            | Section 8.4.5.1    |
-| (destination) component index              | dst-CI        | Section 8.4.10.1   |
-| (destination) component slot OPTIONAL param| dst-CS        | Section 8.4.8.8    |
-| (source) uri OPTIONAL parameter            | src-URI       | Section 8.4.8.10   |
-| source component index OPTIONAL parameter  | src-CI        | Section 8.4.8.11   |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 41]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+        +===============================+=========+===============+
+        | Attribute Name                | Abb.    | Manifest Ref. |
+        +===============================+=========+===============+
+        | component identifier          | CI      | Sec. 8.4.5.1  |
+        +-------------------------------+---------+---------------+
+        | (destination) component index | dst-CI  | Sec. 8.4.10.1 |
+        +-------------------------------+---------+---------------+
+        | (destination) component slot  | dst-CS  | Sec. 8.4.8.8  |
+        | OPTIONAL param                |         |               |
+        +-------------------------------+---------+---------------+
+        | (source) uri OPTIONAL         | src-URI | Sec. 8.4.8.10 |
+        | parameter                     |         |               |
+        +-------------------------------+---------+---------------+
+        | source component index        | src-CI  | Sec. 8.4.8.11 |
+        | OPTIONAL parameter            |         |               |
+        +-------------------------------+---------+---------------+
+
+                                  Table 1
 
    The resulting state of SUIT manifest processor is shown in the
    following table:
 
+    +==============+========================+========================+
+    | Abbreviation | Plaintext              | Ciphertext             |
+    +==============+========================+========================+
+    | CI           | ['plaintext-firmware'] | ['encrypted-firmware'] |
+    +--------------+------------------------+------------------------+
+    | dst-CI       | 0                      | 1                      |
+    +--------------+------------------------+------------------------+
+    | dst-CS       | N/A                    | N/A                    |
+    +--------------+------------------------+------------------------+
+    | src-URI      | N/A                    | "https://example.com/  |
+    |              |                        | encrypted-firmware"    |
+    +--------------+------------------------+------------------------+
+    | src-CI       | 1                      | N/A                    |
+    +--------------+------------------------+------------------------+
 
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 40]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-| Abbreviation  | Plaintext              | Ciphertext                               |
-|---------------|------------------------|------------------------------------------|
-| CI            | ['plaintext-firmware'] | ['encrypted-firmware']                   |
-| dst-CI        | 0                      | 1                                        |
-| dst-CS        | N/A                    | N/A                                      |
-| src-URI       | N/A                    | "https://example.com/encrypted-firmware" |
-| src-CI        | 1                      | N/A                                      |
+                                 Table 2
 
    In hex format, the SUIT manifest shown above is:
 
-   D86BA2025853825824822F5820AAB6A7868C4E43D5983BDE019EF2277921
-   F6F8EF1FCAF9403CA97255BED2CD30582AD18443A10105A0F6582093B4B7
-   74A5D0421ED6FB5EBF890A284CDAC7816CBC048BF47EE7FA7FF3BC02C303
-   58B7A40101020103582BA102828152706C61696E746578742D6669726D77
-   6172658152656E637279707465642D6669726D776172651158818C0C0114
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 42]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   D86BA2025853825824822F58208814BC46089ACA6A863A7BA8393F974758
+   9940EFA40641335EF86155598F06C3582AD18443A10105A0F65820B68572
+   F6F0494FEAF390CE44B462F2A7BDF73EF5DFE9FB8E12585A12F8F641AD03
+   58B2A40101020103582BA102828152706C61696E746578742D6669726D77
+   6172658152656E637279707465642D6669726D7761726514587C8C0C0114
    A20E182E15782668747470733A2F2F6578616D706C652E636F6D2F656E63
-   7279707465642D6669726D77617265150F0C0014A2135843D8608443A101
-   01A10550F14AAB9D81D51F7AD943FE87AF4F70CDF6818341A0A201220445
-   6B69642D31581875603FFC9518D794713C8CA8A115A7FB32565A6D59534D
-   621601160F
+   7279707465642D6669726D77617265150F0C0014A213583ED8608443A101
+   01A1054CF14AAB9D81D51F7AD943FE87F6818340A2012204456B69642D31
+   581875603FFC9518D794713C8CA8A115A7FB32565A6D59534D621601160F
 
-   The example above does not use storage slots.  However, it is
-   possible to specify this functionality for devices that support slots
-   in flash memory.  In the augmented example below we refer to the
-   slots using [h'00'] and [h'01'].  The component identifier [h'00']
-   would, in this example, specify the component slot #0.
+   The previous example does not utilize storage slots.  However, it is
+   possible to implement this functionality for devices that support
+   slots in flash memory.  In the enhanced example below, we reference
+   the slots using [h'00'] and [h'01'].  In this context, the component
+   identifier [h'00'] designates component slot #0.
 
-1   / SUIT_Envelope_Tagged / 107({
-2     / authentication-wrapper / 2: << [
-3       << [
-4         / digest-algorithm-id: / -16 / SHA256 /,
-5         / digest-bytes: / h'AAB6A7868C4E43D5983BDE019EF22779
-6                             21F6F8EF1FCAF9403CA97255BED2CD30'
-7       ] >>,
-8       << / COSE_Mac0_Tagged / 17([
-9         / protected: / << {
-10          / algorithm-id / 1: 5 / HMAC256 /
-11        } >>,
-12        / unprotected: / {},
-13        / payload: / null,
-14        / tag: / h'93B4B774A5D0421ED6FB5EBF890A284C
-15                   DAC7816CBC048BF47EE7FA7FF3BC02C3'
-16      ]) >>
-17    ] >>,
-18    / manifest / 3: << {
-19      / manifest-version / 1: 1,
-20      / manifest-sequence-number / 2: 1,
-21      / common / 3: << {
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
+
+   /  1/ / SUIT_Envelope_Tagged / 107({
+   /  2/   / authentication-wrapper / 2: << [
+   /  3/     << [
+   /  4/       / digest-algorithm-id: / -16 / SHA256 /,
+   /  5/       / digest-bytes: / h'A6D2C13A0DEFD57A09FA65C24206A9A8
+   /  6/                           747261E6EA017532B3DAB0419C42A2FC'
+   /  7/     ] >>,
+   /  8/     << / COSE_Mac0_Tagged / 17([
+   /  9/       / protected: / << {
+   / 10/         / algorithm-id / 1: 5 / HMAC256 /
+   / 11/       } >>,
+   / 12/       / unprotected: / {},
+   / 13/       / payload: / null,
+   / 14/       / tag: / h'DB350AC9603B0BBA3895B85019699363
+   / 15/                  3F314A9066634B31BF62E596FD870434'
+   / 16/     ]) >>
+   / 17/   ] >>,
+   / 18/   / manifest / 3: << {
+   / 19/     / manifest-version / 1: 1,
+   / 20/     / manifest-sequence-number / 2: 1,
+   / 21/     / common / 3: << {
+   / 22/       / components / 2: [
+   / 23/         [h'00'],
+   / 24/         [h'01']
+   / 25/       ]
+   / 26/     } >>,
+   / 27/     / install / 20: << [
+   / 28/       / fetch encrypted firmware /
+   / 29/       / directive-set-component-index / 12, 1 / [h'01'] /,
+   / 30/       / directive-override-parameters / 20, {
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 41]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 43]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-22        / components / 2: [
- *          /!!! component identifier for component index #0 !!!/
-23          [h'00'],
- *          /!!! component identifier for component index #1 !!!/
-24          [h'01']
-25        ]
-26      } >>,
-27      / install / 17: << [
-28        / fetch encrypted firmware /
- *         /!!! destination component index #1 = [h'01'] !!!/
-29        / directive-set-component-index / 12, 1,
-30        / directive-override-parameters / 20, {
-31          / parameter-image-size / 14: 46,
- *          /!!! source uri of #1 !!!/
-32          / parameter-uri / 21: "https://example.com/encrypted-firmware"
-33        },
-34        / directive-fetch / 21, 15,
-35
-36        / decrypt encrypted firmware /
- *        /!!! destination component index #0 = [h'00'] !!!/
-37        / directive-set-component-index / 12, 0,
-38        / directive-override-parameters / 20, {
-39          / parameter-encryption-info / 19: << 96([
-40            / protected: / << {
-41              / alg / 1: 1 / AES-GCM-128 /
-42            } >>,
-43            / unprotected: / {
-44              / IV / 5: h'F14AAB9D81D51F7AD943FE87AF4F70CD'
-45            },
-46            / payload: / null / detached ciphertext /,
-47            / recipients: / [
-48              [
-49                / protected: / << {
-50                } >>,
-51                / unprotected: / {
-52                  / alg / 1: -3 / A128KW /,
-53                  / kid / 4: 'kid-1'
-54                },
-55                / payload: /
-56                  h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
-57                  / CEK encrypted with KEK /
-58              ]
-59            ]
-60          ]) >>,
- *          /!!! source component index #1 = [h'01'] !!!/
-61          / parameter-source-component / 22: 1
-62        },
- *        /!!! consumes the SUIT_Encryption_Info above !!!/
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 42]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-63        / directive-copy / 22, 15
-64      ] >>
-65    } >>
-66  })
+   / 31/         / parameter-image-size / 14: 46,
+   / 32/         / parameter-uri / 21:
+   / 33/           "https://example.com/encrypted-firmware"
+   / 34/       },
+   / 35/       / directive-fetch / 21, 15,
+   / 36/
+   / 37/       / decrypt encrypted firmware /
+   / 38/       / directive-set-component-index / 12, 0 / ['00'] /,
+   / 39/       / directive-override-parameters / 20, {
+   / 40/         / parameter-encryption-info / 19: << 96([
+   / 41/           / protected: / << {
+   / 42/             / alg / 1: 1 / A128GCM /
+   / 43/           } >>,
+   / 44/           / unprotected: / {
+   / 45/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
+   / 46/           },
+   / 47/           / payload: / null / detached ciphertext /,
+   / 48/           / recipients: / [
+   / 49/             [
+   / 50/               / protected: / h'',
+   / 51/               / unprotected: / {
+   / 52/                 / alg / 1: -3 / A128KW /,
+   / 53/                 / kid / 4: 'kid-1'
+   / 54/               },
+   / 55/               / payload: /
+   / 56/               h'\
+                       75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
+   / 57/                 / CEK encrypted with KEK /
+   / 58/             ]
+   / 59/           ]
+   / 60/         ]) >>,
+   / 61/         / parameter-source-component / 22: 1 / [h'01'] /
+   / 62/       },
+   / 63/       / directive-copy / 22, 15
+   / 64/         / consumes the SUIT_Encryption_Info above /
+   / 65/     ] >>
+   / 66/   } >>
+   / 67/ })
 
 10.3.  ES-DH Example with Write + Copy Directives
 
-   The following SUIT manifest requests a parser to authenticate the
-   manifest with COSE_Sign1 ES256, to write and decrypt the encrypted
-   payload into a component with the suit-directive-write directive.
+   The following SUIT manifest instructs a parser to authenticate the
+   manifest using COSE_Sign1 with ES256.  It also directs the parser to
+   write and decrypt the encrypted payload into a component via the
+   suit-directive-write directive.
 
-   The SUIT manifest in diagnostic notation (with line breaks added for
-   readability) is shown here:
-
-   / SUIT_Envelope_Tagged / 107({
-     / authentication-wrapper / 2: << [
-       << [
-         / digest-algorithm-id: / -16 / SHA256 /,
-         / digest-bytes: / h'CEF034223D7F2C39D676876995B4ED4E
-                             8221AC5BF184B6606EE62C41C149C266'
-       ] >>,
-       << / COSE_Sign1_Tagged / 18([
-         / protected: / << {
-           / algorithm-id / 1: -7 / ES256 /
-         } >>,
-         / unprotected: / {},
-         / payload: / null,
-         / signature: /
-           h'65E59AAB8A35BDE9547458316D1C769F
-             FB2CEA304C9FB6151E5C8A88A002A292
-             C5B8C63C81B5AC0AE31948B610834E12
-             CBDBB2753EA221544B6733076A92EE20'
-       ]) >>
-     ] >>,
-     / manifest / 3: << {
-       / manifest-version / 1: 1,
-       / manifest-sequence-number / 2: 1,
-       / common / 3: << {
-         / components / 2: [
-           ['decrypted-firmware']
-         ]
-       } >>,
-       / install / 17: << [
-         / directive-set-component-index / 12, 0
-           / ['plaintext-firmware'] /,
-         / directive-override-parameters / 20, {
-           / parameter-content / 18:
-             h'344FA2D5AD2F43F6F363DA6FF2C337FE69E33E3D63714D
+   The SUIT manifest in diagnostic notation (formatted with line breaks
+   for clarity) is presented below:
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 43]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 44]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-               23985BF02499EB0E8B231D45C378245DA3611C160CC511',
-           / parameter-encryption-info / 19: << 96([
-             / protected: / << {
-               / alg / 1: 1 / AES-GCM-128 /
-             } >>,
-             / unprotected: / {
-               / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-             },
-             / payload: / null / detached ciphertext /,
-             / recipients: / [
-               [
-                 / protected: / << {
-                   / alg / 1: -29 / ECDH-ES + A128KW /
-                 } >>,
-                 / unprotected: / {
-                   / ephemeral key / -1: {
-                     / kty / 1: 2 / EC2 /,
-                     / crv / -1: 1 / P-256 /,
-                     / x / -2: h'FF6E266DABAF51B7207569E31CF72646
-                                 183E94CEE64FCDC8695AD9A505AEFDEA',
-                     / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004B
-                                 B59D8BD60D7997734A9FA0124B650895'
-                   },
-                   / kid / 4: 'kid-2'
-                 },
-                 / payload: /
-                   h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
-                   / CEK encrypted with KEK /
-               ]
-             ]
-           ]) >>
-         },
-         / directive-write / 18, 15
-           / consumes the SUIT_Encryption_Info above /
-       ] >>
-     } >>
-   })
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
+
+   /  1/ / SUIT_Envelope_Tagged / 107({
+   /  2/   / authentication-wrapper / 2: << [
+   /  3/     << [
+   /  4/       / digest-algorithm-id: / -16 / SHA256 /,
+   /  5/       / digest-bytes: / h'1DB69EF1477E9942815F29F78E09957B
+   /  6/                           26B4ADD03902BDB3D1EDF3DA2075F593'
+   /  7/     ] >>,
+   /  8/     << / COSE_Sign1_Tagged / 18([
+   /  9/       / protected: / << {
+   / 10/         / algorithm-id / 1: -7 / ES256 /
+   / 11/       } >>,
+   / 12/       / unprotected: / {},
+   / 13/       / payload: / null,
+   / 14/       / signature: / h'CB4EADA6BEC17EEB22EB836FB2BF9136
+   / 15/                        A6EF733C11DAC955F543BBDCAA373B85
+   / 16/                        9321BC77969917E4C70F049527607F4C
+   / 17/                        32752D53E01346E96BFF4880B437DF64'
+   / 18/     ]) >>
+   / 19/   ] >>,
+   / 20/   / manifest / 3: << {
+   / 21/     / manifest-version / 1: 1,
+   / 22/     / manifest-sequence-number / 2: 1,
+   / 23/     / common / 3: << {
+   / 24/       / components / 2: [
+   / 25/         ['decrypted-firmware']
+   / 26/       ]
+   / 27/     } >>,
+   / 28/     / install / 20: << [
+   / 29/       / directive-set-component-index / 12, 0
+   / 30/         / ['plaintext-firmware'] /,
+   / 31/       / directive-override-parameters / 20, {
+   / 32/         / parameter-content / 18:
+   / 33/           h'758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4
+   / 34/             BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59',
+   / 35/         / parameter-encryption-info / 19: << 96([
+   / 36/           / protected: / << {
+   / 37/             / alg / 1: 1 / A128GCM /
+   / 38/           } >>,
+   / 39/           / unprotected: / {
+   / 40/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
+   / 41/           },
+   / 42/           / payload: / null / detached ciphertext /,
+   / 43/           / recipients: / [
+   / 44/             [
+   / 45/               / protected: / << {
+   / 46/                 / alg / 1: -29 / ECDH-ES + A128KW /
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 45]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   / 47/               } >>,
+   / 48/               / unprotected: / {
+   / 49/                 / ephemeral key / -1: {
+   / 50/                   / kty / 1: 2 / EC2 /,
+   / 51/                   / crv / -1: 1 / P-256 /,
+   / 52/                   / x / -2: h'73024F415AA51529A66CCEFD88F3F62A
+   / 53/                               734492FF45F6AD37FD2888E73EAF19DA\
+                                                                      ',
+   / 54/                   / y / -3: h'4005B48A6FD091AA6ABFE3CFBEEDE88B
+   / 55/                               347E521D43405FDBD7D2CFF0EBC21B26'
+   / 56/                 },
+   / 57/                 / kid / 4: 'kid-2'
+   / 58/               },
+   / 59/               / payload: /
+   / 60/               h'\
+                       A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
+   / 61/                 / CEK encrypted with KEK /
+   / 62/             ]
+   / 63/           ]
+   / 64/         ]) >>
+   / 65/       },
+   / 66/       / directive-write / 18, 15
+   / 67/         / consumes the SUIT_Encryption_Info above /
+   / 68/     ] >>
+   / 69/   } >>
+   / 70/ })
 
    In hex format, the SUIT manifest is this:
 
-
-
-
-
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 44]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
-
-   D86BA2025873825824822F5820CEF034223D7F2C39D676876995B4ED4E82
-   21AC5BF184B6606EE62C41C149C266584AD28443A10126A0F6584065E59A
-   AB8A35BDE9547458316D1C769FFB2CEA304C9FB6151E5C8A88A002A292C5
-   B8C63C81B5AC0AE31948B610834E12CBDBB2753EA221544B6733076A92EE
-   200358ECA4010102010357A1028181526465637279707465642D6669726D
-   776172651158CB860C0014A212582E344FA2D5AD2F43F6F363DA6FF2C337
-   FE69E33E3D63714D23985BF02499EB0E8B231D45C378245DA3611C160CC5
-   11135890D8608443A10101A10550DAE613B2E0DC55F4322BE38BDBA9DC68
-   F6818344A101381CA220A401022001215820FF6E266DABAF51B7207569E3
-   1CF72646183E94CEE64FCDC8695AD9A505AEFDEA2258205FBC4A29844450
-   B3AC22AB30C7F7004BB59D8BD60D7997734A9FA0124B65089504456B6964
-   2D325818B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9120F
+   D86BA2025873825824822F58201DB69EF1477E9942815F29F78E09957B26
+   B4ADD03902BDB3D1EDF3DA2075F593584AD28443A10126A0F65840CB4EAD
+   A6BEC17EEB22EB836FB2BF9136A6EF733C11DAC955F543BBDCAA373B8593
+   21BC77969917E4C70F049527607F4C32752D53E01346E96BFF4880B437DF
+   640358E8A4010102010357A1028181526465637279707465642D6669726D
+   776172651458C7860C0014A212582E758C4B7BBAE2C4C1D462423E0F0DC3
+   164FFA7B85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A
+   5913588CD8608443A10101A1054CF14AAB9D81D51F7AD943FE87F6818344
+   A101381CA220A40102200121582073024F415AA51529A66CCEFD88F3F62A
+   734492FF45F6AD37FD2888E73EAF19DA2258204005B48A6FD091AA6ABFE3
+   CFBEEDE88B347E521D43405FDBD7D2CFF0EBC21B2604456B69642D325818
+   A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997120F
 
 10.4.  ES-DH Example with Dependency
 
    The following SUIT manifest requests a parser to resolve the
    dependency.
 
-   The dependent manifest is signed with another key: ~~~ -----BEGIN EC
-   PRIVATE KEY-----
+   The dependent manifest is signed with another key:
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 46]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   -----BEGIN EC PRIVATE KEY-----
    MHcCAQEEIIQa67e56m8CYL5zVaJFiLl30j0qxb8ray2DeUMqH+qYoAoGCCqGSM49
    AwEHoUQDQgAEDpCKqPBm2x8ITgw2UsY5Ur2Z8qW9si+eATZ6rQOrpot32hvYrE8M
-   tJC6IQZIv3mrFk1JrTVR1x0xSydJ7kLSmg== -----END EC PRIVATE KEY----- ~~~
+   tJC6IQZIv3mrFk1JrTVR1x0xSydJ7kLSmg==
+   -----END EC PRIVATE KEY-----
 
    The dependency manifest is embedded as an integrated-dependency and
    referred to by the "#dependency-manifest" URI.
@@ -2496,184 +2590,187 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
    The SUIT manifest in diagnostic notation (with line breaks added for
    readability) is shown here:
 
-   / SUIT_Envelope_Tagged / 107({
-     / authentication-wrapper / 2: << [
-       << [
-         / digest-algorithm-id: / -16 / SHA256 /,
-         / digest-bytes: / h'6A1D9F42E7B4047D2F54046019AE3ED4
-                             3A8ACC467AC16576B17D6F8E633042D2'
-       ] >>,
-       << / COSE_Sign1_Tagged / 18([
-         / protected: / << {
-           / algorithm-id / 1: -7 / ES256 /
-         } >>,
-         / unprotected: / {},
-         / payload: / null,
-         / signature: /
-           h'DF493BDBF167EFFB40593C5910D33B66
-             429721467DF05800EA66A88B91729CD5
-             1007981F151FC324745FF43E6F75AAF5
-             197DD5EC4AA6BCEFCE43E4B1E35C948E'
+   =============== NOTE: '\' line wrapping per RFC 8792 ================
+
+   /  1/ / SUIT_Envelope_Tagged / 107({
+   /  2/   / authentication-wrapper / 2: << [
+   /  3/     << [
+   /  4/       / digest-algorithm-id: / -16 / SHA256 /,
+   /  5/       / digest-bytes: / h'A00CB6C85515C1EF471B50B542FACDD8
+   /  6/                           8B71B3C7EA2A43DE13D32C4A99056FE9'
+   /  7/     ] >>,
+   /  8/     << / COSE_Sign1_Tagged / 18([
+   /  9/       / protected: / << {
+   / 10/         / algorithm-id / 1: -7 / ES256 /
+   / 11/       } >>,
+   / 12/       / unprotected: / {},
+   / 13/       / payload: / null,
+   / 14/       / signature: / h'421B30FE76DA848616D72FC1115EA610
+   / 15/                        5578CB95DF9C6BEAD931105C9D555CF8
+   / 16/                        CD38C8FD68ACE43445D8D2CAE6391A99
+   / 17/                        5A212487D92F8DAD789F65511AC61778'
+   / 18/     ]) >>
+   / 19/   ] >>,
+   / 20/   / manifest / 3: << {
+   / 21/     / manifest-version / 1: 1,
+   / 22/     / manifest-sequence-number / 2: 1,
+   / 23/     / common / 3: << {
+   / 24/       / dependencies / 1: {
+   / 25/         / component-index / 1: {
+   / 26/           / dependency-prefix / 1: [
+   / 27/              'dependency-manifest.suit'
+   / 28/           ]
+   / 29/         }
+   / 30/       },
+   / 31/       / components / 2: [
+   / 32/         ['decrypted-firmware']
+   / 33/       ]
+   / 34/     } >>,
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 45]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 47]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-       ]) >>
-     ] >>,
-     / manifest / 3: << {
-       / manifest-version / 1: 1,
-       / manifest-sequence-number / 2: 1,
-       / common / 3: << {
-         / dependencies / 1: {
-           / component-index / 1: {
-             / dependency-prefix / 1: [
-                'dependency-manifest.suit'
-             ]
-           }
-         },
-         / components / 2: [
-           ['decrypted-firmware']
-         ]
-       } >>,
-       / manifest-component-id / 5: [
-         'dependent-manifest.suit'
-       ],
-       / install / 17: << [
-         / NOTE: set SUIT_Encryption_Info /
-         / directive-set-component-index / 12, 0
-           / ['decrypted-firmware'] /,
-         / directive-override-parameters / 20, {
-           / parameter-content / 18:
-             h'344FA2D5AD2F43F6F363DA6FF2C337FE69E33E3D63714D
-               23985BF02499EB0E8B231D45C378245DA3611C160CC511',
-           / parameter-encryption-info / 19: << 96([
-             / protected: / << {
-               / alg / 1: 1 / AES-GCM-128 /
-             } >>,
-             / unprotected: / {
-               / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
-             },
-             / payload: / null / detached ciphertext /,
-             / recipients: / [
-               [
-                 / protected: / << {
-                   / alg / 1: -29 / ECDH-ES + A128KW /
-                 } >>,
-                 / unprotected: / {
-                   / ephemeral key / -1: {
-                     / kty / 1: 2 / EC2 /,
-                     / crv / -1: 1 / P-256 /,
-                     / x / -2: h'FF6E266DABAF51B7207569E31CF72646
-                                 183E94CEE64FCDC8695AD9A505AEFDEA',
-                     / y / -3: h'5FBC4A29844450B3AC22AB30C7F7004B
+   / 35/     / manifest-component-id / 5: [
+   / 36/       'dependent-manifest.suit'
+   / 37/     ],
+   / 38/     / install / 20: << [
+   / 39/       / NOTE: set SUIT_Encryption_Info /
+   / 40/       / directive-set-component-index / 12, 0
+   / 41/         / ['decrypted-firmware'] /,
+   / 42/       / directive-override-parameters / 20, {
+   / 43/         / parameter-content / 18:
+   / 44/           h'758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4
+   / 45/             BD6D7ED26AB32FEB063385D4D3465927EC82CB5E198A59',
+   / 46/         / parameter-encryption-info / 19: << 96([
+   / 47/           / protected: / << {
+   / 48/             / alg / 1: 1 / A128GCM /
+   / 49/           } >>,
+   / 50/           / unprotected: / {
+   / 51/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
+   / 52/           },
+   / 53/           / payload: / null / detached ciphertext /,
+   / 54/           / recipients: / [
+   / 55/             [
+   / 56/               / protected: / << {
+   / 57/                 / alg / 1: -29 / ECDH-ES + A128KW /
+   / 58/               } >>,
+   / 59/               / unprotected: / {
+   / 60/                 / ephemeral key / -1: {
+   / 61/                   / kty / 1: 2 / EC2 /,
+   / 62/                   / crv / -1: 1 / P-256 /,
+   / 63/                   / x / -2: h'73024F415AA51529A66CCEFD88F3F62A
+   / 64/                               734492FF45F6AD37FD2888E73EAF19DA\
+                                                                      ',
+   / 65/                   / y / -3: h'4005B48A6FD091AA6ABFE3CFBEEDE88B
+   / 66/                               347E521D43405FDBD7D2CFF0EBC21B26'
+   / 67/                 },
+   / 68/                 / kid / 4: 'kid-2'
+   / 69/               },
+   / 70/               / payload: /
+   / 71/               h'\
+                       A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
+   / 72/                 / CEK encrypted with KEK /
+   / 73/             ]
+   / 74/           ]
+   / 75/         ]) >>
+   / 76/       },
+   / 77/
+   / 78/       / NOTE: call dependency-manifest /
+   / 79/       / directive-set-component-index / 12, 1
+   / 80/         / ['dependenty-manifest.suit'] /,
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 46]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 48]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-                                 B59D8BD60D7997734A9FA0124B650895'
-                   },
-                   / kid / 4: 'kid-2'
-                 },
-                 / payload: /
-                   h'B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C9'
-                   / CEK encrypted with KEK /
-               ]
-             ]
-           ]) >>
-         },
+   / 81/       / directive-override-parameters / 20, {
+   / 82/         / parameter-image-digest / 3: << [
+   / 83/           / algorithm-id / -16 / SHA256 /,
+   / 84/           / digest-bytes / h'4B15C90FBD776A820E7E733DF040D90B
+   / 85/                              356B5C75982ECAECE8673818179BDF16'
+   / 86/         ] >>,
+   / 87/         / parameter-image-size / 14: 247,
+   / 88/         / parameter-uri / 21: "#dependency-manifest"
+   / 89/       },
+   / 90/       / directive-fetch / 21, 15,
+   / 91/       / condition-dependency-integrity / 7, 15,
+   / 92/       / directive-process-dependency / 11, 15
+   / 93/     ] >>
+   / 94/   } >>,
+   / 95/   "#dependency-manifest": <<
+   / 96/     / SUIT_Envelope_Tagged / 107({
+   / 97/       / authentication-wrapper / 2: << [
+   / 98/         << [
+   / 99/           / digest-algorithm-id: / -16 / SHA256 /,
+   /100/           / digest-bytes: / h'4B15C90FBD776A820E7E733DF040D90B
+   /101/                               356B5C75982ECAECE8673818179BDF16'
+   /102/         ] >>,
+   /103/         << / COSE_Sign1_Tagged / 18([
+   /104/           / protected: / << {
+   /105/             / algorithm-id / 1: -7 / ES256 /
+   /106/           } >>,
+   /107/           / unprotected: / {},
+   /108/           / payload: / null,
+   /109/           / signature: / h'2B1B9C4E44E52863A78F73DA2A935823
+   /110/                            B28AEAE6A85CADAC4C4E3AABAAD56CBC
+   /111/                            E5A47D288F86B54D0186657E972E748B
+   /112/                            48CDB1D420FBAC1285DCC978382F62CC'
+   /113/         ]) >>
+   /114/       ] >>,
+   /115/       / manifest / 3: << {
+   /116/         / manifest-version / 1: 1,
+   /117/         / manifest-sequence-number / 2: 1,
+   /118/         / common / 3: << {
+   /119/           / components / 2: [
+   /120/             ['decrypted-firmware']
+   /121/           ],
+   /122/           / shared-sequence / 4: << [
+   /123/             / directive-set-componnt-index / 12, 0
+   /124/               / ['decrypted-firmware'] /,
+   /125/             / directive-override-parameters / 20, {
+   /126/               / parameter-image-digest / 3: << [
+   /127/                 / algorithm-id / -16 / SHA256 /,
+   /128/                 / digest-bytes /
 
-         / NOTE: call dependency-manifest /
-         / directive-set-component-index / 12, 1
-           / ['dependenty-manifest.suit'] /,
-         / directive-override-parameters / 20, {
-           / parameter-image-digest / 3: << [
-             / algorithm-id / -16 / SHA256 /,
-             / digest-bytes / h'1051324059C5193317CAC9A099BBC0B6
-                                AFB56184C04277F566A3A4131F4A1C25'
-           ] >>,
-           / parameter-image-size / 14: 247,
-           / parameter-uri / 21: "#dependency-manifest"
-         },
-         / directive-fetch / 21, 15,
-         / condition-dependency-integrity / 7, 15,
-         / directive-process-dependency / 11, 15
-       ] >>
-     } >>,
-     "#dependency-manifest": <<
-       / SUIT_Envelope_Tagged / 107({
-         / authentication-wrapper / 2: << [
-           << [
-             / digest-algorithm-id: / -16 / SHA256 /,
-             / digest-bytes: / h'1051324059C5193317CAC9A099BBC0B6
-                                 AFB56184C04277F566A3A4131F4A1C25'
-           ] >>,
-           << / COSE_Sign1_Tagged / 18([
-             / protected: / << {
-               / algorithm-id / 1: -7 / ES256 /
-             } >>,
-             / unprotected: / {},
-             / payload: / null,
-             / signature: /
-               h'55990F3745DC4F200FF946643A6DE30D
-                 DCE57B080B7D68DE9896D8190B9A63E2
-                 D60E7C3D9693B67221AA6D07BBF0AB45
-                 314C236827A242C22B5E688DDC467269'
 
 
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 47]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 49]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-           ]) >>
-         ] >>,
-         / manifest / 3: << {
-           / manifest-version / 1: 1,
-           / manifest-sequence-number / 2: 1,
-           / common / 3: << {
-             / components / 2: [
-               ['decrypted-firmware']
-             ],
-             / shared-sequence / 4: << [
-               / directive-set-componnt-index / 12, 0
-                 / ['decrypted-firmware'] /,
-               / directive-override-parameters / 20, {
-                 / parameter-image-digest / 3: << [
-                   / algorithm-id / -16 / SHA256 /,
-                   / digest-bytes / h'36921488FE6680712F734E11F58D87EE
-                                      B66D4B21A8A1AD3441060814DA16D50F'
-                 ] >>,
-                 / parameter-image-size / 14: 30
-               }
-             ] >>
-           } >>,
-           / manifest-component-id / 5: [
-             'dependency-manifest.suit'
-           ],
-           / validate / 7: << [
-             / condition-image-match / 3, 15
-           ] >>,
-           / install / 17: << [
-             / directive-set-component-index / 12, 0
-               / ['decrypted-firmware'] /,
-             / directive-write / 18, 15
-               / consumes the SUIT_Encryption_Info set by dependent /,
-             / condition-image-match / 3, 15
-               / check the integrity of the decrypted payload /
-           ] >>
-         } >>
-       })
-     >>
-   })
+   /129/                   h'36921488FE6680712F734E11F58D87EE
+   /130/                     B66D4B21A8A1AD3441060814DA16D50F'
+   /131/               ] >>,
+   /132/               / parameter-image-size / 14: 30
+   /133/             }
+   /134/           ] >>
+   /135/         } >>,
+   /136/         / manifest-component-id / 5: [
+   /137/           'dependency-manifest.suit'
+   /138/         ],
+   /139/         / validate / 7: << [
+   /140/           / condition-image-match / 3, 15
+   /141/         ] >>,
+   /142/         / install / 20: << [
+   /143/           / directive-set-component-index / 12, 0
+   /144/             / ['decrypted-firmware'] /,
+   /145/           / directive-write / 18, 15
+   /146/             / consumes the SUIT_Encryption_Info in dependent /,
+   /147/           / condition-image-match / 3, 15
+   /148/             / check the integrity of the decrypted payload /
+   /149/         ] >>
+   /150/       } >>
+   /151/     })
+   /152/   >>
+   /153/ })
 
    In hex format, the SUIT manifest is this:
 
@@ -2685,98 +2782,111 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 48]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 50]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   D86BA3025873825824822F58206A1D9F42E7B4047D2F54046019AE3ED43A
-   8ACC467AC16576B17D6F8E633042D2584AD28443A10126A0F65840DF493B
-   DBF167EFFB40593C5910D33B66429721467DF05800EA66A88B91729CD510
-   07981F151FC324745FF43E6F75AAF5197DD5EC4AA6BCEFCE43E4B1E35C94
-   8E03590170A501010201035837A201A101A101815818646570656E64656E
+   D86BA3025873825824822F5820A00CB6C85515C1EF471B50B542FACDD88B
+   71B3C7EA2A43DE13D32C4A99056FE9584AD28443A10126A0F65840421B30
+   FE76DA848616D72FC1115EA6105578CB95DF9C6BEAD931105C9D555CF8CD
+   38C8FD68ACE43445D8D2CAE6391A995A212487D92F8DAD789F65511AC617
+   780359016CA501010201035837A201A101A101815818646570656E64656E
    63792D6D616E69666573742E73756974028181526465637279707465642D
    6669726D77617265058157646570656E64656E742D6D616E69666573742E
-   73756974115901138E0C0014A212582E344FA2D5AD2F43F6F363DA6FF2C3
-   37FE69E33E3D63714D23985BF02499EB0E8B231D45C378245DA3611C160C
-   C511135890D8608443A10101A10550DAE613B2E0DC55F4322BE38BDBA9DC
-   68F6818344A101381CA220A401022001215820FF6E266DABAF51B7207569
-   E31CF72646183E94CEE64FCDC8695AD9A505AEFDEA2258205FBC4A298444
-   50B3AC22AB30C7F7004BB59D8BD60D7997734A9FA0124B65089504456B69
-   642D325818B0E21628283F3E409F8158D8FFCA567F340E379AC39E49C90C
-   0114A3035824822F58201051324059C5193317CAC9A099BBC0B6AFB56184
-   C04277F566A3A4131F4A1C250E18F7157423646570656E64656E63792D6D
-   616E6966657374150F070F0B0F7423646570656E64656E63792D6D616E69
-   6665737458F7D86BA2025873825824822F58201051324059C5193317CAC9
-   A099BBC0B6AFB56184C04277F566A3A4131F4A1C25584AD28443A10126A0
-   F6584055990F3745DC4F200FF946643A6DE30DDCE57B080B7D68DE9896D8
-   190B9A63E2D60E7C3D9693B67221AA6D07BBF0AB45314C236827A242C22B
-   5E688DDC46726903587BA601010201035849A20281815264656372797074
-   65642D6669726D7761726504582F840C0014A2035824822F582036921488
-   FE6680712F734E11F58D87EEB66D4B21A8A1AD3441060814DA16D50F0E18
-   1E05815818646570656E64656E63792D6D616E69666573742E7375697407
-   4382030F1147860C00120F030F
+   737569741459010F8E0C0014A212582E758C4B7BBAE2C4C1D462423E0F0D
+   C3164FFA7B85BB94D4BD6D7ED26AB32FEB063385D4D3465927EC82CB5E19
+   8A5913588CD8608443A10101A1054CF14AAB9D81D51F7AD943FE87F68183
+   44A101381CA220A40102200121582073024F415AA51529A66CCEFD88F3F6
+   2A734492FF45F6AD37FD2888E73EAF19DA2258204005B48A6FD091AA6ABF
+   E3CFBEEDE88B347E521D43405FDBD7D2CFF0EBC21B2604456B69642D3258
+   18A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE09970C0114A303
+   5824822F58204B15C90FBD776A820E7E733DF040D90B356B5C75982ECAEC
+   E8673818179BDF160E18F7157423646570656E64656E63792D6D616E6966
+   657374150F070F0B0F7423646570656E64656E63792D6D616E6966657374
+   58F7D86BA2025873825824822F58204B15C90FBD776A820E7E733DF040D9
+   0B356B5C75982ECAECE8673818179BDF16584AD28443A10126A0F658402B
+   1B9C4E44E52863A78F73DA2A935823B28AEAE6A85CADAC4C4E3AABAAD56C
+   BCE5A47D288F86B54D0186657E972E748B48CDB1D420FBAC1285DCC97838
+   2F62CC03587BA601010201035849A2028181526465637279707465642D66
+   69726D7761726504582F840C0014A2035824822F582036921488FE668071
+   2F734E11F58D87EEB66D4B21A8A1AD3441060814DA16D50F0E181E058158
+   18646570656E64656E63792D6D616E69666573742E73756974074382030F
+   1447860C00120F030F
 
 11.  Operational Considerations
 
-   The algorithms described in this document assume that the party
-   performing payload encryption
+   The algorithms outlined in this document assume that the party
+   responsible for payload encryption:
 
    *  shares a key-encryption key (KEK) with the recipient (for use with
       the AES Key Wrap scheme), or
 
-   *  is in possession of the public key of the recipient (for use with
-      ES-DH).
+   *  possesses the recipient's public key (for use with ES-DH).
 
-   Both cases require some upfront communication interaction to
-   distribute these keys to the involved communication parties.  This
-   interaction may be provided by a device management protocol, as
-   described in [RFC9019], or may be executed earlier in the lifecycle
-   of the device, for example during manufacturing or during
-   commissioning.  In addition to the keying material key identifiers
-   and algorithm information need to be provisioned.  This specification
-   places no requirements on the structure of the key identifier.
-
+   Both scenarios necessitate initial communication to distribute these
+   keys among the involved parties.  This interaction can be facilitated
+   by a device management protocol, as described in [RFC9019], or may
+   occur earlier in the device lifecycle, such as during manufacturing
+   or commissioning.  In addition to the keying material, key
+   identifiers and algorithm information must also be provisioned.  This
+   specification does not impose any requirements on the structure of
+   the key identifier.
 
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 49]
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 51]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   In some cases third party companies analyse binaries for known
-   security vulnerabilities.  With encrypted payloads, this type of
-   analysis is prevented.  Consequently, these third party companies
-   either need to be given access to the plaintext binary before
-   encryption or they need to become authorized recipients of the
-   encrypted payloads.  In either case, it is necessary to explicitly
-   consider those third parties in the software supply chain when such a
-   binary analysis is desired.
+   In certain situations, third-party companies analyze binaries for
+   known security vulnerabilities.  However, encrypted payloads hinder
+   this type of analysis.  Consequently, these third-party companies
+   must either be granted access to the plaintext binary before
+   encryption or be authorized recipients of the encrypted payloads.  In
+   either case, it is essential to explicitly consider these third
+   parties in the software supply chain when binary analysis is
+   required.
 
 12.  Security Considerations
 
-   This entire document is about security.
+   This entire document focuses on security.
 
-   It is good security practise to use different keys for different
-   purpose.  For example, the KEK used with an AES-KW-based content key
-   distribution method for encryption should be different from the long-
-   term symmetric key used for authentication in a communication
-   security protocol.
+   It is considered best security practice to use different keys for
+   different purposes.  For instance, the key-encryption key (KEK)
+   utilized in an AES-KW-based content key distribution method for
+   encryption should be distinct from the long-term symmetric key
+   employed for authentication in a communication security protocol.
 
-   To further reduce the attack surface it may be beneficial use
-   different long-term keys for the encryption of different types of
-   payloads.  For example, KEK_1 may be used with an AES-KW content key
-   distribution method to encrypt a firmware image while KEK_2 would be
-   used to encrypt configuration data.
+   To further minimize the attack surface, it may be advantageous to use
+   different long-term keys for encrypting various types of payloads.
+   For example, KEK_1 could be used with an AES-KW content key
+   distribution method to encrypt a firmware image, while KEK_2 would
+   encrypt configuration data.
 
-   A large part of this document is focused on the content key
-   distribution and two methods are utilized, namely AES Key Wrap (AES-
-   KW) and Ephemeral-Static Diffie-Hellman (ES-DH).  In this table we
-   summarize the main properties with respect to their deployment:
-
-
+   A significant portion of this document addresses content key
+   distribution, employing two methods: AES Key Wrap (AES-KW) and
+   Ephemeral-Static Diffie-Hellman (ES-DH).  The table below summarizes
+   the main properties related to their deployment:
 
 
 
@@ -2797,66 +2907,73 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-Tschofenig, et al.       Expires 9 January 2025                [Page 50]
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 52]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
-   +---------------++------------+---------------+----------------+
-   |               ||            |               |                |
-   |  Number of    ||  Same key  |  One key      |  One Key       |
-   |  Long-Term    ||  for all   |  per device   |  per device    |
-   |  Keys         ||  devices   |               |                |
-   |               ||            |               |                |
-   +---------------++------------+---------------+----------------+
-   |               ||            |               |                |
-   |  Number of    ||  Single    |  Single       |  One CEK       |
-   |  Content      ||  CEK per   |  CEK per      |  per payload   |
-   |  Encryption   ||  payload   |  payload      |  encryption    |
-   |  Keys (CEKs)  ||  shared    |  shared       |  transaction   |
-   |               ||  with all  |  with all     |  per device    |
-   |               ||  devies    |  devies       |                |
-   |               ||            |               |                |
-   +---------------++------------+---------------+----------------+
-   |               ||            |               |                |
-   |  Use Case     ||  Legacy    |  Efficient    |  Point-to-     |
-   |               ||  Usage     |  Payload      |  Point Payload |
-   |               ||            |  Distribution |  Distribution  |
-   |               ||            |               |                |
-   +---------------++------------+---------------+----------------+
-   |               ||            |               |                |
-   |  Recommended? ||  No, bad   |  Yes          |  Yes           |
-   |               ||  practice  |               |                |
-   |               ||            |               |                |
-   +---------------++------------+---------------+----------------+
+         +===========+=============+==============+==============+
+         | Number of | Number of   | Use Case     | Recommended? |
+         | Long-Term | Content     |              |              |
+         | Keys      | Encryption  |              |              |
+         |           | Keys (CEKs) |              |              |
+         +===========+=============+==============+==============+
+         | Same key  | Single      | Legacy       | No, bad      |
+         | for all   | CEK per     | Usage        | practice     |
+         | devices   | payload     |              |              |
+         |           | shared      |              |              |
+         |           | with all    |              |              |
+         |           | devies      |              |              |
+         +-----------+-------------+--------------+--------------+
+         | One key   | Single      | Efficient    | Yes          |
+         | per       | CEK per     | Payload      |              |
+         | device    | payload     | Distribution |              |
+         |           | shared      |              |              |
+         |           | with all    |              |              |
+         |           | devies      |              |              |
+         +-----------+-------------+--------------+--------------+
+         | One Key   | One CEK     | Point-to-    | Yes          |
+         | per       | per payload | Point        |              |
+         | device    | encryption  | Payload      |              |
+         |           | transaction | Distribution |              |
+         |           | per device  |              |              |
+         +-----------+-------------+--------------+--------------+
 
-   The use of firmware encryption with IoT devices introduces an battery
-   exhaustion attack.  This attack utilizes the fact that flash memory
-   operations are energy-expensive.  To perform this attacker, the
-   adversary needs to be able to swap detached payloads and force the
-   device to process a wrong payload.  Swapping the payloads is only
-   possible when there is no communication security protocol in place
-   between the device and the distribution system or when the
-   distribution system itself is compromised.  The security features
-   provided by the manifest will detect this attack and the device will
-   not boot the incorrectly provided payload.  However, at this time the
-   energy-expensive flash operations have already been performed.
-   Consequently, these operations may reduce the lifetime of devices and
-   battery powered IoT devices are particularly vulnerable to such an
-   attack.  See Section 9 for further discussion about IoT devices using
-   flash memory.
+                                  Table 3
 
-   Including the digest of the encrypted payload in the manifest allows
-   the device to detect a battery exhaustion attack before energy
-   consuming decryption and flash memory copy or swap operations took
+   The use of firmware encryption in IoT devices introduces the risk of
+   a battery exhaustion attack.  This attack exploits the high energy
+   cost of flash memory operations.  To execute this attack, the
+   adversary must be able to swap detached payloads and trick the device
+   into processing an incorrect payload.  Payload swapping is feasible
+   only if there is no communication security protocol between the
+   device and the distribution system or if the distribution system
+   itself has been compromised.
+
+   While the security features provided by the manifest can detect this
+   attack and prevent the device from booting with an incorrectly
+   supplied payload, the energy-intensive flash operations will have
+   already occurred.  As a result, these operations can diminish the
+   lifespan of the devices, making battery-powered IoT devices
+   particularly susceptible to such attacks.  For further discussion on
+   IoT devices using flash memory, see Section 9.
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 53]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
+   Including the digest of the encrypted payload in the manifest enables
+   the device to detect a battery exhaustion attack before energy-
+   consuming decryption and flash memory copy or swap operations take
    place.
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 51]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
 
 13.  IANA Considerations
 
@@ -2879,16 +2996,16 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
               O. Rønningstad, "A Concise Binary Object Representation
               (CBOR)-based Serialization Format for the Software Updates
               for Internet of Things (SUIT) Manifest", Work in Progress,
-              Internet-Draft, draft-ietf-suit-manifest-25, 5 February
+              Internet-Draft, draft-ietf-suit-manifest-31, 4 December
               2024, <https://datatracker.ietf.org/doc/html/draft-ietf-
-              suit-manifest-25>.
+              suit-manifest-31>.
 
    [I-D.ietf-suit-trust-domains]
               Moran, B. and K. Takayama, "SUIT Manifest Extensions for
               Multiple Trust Domains", Work in Progress, Internet-Draft,
-              draft-ietf-suit-trust-domains-07, 6 July 2024,
+              draft-ietf-suit-trust-domains-09, 4 December 2024,
               <https://datatracker.ietf.org/doc/html/draft-ietf-suit-
-              trust-domains-07>.
+              trust-domains-09>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -2899,20 +3016,19 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
               (AES) Key Wrap Algorithm", RFC 3394, DOI 10.17487/RFC3394,
               September 2002, <https://www.rfc-editor.org/rfc/rfc3394>.
 
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 54]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
+
+
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
-
-
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 52]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
-
 
    [RFC9052]  Schaad, J., "CBOR Object Signing and Encryption (COSE):
               Structures and Process", STD 96, RFC 9052,
@@ -2961,13 +3077,9 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 53]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 55]
 
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    [RFC9124]  Moran, B., Tschofenig, H., and H. Birkholz, "A Manifest
@@ -3001,29 +3113,34 @@ Acknowledgements
 
    We would like to thank Henk Birkholz for his feedback on the CDDL
    description in this document.  Additionally, we would like to thank
-   Michael Richardson, Oeyvind Roenningstad, Dave Thaler, Laurence
-   Lundblade, Christian Amsuess, Ruud Derwig, and Carsten Bormann for
-   their review feedback.  Finally, we would like to thank Dick Brooks
-   for making us aware of the challenges encryption imposes on binary
-   analysis.
+   Michael Richardson, Dick Brooks, Oeyvind Roenningstad, Dave Thaler,
+   Laurence Lundblade, Christian Amsuess, Ruud Derwig, Martin Thomson.
+   Kris Kwiatkowski, Suresh Krishnan and Carsten Bormann for their
+   review feedback.
 
-   Reviews from the IESG include Deb Cooley and Roman Danyliw.
+   We would like to thank the IESG, in particular Deb Cooley, Eric
+   Vyncke and Roman Danyliw, for their help to improve the quality of
+   this document.
 
 Authors' Addresses
 
    Hannes Tschofenig
-   Email: hannes.tschofenig@gmx.net
+   University of Applied Sciences Bonn-Rhein-Sieg
+   Email: Hannes.Tschofenig@gmx.net
+
+
+
+
+
+
+Tschofenig, et al.        Expires 10 June 2025                 [Page 56]
+
+Internet-Draft    Encrypted Payloads in SUIT Manifests     December 2024
 
 
    Russ Housley
    Vigil Security, LLC
    Email: housley@vigilsec.com
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 54]
-
-Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
    Brendan Moran
@@ -3072,9 +3189,4 @@ Internet-Draft    Encrypted Payloads in SUIT Manifests         July 2024
 
 
 
-
-
-
-
-
-Tschofenig, et al.       Expires 9 January 2025                [Page 55]
+Tschofenig, et al.        Expires 10 June 2025                 [Page 57]

@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-21
+docname: draft-ietf-suit-firmware-encryption-22
 category: std
 
 ipr: trust200902
@@ -68,6 +68,7 @@ normative:
 informative:
   RFC9019:
   RFC9124:
+  RFC5869:
   RFC8937:
   RFC5652:
   RFC5280:
@@ -104,11 +105,9 @@ plaintext is accomplished with conventional symmetric key cryptography.
 
 #  Introduction
 
-Vulnerabilities in Internet of Things (IoT) devices have highlighted the need for a reliable and secure firmware update mechanism, especially for constrained devices. To protect firmware images, the SUIT manifest format was developed {{I-D.ietf-suit-manifest}}. This format provides a bundle of metadata, including the payload location, applicable devices, and a security wrapper.
+Vulnerabilities in Internet of Things (IoT) devices have highlighted the need for a reliable and secure firmware update mechanism, especially for constrained devices. To protect firmware images, the SUIT manifest format was developed {{I-D.ietf-suit-manifest}}. A manifest is a bundle of metadata about the firmware for an IoT device, where to find the firmware, and the devices to which it applies. {{RFC9124}} outlines the necessary information a SUIT manifest has to provide. In addition to protecting against modification via digital signatures or message authentication codes, the format can also offer confidentiality.
 
-{{RFC9124}} outlines the necessary information provided by the SUIT manifest format. In addition to protecting against modification via digital signatures or message authentication codes, the format can also offer confidentiality.
-
-Encryption prevents third parties, including attackers, from accessing the payload. Attackers often require detailed knowledge of a binary, such as a firmware image, to launch successful attacks. For instance, return-oriented programming (ROP) {{ROP}} requires access to the binary, and encryption makes writing exploits significantly more difficult. Beyond ensuring the confidentiality of the binary itself, protecting the confidentiality of the source code (e.g., in the case of open source software) may also be necessary to prevent reverse engineering and reproduction of the firmware.
+Encryption prevents third parties, including attackers, from accessing the payload. Attackers often require detailed knowledge of a binary, such as a firmware image, to launch successful attacks. For instance, return-oriented programming (ROP) {{ROP}} requires access to the binary, and encryption makes writing exploits significantly more difficult. Beyond ensuring the confidentiality of the binary itself, protecting the confidentiality of the source code will also be necessary to prevent reverse engineering and reproduction of the firmware.
 
 While the initial motivation for this document was firmware encryption, the use of SUIT manifests has expanded to cover other scenarios requiring integrity and confidentiality protection, such as:
 
@@ -161,7 +160,7 @@ use of encryption, the distribution system either knows the public key
 of the recipient (for ES-DH), or the KEK (for AES-KW).
 
 The author, which is responsible for creating the payload, does not
-know the recipients. The authors may, for example, be a developer building
+know the recipients. The author may, for example, be a developer building
 a firmware image.
 
 The author and the distribution system are logical roles. In some
@@ -253,9 +252,6 @@ parameter is set to 19, as the proposed value.
 
 # Extended Directives
 
-
-Here’s an improved version of your text:
-
 This specification extends the following directives:
 
 - Directive Write (suit-directive-write): Used to decrypt the content specified
@@ -289,10 +285,10 @@ parameter is set to 19, as the proposed value.
 
 {{encryption-info-consumed-with-copy}} illustrates the Directive Copy.
 In this example the encrypted payload is found at the URI indicated
-by the parameter-uri, i.e. "http://example.com/encrypted.bin". The
+by the parameter-uri, i.e., "http://example.com/encrypted.bin". The
 encrypted payload will be downloaded and stored in component #1.
 Then, the information in the SUIT_Encryption_Info structure referred
-to by parameter-encryption-info, i.e. h'D86...1F0', will be used to
+to by parameter-encryption-info, i.e., h'D86...1F0', will be used to
 decrypt the content in component #1 and the resulting plaintext
 payload will be stored into component #0.
 
@@ -469,7 +465,7 @@ The content may be provided separately.
 - Layer 1: Uses the AES Key Wrap (AES-KW) algorithm to encrypt the randomly
 generated CEK with a Key Encryption Key (KEK) derived via ES-DH. The
 resulting symmetric key is processed through an HKDF-based key derivation
-function.
+function {{RFC5869}}.
 
 This two-layer structure combines ES-DH with AES-KW and HKDF, referred to
 as ECDH-ES + AES-KW. An example can be found in {{esdh-aesgcm-example}}.
@@ -718,14 +714,10 @@ The encrypted payload (with a line feed added) was:
 ### Introduction
 
 AES-CTR is a non-AEAD cipher that provides confidentiality but lacks integrity protection.
-Unlike AES-CBC, AES-CTR uses an IV per AES operation, as shown in {{aes-ctr-fig}}.
+Unlike AES-CBC, AES-CTR uses an IV per block, as shown in {{aes-ctr-fig}}.
 Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
 start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
 within the entire slot.
-
-Using the previous example with a slot size of 64 KiB, the sector size 4096 bytes and
-the AES plaintext block size of 16 byte requires IVs from 0 to 255 in the first sector
-and 16 * 256 IVs for the remaining sectors in the slot.
 
 In our example, we assume the slot size of a specific flash controller on an IoT device
 is 64 KiB, the sector size 4096 bytes (4 KiB) and an AES plaintext block size of 16 bytes,
@@ -835,7 +827,7 @@ The encrypted payload (with a line feed added) was:
 
 ### Introduction
 
-AES-CBC is a non-AEAD cipher that provides confidentiality but but does not offer
+AES-CBC is a non-AEAD cipher that provides confidentiality but does not offer
 integrity protection.
 In AES-CBC, a single IV is used to  encrypt the firmware belonging to a single sector,
 as  individual AES blocks are chained together, as illustrated  in {{aes-cbc-fig}}. The
@@ -1063,10 +1055,10 @@ illustrates the process for establishing payload integrity.
 ~~~
 {: #payload-integrity-decision-tree title="Decision Tree: Validating the Payload"}
 
-There are three conditions to consider:
+There are three questions to ask:
 
 - Q1. How does the recipient receive the encrypted payload?
-If the encrypted payload is part of an integrated payload, its integrity is already validated by the suit-authentication-wrapper, so no additional integrity check is necessary.
+If the encrypted payload is part of an integrated payload, its integrity is already validated by the suit-authentication-wrapper. Hence, no additional integrity check is necessary.
 
 - Q2. Does the sender wish to mitigate battery exhaustion attacks?
 If so, the encrypted payload must be validated before decryption.
@@ -1392,6 +1384,7 @@ third parties in the software supply chain when binary analysis
 is required.
 
 # Security Considerations {#sec-cons}
+
 This entire document focuses on security.
 
 It is considered best security practice to use different keys for
@@ -1457,7 +1450,7 @@ parameter is set to 19, as the proposed value.
 --- back
 
 # Full CDDL {#full-cddl}
-
+ 
 The following CDDL must be appended to the SUIT Manifest CDDL. The SUIT CDDL is defined in
 Appendix A of {{I-D.ietf-suit-manifest}}
 
@@ -1469,9 +1462,7 @@ Appendix A of {{I-D.ietf-suit-manifest}}
 {: numbered="no"}
 
 We would like to thank Henk Birkholz for his feedback on the CDDL description in this document.
-Additionally, we would like to thank Michael Richardson, Øyvind Rønningstad, Dave Thaler, Laurence
-Lundblade, Christian Amsüss, Ruud Derwig, Martin Thomson and Carsten Bormann for their review feedback. Finally,
-we would like to thank Dick Brooks for making us aware of the challenges encryption imposes on
-binary analysis.
+Additionally, we would like to thank Michael Richardson, Dick Brooks, Øyvind Rønningstad, Dave Thaler, Laurence
+Lundblade, Christian Amsüss, Ruud Derwig, Martin Thomson. Kris Kwiatkowski, Suresh Krishnan and Carsten Bormann for their review feedback.
 
-Reviews from the IESG include Deb Cooley and Roman Danyliw.
+We would like to thank the IESG, in particular Deb Cooley, Éric Vyncke and Roman Danyliw, for their help to improve the quality of this document.
