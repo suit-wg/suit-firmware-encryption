@@ -16,7 +16,7 @@ COSE_recipient_ESDH = [
 
 recipient_header_map_esdh =
 {
-    1 => int,         ; algorithm identifier
+    1 => int,         ; content encryption algorithm identifier
   * label => values   ; extension point
 }
 

@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-22
+docname: draft-ietf-suit-firmware-encryption-23
 category: std
 
 ipr: trust200902
@@ -64,6 +64,7 @@ normative:
   I-D.ietf-suit-manifest:
   RFC9459:
   I-D.ietf-suit-trust-domains:
+  I-D.ietf-suit-mti:
 
 informative:
   RFC9019:
@@ -125,7 +126,8 @@ The payload is encrypted using a symmetric content encryption key, which can be 
 
 The first method relies on asymmetric cryptography, while the second uses symmetric cryptography.
 
-Our design aims to reduce the number of content key distribution methods for payload encryption, thereby increasing interoperability between different SUIT manifest parser implementations.
+Our design aims to reduce the number of content key distribution methods for payload encryption, thereby increasing interoperability between different SUIT manifest parser implementations. The mandatory-to-implement
+algorithms are described in a separate document {{I-D.ietf-suit-mti}}.
 
 The goal of this specification is to protect payloads both during end-to-end transport (from the distribution system to the device) and at rest when stored on the device. Constrained devices often employ eXecute In Place (XIP), a method of executing code directly from flash memory rather than loading it into RAM. Many of these devices lack hardware-based, on-the-fly decryption for code stored in flash memory, which may require decrypting and storing firmware images in on-chip flash before execution. However, we expect hardware-based, on-the-fly decryption to become more common in the future, enhancing confidentiality at rest.
 
@@ -265,7 +267,8 @@ aspects. A complete example for AES Key Wrap with the Fetch and Copy directives
 can be found in {{example-AES-KW-copy}}, while an example illustrating the
 Write directive is shown in {{example-AES-KW-write}}.
 
-{{encryption-info-consumed-with-write}} illustrates the Directive Write. The
+{{encryption-info-consumed-with-write}} illustrates an example of the Directive Write,
+which is described in the CDDL in {{parameter-fig}}. The
 encrypted payload specified by parameter-content, represented as h'EA1...CED'
 in the example, is decrypted using the SUIT_Encryption_Info structure referenced
 by parameter-encryption-info, i.e., h'D86...1F0'. The resulting plaintext payload
@@ -499,9 +502,10 @@ The steps taken by the sender are:
     3.  ENC(payload,CEK)
 ~~~
 
-- The alternative is to encrypt the payload with a unique CEK for each
-recipient, resulting in multiple manifests. This approach is useful when payloads contain
-device-specific information. In this case, the encryption operation becomes
+- The alternative is to encrypt each device specific payload with a unique content encryption
+key (CEK), resulting in a manifest per device specific payload. his approach is useful when payloads contain
+device-specific information or when the optimization in previous approach are not applicable
+or not valuable enough. In this case, the encryption operation becomes
 ENC(payload_i, CEK[Ri, S]) where each recipient Ri receives a unique CEK. Assume
 that KEK[R1, S],..., KEK[Rn, S] have been generated for the recipients using ES-DH.
 The sender must then follow these steps:
