@@ -223,9 +223,11 @@ It is RECOMMENDED that distributors adopt the two-layer manifest approach to dis
 
 # Encryption Extensions {#parameters}
 
-Extending the SUIT manifest to support payload encryption is minimal
-and accomplished with extending the SUIT_Parameters structure, referred
-to as suit-parameter-encryption-info, as shown in {{parameter-fig}}.
+Extending the SUIT manifest to support payload encryption requires minimal
+changes and is achieved by adding the suit-parameter-encryption-info field
+to the SUIT_Parameters structure, as illustrated in {{parameter-fig}}. When
+the suit-parameter-encryption-info is included, the manifest processor will
+attempt to decrypt data during copy or write operations.
 
 The SUIT_Encryption_Info structure contains the content key distribution
 information. The details of the SUIT_Encryption_Info structure are provided
@@ -253,7 +255,8 @@ An implementation conforming to this specification MUST support both of these pa
 ## Directive Write
 
 An author uses the Directive Write (suit-directive-write) to decrypt the content specified
-by suit-parameter-content using suit-parameter-encryption-info.
+by suit-parameter-content using suit-parameter-encryption-info. This directive is used to
+write a specific data directly to a component.
 
 {{encryption-info-consumed-with-write}} illustrates an example of the Directive Write,
 which is described in the CDDL in {{parameter-fig}}. The
@@ -278,6 +281,7 @@ parameter is set to 19, as the proposed value.
 
 An author uses the Directive Copy (suit-directive-copy) to decrypt the content of the
 component specified by suit-parameter-source-component using suit-parameter-encryption-info.
+This directive is used to copy data from one component to another.
 
 {{encryption-info-consumed-with-copy}} illustrates the Directive Copy.
 In this example the encrypted payload is found at the URI indicated
