@@ -223,11 +223,13 @@ It is RECOMMENDED that distributors adopt the two-layer manifest approach to dis
 
 # Encryption Extensions {#parameters}
 
-The SUIT_Encryption_Info structure contains the content key distribution information. The
-details of the SUIT_Encryption_Info structure are provided in {{AES-KW}} (for
-AES-KW) and {{ES-DH}} (for ES-DH).
+Extending the SUIT manifest to support payload encryption is minimal
+and accomplished with extending the SUIT_Parameters structure, referred
+to as suit-parameter-encryption-info, as shown in {{parameter-fig}}.
 
-This specification defines a new extension to the SUIT_Parameters structure, referred to as suit-parameter-encryption-info, as shown in {{parameter-fig}}.
+The SUIT_Encryption_Info structure contains the content key distribution
+information. The details of the SUIT_Encryption_Info structure are provided
+in {{AES-KW}} (for AES-KW) and {{ES-DH}} (for ES-DH).
 
 ~~~ cddl
 SUIT_Parameters //= (suit-parameter-encryption-info
@@ -243,70 +245,72 @@ parameter is set to 19, as the proposed value.
 Once a CEK is available, the steps outlined in {{content-enc}} apply to both
 content key distribution methods described in this section.
 
-The SUIT_Encryption_Info structure is carried within either the
-suit-directive-override-parameters or suit-directive-set-parameters used in
-the "Directive Write" and "Directive Copy" operations. This specification
-extends these directives:
+When used with the "Directive Write" and "Directive Copy" directives, the
+SUIT_Encryption_Info structure MUST be included in either the
+suit-directive-override-parameters or the suit-directive-set-parameters.
+An implementation conforming to this specification MUST support both of these parameters.
 
-- Directive Write (suit-directive-write): Used to decrypt the content specified
+## Directive Write
+
+An author uses the Directive Write (suit-directive-write) to decrypt the content specified
 by suit-parameter-content using suit-parameter-encryption-info.
-
-- Directive Copy (suit-directive-copy): Used to decrypt the content of the
-component specified by suit-parameter-source-component using suit-parameter-encryption-info.
-
-An implementation conforming to this specification MUST support these two parameters.
-
-Examples of these two directives are provided below, focusing on the essential
-aspects. A complete example for AES Key Wrap with the Fetch and Copy directives
-can be found in {{example-AES-KW-copy}}, while an example illustrating the
-Write directive is shown in {{example-AES-KW-write}}.
 
 {{encryption-info-consumed-with-write}} illustrates an example of the Directive Write,
 which is described in the CDDL in {{parameter-fig}}. The
 encrypted payload specified by parameter-content, represented as h'EA1...CED'
 in the example, is decrypted using the SUIT_Encryption_Info structure referenced
-by parameter-encryption-info, i.e., h'D86...1F0'. The resulting plaintext payload
-is then stored in component #0.
+by parameter-encryption-info, i.e., h'D86...1F0' in L3. The resulting plaintext payload
+is then stored in component #0, which is the default if no specific component is explicitly designated.
 
 ~~~
-/ directive-override-parameters / 20, {
-  / parameter-content / 18: h'EA1...CED',
-  / parameter-encryption-info / TBD19: h'D86...1F0'
-},
-/ directive-write / 18, 15
+/  1/  / directive-override-parameters / 20, {
+/  2/    / parameter-content / 18: h'EA1...CED',
+/  3/    / parameter-encryption-info / TBD19: h'D86...1F0'
+/  4/  },
+/  5/  / directive-write / 18, 15
 ~~~
 {: #encryption-info-consumed-with-write title="Example showing the extended suit-directive-write."}
 
 RFC Editor's Note (TBD19): The value for the parameter-encryption-info
 parameter is set to 19, as the proposed value.
 
+## Directive Copy
+
+An author uses the Directive Copy (suit-directive-copy) to decrypt the content of the
+component specified by suit-parameter-source-component using suit-parameter-encryption-info.
+
 {{encryption-info-consumed-with-copy}} illustrates the Directive Copy.
 In this example the encrypted payload is found at the URI indicated
-by the parameter-uri, i.e., "http://example.com/encrypted.bin". The
-encrypted payload will be downloaded and stored in component #1.
+by the parameter-uri, i.e., "http://example.com/encrypted.bin" in L3. The
+encrypted payload will be downloaded and stored in component #1,
+as indicated by directive-set-component-index in L1.
+
 Then, the information in the SUIT_Encryption_Info structure referred
-to by parameter-encryption-info, i.e., h'D86...1F0', will be used to
+to by parameter-encryption-info, i.e., h'D86...1F0' in L9, will be used to
 decrypt the content in component #1 and the resulting plaintext
-payload will be stored into component #0.
+payload will be stored into component #0 (as set in L7).
+The command in L12 invokes the operation. 
 
 ~~~
-/ directive-set-component-index / 12, 1,
-/ directive-override-parameters / 20, {
-  / parameter-uri / 21: "http://example.com/encrypted.bin",
-},
-/ directive-fetch / 21, 15,
-
-/ directive-set-component-index / 12, 0,
-/ directive-override-parameters / 20, {
-  / parameter-encryption-info / TBD19: h'D86...1F0',
-  / parameter-source-component / 22: 1
-},
-/ directive-copy / 22, 15
+/  1/  / directive-set-component-index / 12, 1,
+/  2/  / directive-override-parameters / 20, {
+/  3/    / parameter-uri / 21: "http://example.com/encrypted.bin",
+/  4/   },
+/  5/  / directive-fetch / 21, 15,
+/  6/
+/  7/  / directive-set-component-index / 12, 0,
+/  8/  / directive-override-parameters / 20, {
+/  9/    / parameter-encryption-info / TBD19: h'D86...1F0',
+/ 10/    / parameter-source-component / 22: 1
+/ 11/  },
+/ 12/  / directive-copy / 22, 15
 ~~~
 {: #encryption-info-consumed-with-copy title="Example showing the extended suit-directive-copy."}
 
 RFC Editor's Note (TBD19): The value for the suit-parameter-encryption-info
 parameter is set to 19, as the proposed value.
+
+## Authenticating the Payload
 
 The payload to be encrypted MAY be detached and, in that case, it is
 not covered by the digital signature or the MAC protecting the manifest.
@@ -318,13 +322,15 @@ particularly a concern when a cipher without integrity protection is
 used.
 
 To provide authentication and integrity protection of the payload
-in the detached payload case a SUIT Digest Container with the hash
+in the detached case a SUIT Digest Container with the hash
 of the encrypted and/or plaintext payload MUST be included in the
 manifest. See suit-parameter-image-digest parameter in {{Section
 8.4.8.6 of I-D.ietf-suit-manifest}}.
 
 Once a CEK is available, the steps described in {{content-enc}} are applicable.
 These steps apply to both content key distribution methods.
+
+More detailed examples for the two directives can be found in {{example-AES-KW-write}}.
 
 # Content Key Distribution
 
