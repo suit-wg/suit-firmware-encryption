@@ -336,7 +336,7 @@ These steps apply to both content key distribution methods.
 
 More detailed examples for the two directives can be found in {{example-AES-KW-write}}.
 
-# Content Key Distribution
+# Content Key Distribution {#content-key-distribution}
 
 The following sub-sections describe two content key distribution methods:
 AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH). While
@@ -1098,8 +1098,8 @@ not pertain to generic software, configuration data, or machine learning models.
 The differences arise from two main aspects:
 
 - Use of Flash Memory: Flash memory in microcontrollers is a type of non-volatile
-memory that erases data in larger units called blocks, pages, or sectors, and
-rewrites data at the byte level (often 4 bytes) or larger units. Furthermore,
+memory that typically erases data in larger units called blocks, pages, or sectors,
+and rewrites data at the byte level (often 4 bytes) or larger units. Furthermore,
 flash memory is segmented into different regions, storing the bootloader, various
 versions of firmware images (in designated slots), and configuration data. An
 example layout of a microcontroller flash area is illustrated in {{image-layout}}.
@@ -1196,12 +1196,12 @@ or personalization data, the use of AEAD ciphers is RECOMMENDED.
 
 The following subsections offer additional information on the selection of
 initialization vectors (IVs) for use with AES-CBC and AES-CTR in the context
-of firmware encryption. An IV MUST NOT be reused when the same key is employed.
-In this application, the IVs are not random but are instead based on the
-slot/sector combination in flash memory. The discussion assumes that the
-block size of AES is significantly smaller than the sector size. Typically,
-flash memory sectors are measured in KiB, necessitating the decryption of
-multiple AES blocks to complete the decryption of an entire sector.
+of firmware encryption. A random CEK MUST be used with every plaintexts, as specified
+in {{content-key-distribution}}, since the IVs are not random but are instead based on
+the slot/sector combination in flash memory. The discussion assumes that the block size
+of AES is significantly smaller than the sector size. Typically, flash memory sectors are
+measured in KiB, necessitating the decryption of multiple AES blocks to complete the
+decryption of an entire sector.
 
 # Complete Examples 
 
