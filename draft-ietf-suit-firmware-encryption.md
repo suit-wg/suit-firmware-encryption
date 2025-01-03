@@ -115,7 +115,7 @@ Encryption prevents third parties, including attackers, from accessing the paylo
 The initial motivation for this document was firmware encryption. However, the use of SUIT manifests has expanded to encompass other scenarios that require integrity and confidentiality protection, including:
 
 - Software packages
-- Personalization data
+- Personalization and configuration data
 - Machine learning models
 
 These additional use cases stem from the work on Trusted Execution Environment Provisioning (TEEP), as detailed in {{RFC9397}} and {{I-D.ietf-teep-usecase-for-cc-in-network}}. The distinction between software and firmware is clarified in {{RFC9019}}.
