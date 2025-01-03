@@ -336,7 +336,7 @@ These steps apply to both content key distribution methods.
 
 More detailed examples for the two directives can be found in {{example-AES-KW-write}}.
 
-# Content Key Distribution
+# Content Key Distribution {#content-key-distribution}
 
 The following sub-sections describe two content key distribution methods:
 AES Key Wrap (AES-KW) and Ephemeral-Static Diffie-Hellman (ES-DH). While
