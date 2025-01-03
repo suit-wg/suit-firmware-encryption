@@ -1196,14 +1196,12 @@ or personalization data, the use of AEAD ciphers is RECOMMENDED.
 
 The following subsections offer additional information on the selection of
 initialization vectors (IVs) for use with AES-CBC and AES-CTR in the context
-of firmware encryption. A new CEK MUST be used on different plaintext since
-
-the IVs are not random but are instead based on the
-slot/sector combination in flash memory. {{content-key-distribution}} dictates the need to use a random CEK. The discussion assumes that the
-
-block size of AES is significantly smaller than the sector size. Typically,
-flash memory sectors are measured in KiB, necessitating the decryption of
-multiple AES blocks to complete the decryption of an entire sector.
+of firmware encryption. A random CEK MUST be used with every plaintexts, as specified
+in {{content-key-distribution}}, since the IVs are not random but are instead based on
+the slot/sector combination in flash memory. The discussion assumes that the block size
+of AES is significantly smaller than the sector size. Typically, flash memory sectors are
+measured in KiB, necessitating the decryption of multiple AES blocks to complete the
+decryption of an entire sector.
 
 # Complete Examples 
 
