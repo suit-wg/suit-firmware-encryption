@@ -1046,27 +1046,28 @@ illustrates the process for establishing payload integrity.
 
 ~~~ aasvg
 +------------------------------------------------+
-|              Q1. Payload Delivery              |
+|        Q1. How is the Payload delivered?       |
 +-+--------------------------------------------+-+
   |                                            |
-  | in Content                          others |
-  |                                            v
+  | Integrated                        Detached |
+  | Payload                           Payload  v
   |             +--------------------------------+
   |             |      Q2. Mitigate Battery      |
-  |             |       Exhaustion Attacks       |
+  |             |       Exhaustion Attacks?      |
   |             +-+----------------------------+-+
   |               |                            |
   |               | No                     Yes |
   |               v                            |
-  |    +-----------------+                     |
-  |    | Q3. AEAD cipher |                     |
-  |    +-+-------------+-+                     |
+  |    +-----------------------+               |
+  |    | Q3. AEAD cipher used? |               |
+  |    +-+-------------+-------+               |
   |      |             |                       |
   |      | Yes      No |                       |
   v      v             v                       v
  .+------+.      .-----+-----.      .----------+.
-|   NOT    |    |    AFTER    |    |   BEFORE    |
-| Required |    | Decryption  |    | Decryption  |
+|   Not    |    | BEFORE or   |    |   BEFORE    |
+| Required |    | AFTER       |    | Decryption  |
+|          |    | Decryption  |    |             |
  '--------'      '-----------'      '-----------'
 ~~~
 {: #payload-integrity-decision-tree title="Decision Tree: Validating the Payload"}
@@ -1074,15 +1075,15 @@ illustrates the process for establishing payload integrity.
 There are three questions to ask:
 
 - Q1. How does the recipient receive the encrypted payload?
-If the encrypted payload is part of an integrated payload, its integrity is already validated by the suit-authentication-wrapper. Hence, no additional integrity check is necessary.
+If the encrypted payload is part of an integrated payload, its integrity is already validated by the suit-authentication-wrapper. Hence, no additional integrity check is necessary. If the encrypted payload is detached, further questions need to be answered.
 
-- Q2. Does the sender wish to mitigate battery exhaustion attacks?
-If so, the encrypted payload must be validated before decryption.
+- Q2. Are battery exhaustion attacks a concern?
+If yes, the integrity of the encrypted payload must be checked before the payload is decrypted. If no, then other questions need to be asked.
 
 - Q3. Is the payload encrypted with an AEAD cipher?
 If yes, no additional integrity check is required, as the recipient verifies
 the payload's integrity during decryption. If no, integrity validation can
-occur either before or after decryption; however, validating integrity before
+occur either before or after decryption. However, validating integrity before
 decryption is RECOMMENDED.
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
