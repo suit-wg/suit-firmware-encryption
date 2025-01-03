@@ -1199,7 +1199,8 @@ initialization vectors (IVs) for use with AES-CBC and AES-CTR in the context
 of firmware encryption. A new CEK MUST be used on different plaintext since
 
 the IVs are not random but are instead based on the
-slot/sector combination in flash memory. The discussion assumes that the
+slot/sector combination in flash memory. {{content-key-distribution}} dictates the need to use a random CEK. The discussion assumes that the
+
 block size of AES is significantly smaller than the sector size. Typically,
 flash memory sectors are measured in KiB, necessitating the decryption of
 multiple AES blocks to complete the decryption of an entire sector.
