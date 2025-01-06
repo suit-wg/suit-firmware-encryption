@@ -61,9 +61,11 @@
 / 61/             ]
 / 62/           ]
 / 63/         ]) >>,
-/ 64/         / parameter-source-component / 22: 1 / ['encrypted-firmware'] /
-/ 65/       },
-/ 66/       / directive-copy / 22, 15 / consumes the SUIT_Encryption_Info above /
-/ 67/     ] >>
-/ 68/   } >>
-/ 69/ })
+/ 64/         / parameter-source-component / 22:
+/ 65/           1 / ['encrypted-firmware'] /
+/ 66/       },
+/ 67/       / directive-copy / 22,
+/ 68/         15 / consumes the SUIT_Encryption_Info above /
+/ 69/     ] >>
+/ 70/   } >>
+/ 71/ })
