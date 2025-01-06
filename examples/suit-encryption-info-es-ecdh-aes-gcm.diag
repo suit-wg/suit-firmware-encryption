@@ -5,7 +5,7 @@
   / unprotected: / {
     / IV / 5: h'F14AAB9D81D51F7AD943FE87'
   },
-  / payload: / null / detached ciphertext /,
+  / ciphertext: / null / detached ciphertext /,
   / recipients: / [
     [
       / protected: / << {
@@ -21,8 +21,8 @@
                       347E521D43405FDBD7D2CFF0EBC21B26'
         }
       },
-      / payload:
-        / h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
+      / ciphertext: /
+        h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
         / CEK encrypted with KEK /
     ]
   ]
