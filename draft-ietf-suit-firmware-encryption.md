@@ -667,7 +667,7 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-encryption-info-aes-kw-aes-gcm.hex}
 ~~~
 
@@ -681,7 +681,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
 ~~~
 
@@ -706,7 +706,7 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-gcm.hex}
 ~~~
 
@@ -720,7 +720,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-es-ecdh-aes-gcm.hex}
 ~~~
 
@@ -781,7 +781,7 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-encryption-info-aes-kw-aes-ctr.hex}
 ~~~
 
@@ -795,7 +795,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-aes-kw-aes-ctr.hex}
 ~~~
 
@@ -820,7 +820,7 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-ctr.hex}
 ~~~
 
@@ -834,7 +834,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-es-ecdh-aes-ctr.hex}
 ~~~
 
@@ -898,7 +898,7 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-encryption-info-aes-kw-aes-cbc.hex}
 ~~~
 
@@ -912,7 +912,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-aes-kw-aes-cbc.hex}
 ~~~
 
@@ -937,7 +937,7 @@ This example uses the following parameters:
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
 ~~~
 
@@ -951,7 +951,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-es-ecdh-aes-cbc.hex}
 ~~~
 
@@ -1251,7 +1251,7 @@ The SUIT manifest in diagnostic notation (with line breaks added for clarity) is
 
 In hex format, the SUIT manifest is:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-manifest-aes-kw-content.hex.signed}
 ~~~
 
@@ -1313,13 +1313,13 @@ The resulting state of the SUIT manifest processor is shown in {{table-suit-proc
 
 In hex format, the SUIT manifest shown above is:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-manifest-aes-kw.hex.signed}
 ~~~
 
 The encrypted payload (with a line feed added) to be fetched from "https://example.com/encrypted-firmware" is:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
 ~~~
 
@@ -1347,7 +1347,7 @@ is presented below:
 
 In hex format, the SUIT manifest is this:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-manifest-es-ecdh-content.hex.signed}
 ~~~
 
@@ -1377,7 +1377,7 @@ readability) is shown here:
 
 In hex format, the SUIT manifest is this:
 
-~~~ test-vectors
+~~~ cbor-pretty
 {::include-fold examples/suit-manifest-es-ecdh-dependency.hex.signed}
 ~~~
 
