@@ -2,8 +2,8 @@
 /  2/   / authentication-wrapper / 2: << [
 /  3/     << [
 /  4/       / digest-algorithm-id: / -16 / SHA256 /,
-/  5/       / digest-bytes: / h'A6D2C13A0DEFD57A09FA65C24206A9A8
-/  6/                           747261E6EA017532B3DAB0419C42A2FC'
+/  5/       / digest-bytes: / h'6D74BD3110A2573236E03DD78693D5B2
+/  6/                           1C299C917A4327D9939DDF3582A41DE3'
 /  7/     ] >>,
 /  8/     << / COSE_Mac0_Tagged / 17([
 /  9/       / protected: / << {
@@ -11,8 +11,8 @@
 / 11/       } >>,
 / 12/       / unprotected: / {},
 / 13/       / payload: / null,
-/ 14/       / tag: / h'DB350AC9603B0BBA3895B85019699363
-/ 15/                  3F314A9066634B31BF62E596FD870434'
+/ 14/       / tag: / h'E6837A54A9B5813F8D5EDAD48AB96D5D
+/ 15/                  7388D9D1C89AB29EC55AE964F67E01ED'
 / 16/     ]) >>
 / 17/   ] >>,
 / 18/   / manifest / 3: << {
@@ -30,7 +30,7 @@
 / 30/       / directive-override-parameters / 20, {
 / 31/         / parameter-image-size / 14: 46,
 / 32/         / parameter-uri / 21:
-/ 33/           "https://example.com/encrypted-firmware"
+/ 33/           "coaps://example.com/encrypted-firmware"
 / 34/       },
 / 35/       / directive-fetch / 21, 15,
 / 36/ 
@@ -44,7 +44,7 @@
 / 44/           / unprotected: / {
 / 45/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
 / 46/           },
-/ 47/           / payload: / null / detached ciphertext /,
+/ 47/           / ciphertext: / null / detached ciphertext /,
 / 48/           / recipients: / [
 / 49/             [
 / 50/               / protected: / h'',
@@ -52,16 +52,17 @@
 / 52/                 / alg / 1: -3 / A128KW /,
 / 53/                 / kid / 4: 'kid-1'
 / 54/               },
-/ 55/               / payload: /
-/ 56/               h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
-/ 57/                 / CEK encrypted with KEK /
-/ 58/             ]
-/ 59/           ]
-/ 60/         ]) >>,
-/ 61/         / parameter-source-component / 22: 1 / [h'01'] /
-/ 62/       },
-/ 63/       / directive-copy / 22, 15
-/ 64/         / consumes the SUIT_Encryption_Info above /
-/ 65/     ] >>
-/ 66/   } >>
-/ 67/ })
+/ 55/               / ciphertext: /
+/ 56/                 h'75603FFC9518D794713C8CA8
+/ 57/                   A115A7FB32565A6D59534D62'
+/ 58/                 / CEK encrypted with KEK /
+/ 59/             ]
+/ 60/           ]
+/ 61/         ]) >>,
+/ 62/         / parameter-source-component / 22: 1 / [h'01'] /
+/ 63/       },
+/ 64/       / directive-copy / 22, 15
+/ 65/         / consumes the SUIT_Encryption_Info above /
+/ 66/     ] >>
+/ 67/   } >>
+/ 68/ })

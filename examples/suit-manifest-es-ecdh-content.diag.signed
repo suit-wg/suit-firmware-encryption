@@ -26,8 +26,8 @@
 / 26/       ]
 / 27/     } >>,
 / 28/     / install / 20: << [
-/ 29/       / directive-set-component-index / 12, 0
-/ 30/         / ['plaintext-firmware'] /,
+/ 29/       / directive-set-component-index / 12,
+/ 30/         0 / ['plaintext-firmware'] /,
 / 31/       / directive-override-parameters / 20, {
 / 32/         / parameter-content / 18:
 / 33/           h'758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4
@@ -39,7 +39,7 @@
 / 39/           / unprotected: / {
 / 40/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
 / 41/           },
-/ 42/           / payload: / null / detached ciphertext /,
+/ 42/           / ciphertext: / null / detached ciphertext /,
 / 43/           / recipients: / [
 / 44/             [
 / 45/               / protected: / << {
@@ -49,22 +49,25 @@
 / 49/                 / ephemeral key / -1: {
 / 50/                   / kty / 1: 2 / EC2 /,
 / 51/                   / crv / -1: 1 / P-256 /,
-/ 52/                   / x / -2: h'73024F415AA51529A66CCEFD88F3F62A
-/ 53/                               734492FF45F6AD37FD2888E73EAF19DA',
-/ 54/                   / y / -3: h'4005B48A6FD091AA6ABFE3CFBEEDE88B
-/ 55/                               347E521D43405FDBD7D2CFF0EBC21B26'
-/ 56/                 },
-/ 57/                 / kid / 4: 'kid-2'
-/ 58/               },
-/ 59/               / payload: /
-/ 60/               h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
-/ 61/                 / CEK encrypted with KEK /
-/ 62/             ]
-/ 63/           ]
-/ 64/         ]) >>
-/ 65/       },
-/ 66/       / directive-write / 18, 15
-/ 67/         / consumes the SUIT_Encryption_Info above /
-/ 68/     ] >>
-/ 69/   } >>
-/ 70/ })
+/ 52/                   / x / -2:
+/ 53/                     h'73024F415AA51529A66CCEFD88F3F62A
+/ 54/                       734492FF45F6AD37FD2888E73EAF19DA',
+/ 55/                   / y / -3:
+/ 56/                     h'4005B48A6FD091AA6ABFE3CFBEEDE88B
+/ 57/                       347E521D43405FDBD7D2CFF0EBC21B26'
+/ 58/                 },
+/ 59/                 / kid / 4: 'kid-2'
+/ 60/               },
+/ 61/               / ciphertext: /
+/ 62/                 h'A06B8E6550F308712B1DF044
+/ 63/                   B21B7D11D9B22792F1DE0997'
+/ 64/                 / CEK encrypted with KEK /
+/ 65/             ]
+/ 66/           ]
+/ 67/         ]) >>
+/ 68/       },
+/ 69/       / directive-write / 18,
+/ 70/         15 / consumes the SUIT_Encryption_Info above /
+/ 71/     ] >>
+/ 72/   } >>
+/ 73/ })
