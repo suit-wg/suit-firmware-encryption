@@ -1456,6 +1456,14 @@ enables the device to detect a battery exhaustion attack before
 energy-consuming decryption and flash memory copy or swap
 operations take place.
 
+While the examples in this document use coaps for payload fetch
+you can use other URI schemes such as coap and http instead of coaps,
+because the SUIT manifest and this extension don't rely on
+the TLS layer as a security mechanism.
+The encryption algorithms provide confidentiality,
+suit-parameter-image-size and suit-parameter-image-digest provide integrity,
+and suit-authentication-wrapper provide authentication.
+
 #  IANA Considerations
 
 IANA is asked to add the following value to the SUIT Parameters
