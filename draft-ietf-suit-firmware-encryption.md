@@ -681,7 +681,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
 ~~~
 
@@ -720,7 +720,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-gcm.hex}
 ~~~
 
@@ -795,7 +795,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-ctr.hex}
 ~~~
 
@@ -834,7 +834,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-ctr.hex}
 ~~~
 
@@ -912,7 +912,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-cbc.hex}
 ~~~
 
@@ -951,7 +951,7 @@ The resulting COSE_Encrypt structure in a diagnostic format is shown in
 
 The encrypted payload (with a line feed added) was:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-cbc.hex}
 ~~~
 
@@ -1319,7 +1319,7 @@ In hex format, the SUIT manifest shown above is:
 
 The encrypted payload (with a line feed added) to be fetched from "https://example.com/encrypted-firmware" is:
 
-~~~ cbor-pretty
+~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
 ~~~
 
