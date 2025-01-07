@@ -1049,8 +1049,8 @@ illustrates the process for establishing payload integrity.
 |        Q1. How is the Payload delivered?       |
 +-+--------------------------------------------+-+
   |                                            |
-  | Integrated                        Detached |
-  | Payload                           Payload  v
+  | in Content                          others |
+  |                                            v
   |             +--------------------------------+
   |             |      Q2. Mitigate Battery      |
   |             |       Exhaustion Attacks?      |
@@ -1058,15 +1058,15 @@ illustrates the process for establishing payload integrity.
   |               |                            |
   |               | No                     Yes |
   |               v                            |
-  |    +-----------------------+               |
-  |    | Q3. AEAD cipher used? |               |
-  |    +-+-------------+-------+               |
+  | +-----------------------+                  |
+  | | Q3. AEAD cipher used? |                  |
+  | +----+-------------+----+                  |
   |      |             |                       |
   |      | Yes      No |                       |
   v      v             v                       v
  .+------+.      .-----+-----.      .----------+.
-|   Not    |    | BEFORE or   |    |   BEFORE    |
-| Required |    | AFTER       |    | Decryption  |
+|   Not    |    |  BEFORE or  |    |   BEFORE    |
+| Required |    |    AFTER    |    | Decryption  |
 |          |    | Decryption  |    |             |
  '--------'      '-----------'      '-----------'
 ~~~
@@ -1075,7 +1075,7 @@ illustrates the process for establishing payload integrity.
 There are three questions to ask:
 
 - Q1. How does the recipient receive the encrypted payload?
-If the encrypted payload is part of an integrated payload, its integrity is already validated by the suit-authentication-wrapper. Hence, no additional integrity check is necessary. If the encrypted payload is detached, further questions need to be answered.
+If the encrypted payload is the value of suit-parameter-content, its integrity is already validated by the suit-authentication-wrapper. Hence, no additional integrity check is necessary. If the encrypted payload is conveyed from suit-directive-fetch from an integrated payload or outside of the SUIT envelope, e.g. "coaps://example.com/encrypted.bin," further questions need to be answered.
 
 - Q2. Are battery exhaustion attacks a concern?
 If yes, the integrity of the encrypted payload must be checked before the payload is decrypted. If no, then other questions need to be asked.
@@ -1084,7 +1084,7 @@ If yes, the integrity of the encrypted payload must be checked before the payloa
 If yes, no additional integrity check is required, as the recipient verifies
 the payload's integrity during decryption. If no, integrity validation can
 occur either before or after decryption. However, validating integrity before
-decryption is RECOMMENDED.
+decryption is RECOMMENDED especially for AES-CBC mode (see {{Section 8 of RFC9459}}).
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
