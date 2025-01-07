@@ -4,7 +4,7 @@
     / PartyVInfo: / [ null, null, null ],
     / SuppPubInfo: / [
         / keyDataLength: / 128,
-        / protected: / << { / alg / 1: -3 / A128KW / } >>,
+        / protected: / << { / alg / 1: -29 / ECDH-ES+A128KW / } >>,
         / other: / 'SUIT Payload Encryption'
     ]
 ]

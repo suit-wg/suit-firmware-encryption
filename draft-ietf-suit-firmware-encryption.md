@@ -701,7 +701,7 @@ This example uses the following parameters:
   - Algorithm ID: -3 (A128KW)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected: { / alg / 1: -29 / ECDH-ES+A128KW / }
+    - protected: << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
     - other: 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -815,7 +815,7 @@ This example uses the following parameters:
   - Algorithm ID: -3 (A128KW)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected: { / alg / 1: -29 / ECDH-ES+A128KW / }
+    - protected: << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
     - other: 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
@@ -932,7 +932,7 @@ This example uses the following parameters:
   - Algorithm ID: -3 (A128KW)
   - SuppPubInfo
     - keyDataLength: 128
-    - protected: { / alg / 1: -29 / ECDH-ES+A128KW / }
+    - protected: << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
     - other: 'SUIT Payload Encryption'
 
 The COSE_Encrypt structure, in hex format, is (with a line break inserted):
