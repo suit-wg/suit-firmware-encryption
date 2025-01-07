@@ -2,8 +2,8 @@
 /  2/   / authentication-wrapper / 2: << [
 /  3/     << [
 /  4/       / digest-algorithm-id: / -16 / SHA256 /,
-/  5/       / digest-bytes: / h'8814BC46089ACA6A863A7BA8393F9747
-/  6/                           589940EFA40641335EF86155598F06C3'
+/  5/       / digest-bytes: / h'3C92AECEAA7225DDD5129A83B2842BF2
+/  6/                           8CC53B2C9467C5BF256E7108F2DA7C9C'
 /  7/     ] >>,
 /  8/     << / COSE_Mac0_Tagged / 17([
 /  9/       / protected: / << {
@@ -11,8 +11,8 @@
 / 11/       } >>,
 / 12/       / unprotected: / {},
 / 13/       / payload: / null,
-/ 14/       / tag: / h'B68572F6F0494FEAF390CE44B462F2A7
-/ 15/                  BDF73EF5DFE9FB8E12585A12F8F641AD'
+/ 14/       / tag: / h'46CB34181A04B967023D4C9E136DC5DC
+/ 15/                  591D8A9BE9365DE4D282C9D6168C01FB'
 / 16/     ]) >>
 / 17/   ] >>,
 / 18/   / manifest / 3: << {
@@ -26,18 +26,18 @@
 / 26/     } >>,
 / 27/     / install / 20: << [
 / 28/       / fetch encrypted firmware /
-/ 29/       / directive-set-component-index / 12, 1
-/ 30/         / ['encrypted-firmware'] /,
+/ 29/       / directive-set-component-index / 12,
+/ 30/         1 / ['encrypted-firmware'] /,
 / 31/       / directive-override-parameters / 20, {
 / 32/         / parameter-image-size / 14: 46,
 / 33/         / parameter-uri / 21:
-/ 34/           "https://example.com/encrypted-firmware"
+/ 34/           "coaps://example.com/encrypted-firmware"
 / 35/       },
 / 36/       / directive-fetch / 21, 15,
 / 37/ 
 / 38/       / decrypt encrypted firmware /
-/ 39/       / directive-set-component-index / 12, 0
-/ 40/         / ['plaintext-firmware'] /,
+/ 39/       / directive-set-component-index / 12,
+/ 40/         0 / ['plaintext-firmware'] /,
 / 41/       / directive-override-parameters / 20, {
 / 42/         / parameter-encryption-info / 19: << 96([
 / 43/           / protected: / << {
@@ -46,7 +46,7 @@
 / 46/           / unprotected: / {
 / 47/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
 / 48/           },
-/ 49/           / payload: / null / detached ciphertext /,
+/ 49/           / ciphertext: / null / detached ciphertext /,
 / 50/           / recipients: / [
 / 51/             [
 / 52/               / protected: / h'',
@@ -54,17 +54,18 @@
 / 54/                 / alg / 1: -3 / A128KW /,
 / 55/                 / kid / 4: 'kid-1'
 / 56/               },
-/ 57/               / payload: /
-/ 58/               h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
-/ 59/                 / CEK encrypted with KEK /
-/ 60/             ]
-/ 61/           ]
-/ 62/         ]) >>,
-/ 63/         / parameter-source-component / 22: 1
-/ 64/           / ['encrypted-firmware'] /
-/ 65/       },
-/ 66/       / directive-copy / 22, 15
-/ 67/         / consumes the SUIT_Encryption_Info above /
-/ 68/     ] >>
-/ 69/   } >>
-/ 70/ })
+/ 57/               / ciphertext: /
+/ 58/                 h'75603FFC9518D794713C8CA8
+/ 59/                   A115A7FB32565A6D59534D62'
+/ 60/                 / CEK encrypted with KEK /
+/ 61/             ]
+/ 62/           ]
+/ 63/         ]) >>,
+/ 64/         / parameter-source-component / 22:
+/ 65/           1 / ['encrypted-firmware'] /
+/ 66/       },
+/ 67/       / directive-copy / 22,
+/ 68/         15 / consumes the SUIT_Encryption_Info above /
+/ 69/     ] >>
+/ 70/   } >>
+/ 71/ })

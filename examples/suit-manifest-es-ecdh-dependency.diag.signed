@@ -37,8 +37,8 @@
 / 37/     ],
 / 38/     / install / 20: << [
 / 39/       / NOTE: set SUIT_Encryption_Info /
-/ 40/       / directive-set-component-index / 12, 0
-/ 41/         / ['decrypted-firmware'] /,
+/ 40/       / directive-set-component-index / 12,
+/ 41/         0 / ['decrypted-firmware'] /,
 / 42/       / directive-override-parameters / 20, {
 / 43/         / parameter-content / 18:
 / 44/           h'758C4B7BBAE2C4C1D462423E0F0DC3164FFA7B85BB94D4
@@ -50,7 +50,7 @@
 / 50/           / unprotected: / {
 / 51/             / IV / 5: h'F14AAB9D81D51F7AD943FE87'
 / 52/           },
-/ 53/           / payload: / null / detached ciphertext /,
+/ 53/           / ciphertext: / null / detached ciphertext /,
 / 54/           / recipients: / [
 / 55/             [
 / 56/               / protected: / << {
@@ -60,94 +60,99 @@
 / 60/                 / ephemeral key / -1: {
 / 61/                   / kty / 1: 2 / EC2 /,
 / 62/                   / crv / -1: 1 / P-256 /,
-/ 63/                   / x / -2: h'73024F415AA51529A66CCEFD88F3F62A
-/ 64/                               734492FF45F6AD37FD2888E73EAF19DA',
-/ 65/                   / y / -3: h'4005B48A6FD091AA6ABFE3CFBEEDE88B
-/ 66/                               347E521D43405FDBD7D2CFF0EBC21B26'
-/ 67/                 },
-/ 68/                 / kid / 4: 'kid-2'
-/ 69/               },
-/ 70/               / payload: /
-/ 71/               h'A06B8E6550F308712B1DF044B21B7D11D9B22792F1DE0997'
-/ 72/                 / CEK encrypted with KEK /
-/ 73/             ]
-/ 74/           ]
-/ 75/         ]) >>
-/ 76/       },
-/ 77/ 
-/ 78/       / NOTE: call dependency-manifest /
-/ 79/       / directive-set-component-index / 12, 1
-/ 80/         / ['dependenty-manifest.suit'] /,
-/ 81/       / directive-override-parameters / 20, {
-/ 82/         / parameter-image-digest / 3: << [
-/ 83/           / algorithm-id / -16 / SHA256 /,
-/ 84/           / digest-bytes / h'4B15C90FBD776A820E7E733DF040D90B
-/ 85/                              356B5C75982ECAECE8673818179BDF16'
-/ 86/         ] >>,
-/ 87/         / parameter-image-size / 14: 247,
-/ 88/         / parameter-uri / 21: "#dependency-manifest"
-/ 89/       },
-/ 90/       / directive-fetch / 21, 15,
-/ 91/       / condition-dependency-integrity / 7, 15,
-/ 92/       / directive-process-dependency / 11, 15
-/ 93/     ] >>
-/ 94/   } >>,
-/ 95/   "#dependency-manifest": <<
-/ 96/     / SUIT_Envelope_Tagged / 107({
-/ 97/       / authentication-wrapper / 2: << [
-/ 98/         << [
-/ 99/           / digest-algorithm-id: / -16 / SHA256 /,
-/100/           / digest-bytes: / h'4B15C90FBD776A820E7E733DF040D90B
-/101/                               356B5C75982ECAECE8673818179BDF16'
-/102/         ] >>,
-/103/         << / COSE_Sign1_Tagged / 18([
-/104/           / protected: / << {
-/105/             / algorithm-id / 1: -7 / ES256 /
-/106/           } >>,
-/107/           / unprotected: / {},
-/108/           / payload: / null,
-/109/           / signature: / h'2B1B9C4E44E52863A78F73DA2A935823
-/110/                            B28AEAE6A85CADAC4C4E3AABAAD56CBC
-/111/                            E5A47D288F86B54D0186657E972E748B
-/112/                            48CDB1D420FBAC1285DCC978382F62CC'
-/113/         ]) >>
-/114/       ] >>,
-/115/       / manifest / 3: << {
-/116/         / manifest-version / 1: 1,
-/117/         / manifest-sequence-number / 2: 1,
-/118/         / common / 3: << {
-/119/           / components / 2: [
-/120/             ['decrypted-firmware']
-/121/           ],
-/122/           / shared-sequence / 4: << [
-/123/             / directive-set-componnt-index / 12, 0
-/124/               / ['decrypted-firmware'] /,
-/125/             / directive-override-parameters / 20, {
-/126/               / parameter-image-digest / 3: << [
-/127/                 / algorithm-id / -16 / SHA256 /,
-/128/                 / digest-bytes /
-/129/                   h'36921488FE6680712F734E11F58D87EE
-/130/                     B66D4B21A8A1AD3441060814DA16D50F'
-/131/               ] >>,
-/132/               / parameter-image-size / 14: 30
-/133/             }
-/134/           ] >>
-/135/         } >>,
-/136/         / manifest-component-id / 5: [
-/137/           'dependency-manifest.suit'
-/138/         ],
-/139/         / validate / 7: << [
-/140/           / condition-image-match / 3, 15
-/141/         ] >>,
-/142/         / install / 20: << [
-/143/           / directive-set-component-index / 12, 0
-/144/             / ['decrypted-firmware'] /,
-/145/           / directive-write / 18, 15
-/146/             / consumes the SUIT_Encryption_Info in dependent /,
-/147/           / condition-image-match / 3, 15
-/148/             / check the integrity of the decrypted payload /
-/149/         ] >>
-/150/       } >>
-/151/     })
-/152/   >>
-/153/ })
+/ 63/                   / x / -2:
+/ 64/                     h'73024F415AA51529A66CCEFD88F3F62A
+/ 65/                       734492FF45F6AD37FD2888E73EAF19DA',
+/ 66/                   / y / -3:
+/ 67/                     h'4005B48A6FD091AA6ABFE3CFBEEDE88B
+/ 68/                       347E521D43405FDBD7D2CFF0EBC21B26'
+/ 69/                 },
+/ 70/                 / kid / 4: 'kid-2'
+/ 71/               },
+/ 72/               / ciphertext: /
+/ 73/                 h'A06B8E6550F308712B1DF044
+/ 74/                   B21B7D11D9B22792F1DE0997'
+/ 75/                 / CEK encrypted with KEK /
+/ 76/             ]
+/ 77/           ]
+/ 78/         ]) >>
+/ 79/       },
+/ 80/ 
+/ 81/       / NOTE: call dependency-manifest /
+/ 82/       / directive-set-component-index / 12,
+/ 83/         1 / ['dependenty-manifest.suit'] /,
+/ 84/       / directive-override-parameters / 20, {
+/ 85/         / parameter-image-digest / 3: << [
+/ 86/           / algorithm-id / -16 / SHA256 /,
+/ 87/           / digest-bytes / h'4B15C90FBD776A820E7E733DF040D90B
+/ 88/                              356B5C75982ECAECE8673818179BDF16'
+/ 89/         ] >>,
+/ 90/         / parameter-image-size / 14: 247,
+/ 91/         / parameter-uri / 21: "#dependency-manifest"
+/ 92/       },
+/ 93/       / directive-fetch / 21, 15,
+/ 94/       / condition-dependency-integrity / 7, 15,
+/ 95/       / directive-process-dependency / 11, 15
+/ 96/     ] >>
+/ 97/   } >>,
+/ 98/   "#dependency-manifest": <<
+/ 99/     / SUIT_Envelope_Tagged / 107({
+/100/       / authentication-wrapper / 2: << [
+/101/         << [
+/102/           / digest-algorithm-id: / -16 / SHA256 /,
+/103/           / digest-bytes: /
+/104/             h'4B15C90FBD776A820E7E733DF040D90B
+/105/               356B5C75982ECAECE8673818179BDF16'
+/106/         ] >>,
+/107/         << / COSE_Sign1_Tagged / 18([
+/108/           / protected: / << {
+/109/             / algorithm-id / 1: -7 / ES256 /
+/110/           } >>,
+/111/           / unprotected: / {},
+/112/           / payload: / null,
+/113/           / signature: / h'2B1B9C4E44E52863A78F73DA2A935823
+/114/                            B28AEAE6A85CADAC4C4E3AABAAD56CBC
+/115/                            E5A47D288F86B54D0186657E972E748B
+/116/                            48CDB1D420FBAC1285DCC978382F62CC'
+/117/         ]) >>
+/118/       ] >>,
+/119/       / manifest / 3: << {
+/120/         / manifest-version / 1: 1,
+/121/         / manifest-sequence-number / 2: 1,
+/122/         / common / 3: << {
+/123/           / components / 2: [
+/124/             ['decrypted-firmware']
+/125/           ],
+/126/           / shared-sequence / 4: << [
+/127/             / directive-set-componnt-index / 12,
+/128/               0 / ['decrypted-firmware'] /,
+/129/             / directive-override-parameters / 20, {
+/130/               / parameter-image-digest / 3: << [
+/131/                 / algorithm-id / -16 / SHA256 /,
+/132/                 / digest-bytes /
+/133/                   h'36921488FE6680712F734E11F58D87EE
+/134/                     B66D4B21A8A1AD3441060814DA16D50F'
+/135/               ] >>,
+/136/               / parameter-image-size / 14: 30
+/137/             }
+/138/           ] >>
+/139/         } >>,
+/140/         / manifest-component-id / 5: [
+/141/           'dependency-manifest.suit'
+/142/         ],
+/143/         / validate / 7: << [
+/144/           / condition-image-match / 3, 15
+/145/         ] >>,
+/146/         / install / 20: << [
+/147/           / directive-set-component-index / 12,
+/148/             0 / ['decrypted-firmware'] /,
+/149/           / directive-write / 18, 15
+/150/             / consumes the SUIT_Encryption_Info /
+/151/             / set by the dependent /,
+/152/           / condition-image-match / 3, 15
+/153/             / check the integrity of the decrypted payload /
+/154/         ] >>
+/155/       } >>
+/156/     })
+/157/   >>
+/158/ })

@@ -4,7 +4,7 @@
     / alg / 1: -65534 / A128CTR /,
     / IV / 5: h'DAE613B2E0DC55F4322BE38BDBA9DC68'
   },
-  / payload: / null / detached ciphertext /,
+  / ciphertext: / null / detached ciphertext /,
   / recipients: / [
     [
       / protected: / << {
@@ -20,7 +20,8 @@
                       B5D36725BFDB9AE02032ED4D5AB52CB8'
         }
       },
-      / payload: / h'E28B4502E4F5151884A995405579006E9465C3E94E3E0808'
+      / ciphertext: /
+        h'E28B4502E4F5151884A995405579006E9465C3E94E3E0808'
         / CEK encrypted with KEK /
     ]
   ]

@@ -285,7 +285,7 @@ This directive is used to copy data from one component to another.
 
 {{encryption-info-consumed-with-copy}} illustrates the Directive Copy.
 In this example the encrypted payload is found at the URI indicated
-by the parameter-uri, i.e., "http://example.com/encrypted.bin" in L3. The
+by the parameter-uri, i.e., "coaps://example.com/encrypted.bin" in L3. The
 encrypted payload will be downloaded and stored in component #1,
 as indicated by directive-set-component-index in L1.
 
@@ -298,7 +298,7 @@ The command in L12 invokes the operation.
 ~~~
 /  1/  / directive-set-component-index / 12, 1,
 /  2/  / directive-override-parameters / 20, {
-/  3/    / parameter-uri / 21: "http://example.com/encrypted.bin",
+/  3/    / parameter-uri / 21: "coaps://example.com/encrypted.bin",
 /  4/   },
 /  5/  / directive-fetch / 21, 15,
 /  6/
@@ -977,7 +977,7 @@ An example command sequence is shown in {{figure-image-match-after-decryption}}.
 ~~~
 / directive-set-component-index / 12, 1,
 / directive-override-parameters / 20, {
-  / parameter-uri / 21: "http://example.com/encrypted.bin"
+  / parameter-uri / 21: "coaps://example.com/encrypted.bin"
 },
 / directive-fetch / 21, 15,
 
@@ -1015,7 +1015,7 @@ This option mitigates battery exhaustion attacks discussed in {{sec-cons}}.
     / digest-bytes: / h'8B4...D34' / digest of encrypted payload /
   } >>,
   / parameter-image-size / 14: 30 / size of encrypted payload /,
-  / parameter-uri / 21: "http://example.com/encrypted.bin"
+  / parameter-uri / 21: "coaps://example.com/encrypted.bin"
 },
 
 / directive-fetch / 21, 15,
@@ -1281,7 +1281,7 @@ While parsing the manifest, the behavior of SUIT manifest processor would be
 - [L2-L17] authenticates the manifest part on [L18-L68]
 - [L22-L25] gets two component identifiers; ['plaintext-firmware'] for component #0, and ['encrypted-firmware'] for component # 1 respectively
 - [L29] sets current component index # 1 (the lasting directives target ['encrypted-firmware'])
-- [L33-L34] sets source uri parameter "https://example.com/encrypted-firmware"
+- [L33-L34] sets source uri parameter "coaps://example.com/encrypted-firmware"
 - [L36] fetches content from source uri into ['encrypted-firmware']
 - [L39] sets current component index # 0 (the lasting directives target ['plaintext-firmware'])
 - [L42-L62] sets SUIT encryption info parameter
@@ -1307,7 +1307,7 @@ The resulting state of the SUIT manifest processor is shown in {{table-suit-proc
 | CI            | ['plaintext-firmware'] | ['encrypted-firmware']                   |
 | dst-CI        | 0                      | 1                                        |
 | dst-CS        | N/A                    | N/A                                      |
-| src-URI       | N/A                    | "https://example.com/encrypted-firmware" |
+| src-URI       | N/A                    | "coaps://example.com/encrypted-firmware" |
 | src-CI        | 1                      | N/A                                      |
 {: #table-suit-processor title="Manifest Processor State"}
 
@@ -1317,7 +1317,7 @@ In hex format, the SUIT manifest shown above is:
 {::include-fold examples/suit-manifest-aes-kw.hex.signed}
 ~~~
 
-The encrypted payload (with a line feed added) to be fetched from "https://example.com/encrypted-firmware" is:
+The encrypted payload (with a line feed added) to be fetched from "coaps://example.com/encrypted-firmware" is:
 
 ~~~ test-vectors
 {::include-fold examples/encrypted-payload-aes-kw-aes-gcm.hex}
@@ -1455,6 +1455,14 @@ Including the digest of the encrypted firmware in the manifest
 enables the device to detect a battery exhaustion attack before
 energy-consuming decryption and flash memory copy or swap
 operations take place.
+
+While the examples in this document use the coaps scheme for payload
+retrieval, alternative URI schemes such as coap and http may also
+be used. This flexibility is possible because the SUIT manifest
+and this extension are not dependent on the TLS layer for security.
+
+Confidentiality, integrity, and authentication are instead ensured
+through the SUIT manifest and the extensions defined in this document.
 
 #  IANA Considerations
 

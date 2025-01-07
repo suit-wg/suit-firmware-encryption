@@ -5,7 +5,7 @@
   / unprotected: / {
     / IV / 5: h'F14AAB9D81D51F7AD943FE87'
   },
-  / payload: / null / detached ciphertext /,
+  / ciphertext: / null / detached ciphertext /,
   / recipients: / [
     [
       / protected: / h'',
@@ -13,7 +13,7 @@
         / alg / 1: -3 / A128KW /,
         / kid / 4: 'kid-1'
       },
-      / payload: /
+      / ciphertext: /
         h'75603FFC9518D794713C8CA8A115A7FB32565A6D59534D62'
         / CEK encrypted with KEK /
     ]
