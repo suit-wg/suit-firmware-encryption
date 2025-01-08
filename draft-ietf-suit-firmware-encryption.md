@@ -1427,11 +1427,11 @@ distribution, utilizing two primary methods: AES Key Wrap (AES-KW) and
 Ephemeral-Static Diffie-Hellman (ES-DH). The key properties associated
 with their deployment are summarized in {{cek-distribution}}.
 
-| Number of<br/>Long-Term<br/>Keys | Number of<br/>Content<br/>Encryption<br/>Keys (CEKs)                  | Use Case                                     | Recommended?         |
-|----------------------------------|-----------------------------------------------------------------------|----------------------------------------------|----------------------|
-| Same key<br/>for all<br/>devices | Single<br/>CEK per<br/>payload<br/>shared<br/>with all<br/>devies     | Legacy<br/>Usage                             | No, bad<br/>practice |
-| One key<br/>per device           | Single<br/>CEK per<br/>payload<br/>shared<br/>with all<br/>devies     | Efficient<br/>Payload<br/>Distribution       | Yes                  |
-| One Key<br/>per device           | One CEK<br/>per payload<br/>encryption<br/>transaction<br/>per device | Point-to-<br/>Point Payload<br/>Distribution | Yes                  |
+| Number of<br/>Long-Term<br/>Keys | Number of Content<br/>Encryption Keys (CEKs)                  | Use Case                                     | Recommended?         |
+|----------------------------------|---------------------------------------------------------------|----------------------------------------------|----------------------|
+| Same key<br/>for all<br/>devices | Single CEK per<br/>payload shared<br/>with all devies         | Legacy Usage                                 | No, bad<br/>practice |
+| One key<br/>per device           | Single CEK per<br/>payload shared<br/>with all devies         | Efficient<br/>Payload<br/>Distribution       | Yes                  |
+| One Key<br/>per device           | One CEK per payload<br/>encryption transaction<br/>per device | Point-to-<br/>Point Payload<br/>Distribution | Yes                  |
 {: #cek-distribution title="Content Key Distribution: Comparison"}
 
 The use of firmware encryption in battery-powered IoT devices introduces the
