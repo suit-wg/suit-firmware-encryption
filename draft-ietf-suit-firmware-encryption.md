@@ -1457,6 +1457,13 @@ enables the device to detect a battery exhaustion attack before
 energy-consuming decryption and flash memory copy or swap
 operations take place.
 
+As stated in {{Section 8 of RFC9459}}, implementers of recipients should perform
+integrity checks prior to decryption to avoid padding oracle vulnerabilities
+especially with AES-CBC mode.
+Such a check prevents them from being not only padding oracles
+but also format oracles and decryption oracles,
+because they don't perform decryption if the check fails.
+
 While the examples in this document use the coaps scheme for payload
 retrieval, alternative URI schemes such as coap and http may also
 be used. This flexibility is possible because the SUIT manifest
