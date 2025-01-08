@@ -1038,7 +1038,7 @@ parameter is set to 19, as the proposed value.
 AEAD algorithms, such as AES-GCM and ChaCha20/Poly1305, verify the integrity of
 the encrypted concent.
 
-## Payload Integrity Validation
+## Payload Integrity Validation {#payload-integrity-validation}
 
 This subsection offers guidelines for validating the integrity of payloads within
 the SUIT manifest. The decision tree in {{payload-integrity-decision-tree}}
@@ -1463,6 +1463,8 @@ especially with AES-CBC mode.
 Such a check prevents them from being not only padding oracles
 but also format oracles and decryption oracles,
 because they don't perform decryption if the check fails.
+See {{payload-integrity-validation}}
+for more discussion about payload integrity validation.
 
 While the examples in this document use the coaps scheme for payload
 retrieval, alternative URI schemes such as coap and http may also
