@@ -1471,6 +1471,11 @@ and this extension are not dependent on the TLS layer for security.
 
 Confidentiality, integrity, and authentication are instead ensured
 through the SUIT manifest and the extensions defined in this document.
+See {{Section 12 of I-D.ietf-suit-manifest}} for how the SUIT manifest
+fullfills the security requirements outlined in {{RFC9124}}.
+See {{Section 11 of RFC9053}} and {{Section 8 of RFC9459}}
+for more security considerations of primitive cryptographic algorithms
+used in the extensions.
 
 #  IANA Considerations
 
