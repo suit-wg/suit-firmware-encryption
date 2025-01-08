@@ -1466,6 +1466,16 @@ because they don't perform decryption if the check fails.
 See {{payload-integrity-validation}}
 for more discussion about payload integrity validation.
 
+The same IV and AES key combination MUST NOT be used more than once.
+This requirement applies not only to AES-CTR mode as stated in {{Section 4 of RFC9459}}
+but also to other content encryption algorithms,
+including AEAD ciphers such as AES-GCM.
+Even though AEAD ciphers provide authentication and integrity for payloads,
+both ENC(plaintext1, IV1, k1) and ENC(plaintext2, IV1, k1) are
+correctly decrypted and authenticated with the same decryption key.
+Consequently, recipients will also accept other AEAD ciphertexts
+with the same IV and AES key combination.
+
 While the examples in this document use the coaps scheme for payload
 retrieval, alternative URI schemes such as coap and http may also
 be used. This flexibility is possible because the SUIT manifest
