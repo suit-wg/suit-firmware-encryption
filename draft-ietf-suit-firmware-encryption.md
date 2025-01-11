@@ -1467,7 +1467,8 @@ See {{payload-integrity-validation}}
 for more discussion about payload integrity validation.
 
 The same IV and AES key combination MUST NOT be used more than once.
-This requirement applies not only to AES-CTR mode as stated in {{Section 4 of RFC9459}}
+This requirement applies not only to AES-CTR mode, as stated in {{Section 4 of RFC9459}},
+
 but also to other content encryption algorithms,
 including AEAD ciphers such as AES-GCM.
 Even though AEAD ciphers provide authentication and integrity for payloads,
