@@ -1038,7 +1038,7 @@ parameter is set to 19, as the proposed value.
 AEAD algorithms, such as AES-GCM and ChaCha20/Poly1305, verify the integrity of
 the encrypted concent.
 
-## Payload Integrity Validation
+## Payload Integrity Validation {#payload-integrity-validation}
 
 This subsection offers guidelines for validating the integrity of payloads within
 the SUIT manifest. The decision tree in {{payload-integrity-decision-tree}}
@@ -1457,13 +1457,31 @@ enables the device to detect a battery exhaustion attack before
 energy-consuming decryption and flash memory copy or swap
 operations take place.
 
-While the examples in this document use the coaps scheme for payload
-retrieval, alternative URI schemes such as coap and http may also
-be used. This flexibility is possible because the SUIT manifest
-and this extension are not dependent on the TLS layer for security.
+As specified in {{Section 8 of RFC9459}}, recipients must perform
+integrity checks before decryption to mitigate padding oracle
+vulnerabilities, particularly when using AES-CBC mode. This practice
+not only prevents padding oracle attacks but also protects against
+format and decryption oracles, as decryption is skipped if the
+integrity check fails. For further details on payload integrity
+validation, see {{payload-integrity-validation}}.
 
-Confidentiality, integrity, and authentication are instead ensured
-through the SUIT manifest and the extensions defined in this document.
+The same combination of IV and AES key MUST NOT be reused. This
+requirement applies not only to AES-CTR mode, as specified in
+{{Section 4 of RFC9459}}, but also to other content encryption
+algorithms, including AEAD ciphers like AES-GCM.
+
+Although the examples in this document use the coaps scheme for
+payload retrieval, alternative URI schemes like coap and http
+can also be used. This flexibility is possible because the SUIT
+manifest and this extension do not rely on the TLS layer for security.
+
+Confidentiality, integrity, and authentication are ensured by the
+SUIT manifest and the extensions defined in this document. For
+details on how the SUIT manifest meets the security requirements
+outlined in {{RFC9124}}, refer to {{Section 12 of I-D.ietf-suit-manifest}}.
+Additional security considerations for the cryptographic primitives used
+in these extensions are discussed in {{Section 11 of RFC9053}} and
+{{Section 8 of RFC9459}}.
 
 #  IANA Considerations
 
