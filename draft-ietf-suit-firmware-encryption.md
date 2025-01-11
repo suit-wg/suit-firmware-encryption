@@ -1075,7 +1075,7 @@ illustrates the process for establishing payload integrity.
 There are three questions to ask:
 
 - Q1. How does the recipient receive the encrypted payload?
-If the encrypted payload is the value of suit-parameter-content, its integrity is already validated by the suit-authentication-wrapper. Hence, no additional integrity check is necessary. If the encrypted payload is conveyed from suit-directive-fetch from an integrated payload or outside of the SUIT envelope, e.g. "coaps://example.com/encrypted.bin," further questions need to be answered.
+If the encrypted payload is used as the value of the suit-parameter-content, its integrity is already verified by the suit-authentication-wrapper. Therefore, no additional integrity check is required. However, if the encrypted payload is delivered via suit-directive-fetch from an integrated payload or from outside the SUIT envelope, for example "coaps://example.com/encrypted.bin", additional considerations must be addressed.
 
 - Q2. Are battery exhaustion attacks a concern?
 If yes, the integrity of the encrypted payload must be checked before the payload is decrypted. If no, then other questions need to be asked.
