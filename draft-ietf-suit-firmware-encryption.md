@@ -1486,7 +1486,7 @@ in these extensions are discussed in {{Section 11 of RFC9053}} and
 #  IANA Considerations
 
 IANA is asked to add the following value to the SUIT Parameters
-registry established by {{Section 11.5 of I-D.ietf-suit-manifest}}:
+registry at {{iana-suit}}, which is established by {{Section 11.5 of I-D.ietf-suit-manifest}}:
 
 ~~~
 Label      Name                 Reference
