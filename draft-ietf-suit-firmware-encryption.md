@@ -730,9 +730,10 @@ The encrypted payload (with a line feed added) was:
 
 AES-CTR is a non-AEAD cipher that provides confidentiality but lacks integrity protection.
 Unlike AES-CBC, AES-CTR uses an IV per block, as shown in {{aes-ctr-fig}}.
-Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
-start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
-within the entire slot.
+Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the counter MUST start
+with the value provided in the IV COSE header field and MUST be incremented by one for each
+16-byte plaintext block within the entire slot. Firmware authors MUST provide a randomly
+generated IV value in the COSE header structure.
 
 In our example, we assume the slot size of a specific flash controller on an IoT device
 is 64 KiB, the sector size 4096 bytes (4 KiB) and an AES plaintext block size of 16 bytes,
