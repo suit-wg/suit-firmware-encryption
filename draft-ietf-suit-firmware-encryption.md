@@ -1205,7 +1205,8 @@ decryption of an entire sector.
 To offer a specific example, let us assume the slot size of a specific flash controller
 on an IoT device is 64 KiB, the sector size 4096 bytes (4 KiB) and an AES plaintext block
 size of 16 bytes. The counter values used with AES-CTR range from IV+0 to IV+255 in the
-first sector, and 16 * 256 IVs are required for the remaining sectors in the slot. This
+first sector, and 16 * 256 counter values are required for the slot. This
+
 IV value is either communicated in the COSE header or via out-of-band means.
 
 # Complete Examples 
