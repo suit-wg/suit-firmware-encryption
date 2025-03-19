@@ -720,15 +720,13 @@ The encrypted payload (with a line feed added) was:
 ### Introduction
 
 AES-CTR is a non-AEAD cipher that provides confidentiality but lacks integrity protection.
-Unlike AES-CBC, AES-CTR uses an IV per block, as shown in {{aes-ctr-fig}}.
-Hence, when an image is encrypted using AES-CTR-128 or AES-CTR-256, the IV MUST
-start with zero (0) and MUST be incremented by one for each 16-byte plaintext block
-within the entire slot.
-
-In our example, we assume the slot size of a specific flash controller on an IoT device
-is 64 KiB, the sector size 4096 bytes (4 KiB) and an AES plaintext block size of 16 bytes,
-the IVs range from 0 to 255 in the first sector, and 16 * 256 IVs are required for the
-remaining sectors in the slot.
+Unlike AES-CBC, AES-CTR uses an IV per block, as shown in {{aes-ctr-fig}}. Hence, when an
+image is encrypted using AES-CTR-128 or AES-CTR-256, the counter value MUST start with the
+IV value and incremented by one for each 16-byte plaintext block. The IV value MAY be
+provided by the COSE header field or is communicated via out-of-band means, for example by
+setting it to a given value (e.g. the value of zero). Firmware authors MUST make sure that
+the same IV and AES content key encryption combination is not used more than once.
+Communicating the IV value inside the COSE header is RECOMMENDED.
 
 The following abbreviations are used in {{aes-ctr-fig}}:
 
@@ -1082,6 +1080,13 @@ the slot/sector combination in flash memory. The discussion assumes that the blo
 of AES is significantly smaller than the sector size. Typically, flash memory sectors are
 measured in KiB, necessitating the decryption of multiple AES blocks to complete the
 decryption of an entire sector.
+
+To offer a specific example, let us assume the slot size of a specific flash controller
+on an IoT device is 64 KiB, the sector size 4096 bytes (4 KiB) and an AES plaintext block
+size of 16 bytes. The counter values used with AES-CTR range from IV+0 to IV+255 in the
+first sector, and 16 * 256 counter values are required for the slot. This
+
+IV value is either communicated in the COSE header or via out-of-band means.
 
 # Complete Examples 
 
