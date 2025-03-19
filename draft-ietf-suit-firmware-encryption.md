@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-23
+docname: draft-ietf-suit-firmware-encryption-24
 category: std
 
 ipr: trust200902
@@ -624,22 +624,13 @@ to the content of the protected field in the COSE_Encrypt structure.
 - The value of external_aad MUST be set to a zero-length byte string,
  represented as h'' in diagnostic notation and encoded as 0x40.
 
-Some ciphers, such as AES-CTR and AES-CBC, provide confidentiality
+Some ciphers, such as AES-CTR, provide confidentiality
 without integrity protection (see {{RFC9459}}). For these ciphers,
 the Enc_structure shown in {{cddl-enc-aeskw}} cannot be used, as
 the Additional Authenticated Data (AAD) byte string is only
 applicable to AEAD ciphers. Therefore, the AAD structure is not
 passed to the API for these ciphers, and the protected header in
 the SUIT_Encryption_Info structure MUST be a zero-length byte string.
-
-AES-CTR and AES-CBC are discussed in separate sub-sections below and
-{{aes-ctr-fig}} and {{aes-cbc-fig}} use the following abbreviations:
-
-- Pi = Plaintext blocks
-- Ci = Ciphertext blocks
-- E = Encryption function
-- k = Symmetric key
-- ⊕ = XOR operation
 
 ## AES-GCM
 
@@ -739,6 +730,14 @@ is 64 KiB, the sector size 4096 bytes (4 KiB) and an AES plaintext block size of
 the IVs range from 0 to 255 in the first sector, and 16 * 256 IVs are required for the
 remaining sectors in the slot.
 
+The following abbreviations are used in {{aes-ctr-fig}}:
+
+- Pi = Plaintext blocks
+- Ci = Ciphertext blocks
+- E = Encryption function
+- k = Symmetric key
+- ⊕ = XOR operation
+
 ~~~ aasvg
          IV1            IV2
           |              |
@@ -757,9 +756,6 @@ remaining sectors in the slot.
           C1             C2
 ~~~
 {: #aes-ctr-fig title="AES-CTR Operation"}
-
-Note: The abbreviations shown in {{aes-ctr-fig}} are described
-in {{content-enc}}.
 
 Examples in this section use the following parameters:
 
@@ -836,123 +832,6 @@ The encrypted payload (with a line feed added) was:
 
 ~~~ test-vectors
 {::include-fold examples/encrypted-payload-es-ecdh-aes-ctr.hex}
-~~~
-
-## AES-CBC
-
-### Introduction
-
-AES-CBC is a non-AEAD cipher that provides confidentiality but does not offer
-integrity protection.
-In AES-CBC, a single IV is used to  encrypt the firmware belonging to a single sector,
-as  individual AES blocks are chained together, as illustrated  in {{aes-cbc-fig}}. The
-numbering  of sectors in a slot start with zero (0) and increase by one with
-every sector till the end of the slot is reached. The IV follows this numbering.
-
-For example, let us assume the slot size of a specific flash controller on an IoT device
-is 64 KiB, the sector size 4096 bytes (4 KiB) and AES-128-CBC uses an AES-block size of
-128 bit (16 bytes). Hence, sector 0 needs 4096/16=256 AES-128-CBC operations using IV 0.
-If the firmware image occupies the entire slot, it will contain 16 sectors, corresponding
-to IVs ranging from 0 to 15.
-
-~~~ aasvg
-        P1             P2
-        |              |
-   IV---⊕     +--------⊕
-        |     |        |
-        |     |        |
-    +---+---+ |    +---+---+
-    |       | |    |       |
-    |       | |    |       |
- k--+   E   | | k--+   E   |
-    |       | |    |       |
-    +---+---+ |    +---+---+
-        |     |        |
-        +-----+        |
-        |              |
-        |              |
-        C1             C2
-~~~
-{: #aes-cbc-fig title="AES-CBC Operation"}
-
-Note: The abbreviations shown in {{aes-cbc-fig}} are described
-in {{content-enc}}.
-
-Examples in this section use the following parameters:
-
-- Algorithm for payload encryption: AES-CBC-128
-  - k: h'627FCF0EA82C967D5ED8981EB325F303'
-  - IV: h'93702C81590F845D9EC866CCAC767BD1'
-- Plaintext: "This is a real firmware image."
-  - in hex: 546869732069732061207265616C206669726D7761726520696D6167652E
-
-### AES-KW + AES-CBC Example
-
-This example uses the following parameters:
-
-- Algorithm id for key wrap: A128KW
-- KEK COSE_Key (Secret Key):
-  - kty: Symmetric
-  - k: 'aaaaaaaaaaaaaaaa'
-  - kid: 'kid-1'
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~ cbor-pretty
-{::include-fold examples/suit-encryption-info-aes-kw-aes-cbc.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{aeskw-aescbc-example}}.
-
-~~~ cbor-diag
-{::include-fold examples/suit-encryption-info-aes-kw-aes-cbc.diag}
-~~~
-{: #aeskw-aescbc-example title="COSE_Encrypt Example for AES Key Wrap"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~ test-vectors
-{::include-fold examples/encrypted-payload-aes-kw-aes-cbc.hex}
-~~~
-
-### ECDH-ES+AES-KW + AES-CBC Example
-
-This example uses the following parameters:
-
-- Algorithm for content key distribution: ECDH-ES + A128KW
-- KEK COSE_Key (Receiver's Private Key):
-  - kty: EC2
-  - crv: P-256
-  - x: h'5886CD61DD875862E5AAA820E7A15274C968A9BC96048DDCACE32F50C3651BA3'
-  - y: h'9EED8125E932CD60C0EAD3650D0A485CF726D378D1B016ED4298B2961E258F1B'
-  - d: h'60FE6DD6D85D5740A5349B6F91267EEAC5BA81B8CB53EE249E4B4EB102C476B3'
-  - kid: 'kid-2'
-- KDF Context
-  - Algorithm ID: -3 (A128KW)
-  - SuppPubInfo
-    - keyDataLength: 128
-    - protected: << { / alg / 1: -29 / ECDH-ES+A128KW / } >>
-    - other: 'SUIT Payload Encryption'
-
-The COSE_Encrypt structure, in hex format, is (with a line break inserted):
-
-~~~ cbor-pretty
-{::include-fold examples/suit-encryption-info-es-ecdh-aes-cbc.hex}
-~~~
-
-The resulting COSE_Encrypt structure in a diagnostic format is shown in
-{{esdh-aescbc-example}}.
-
-~~~ cbor-diag
-{::include-fold examples/suit-encryption-info-es-ecdh-aes-cbc.diag}
-~~~
-{: #esdh-aescbc-example title="COSE_Encrypt Example for ES-DH"}
-
-The encrypted payload (with a line feed added) was:
-
-~~~ test-vectors
-{::include-fold examples/encrypted-payload-es-ecdh-aes-cbc.hex}
 ~~~
 
 # Integrity Check on Encrypted and Decrypted Payloads
@@ -1084,7 +963,7 @@ If yes, the integrity of the encrypted payload must be checked before the payloa
 If yes, no additional integrity check is required, as the recipient verifies
 the payload's integrity during decryption. If no, integrity validation can
 occur either before or after decryption. However, validating integrity before
-decryption is RECOMMENDED especially for AES-CBC mode (see {{Section 8 of RFC9459}}).
+decryption is RECOMMENDED especially for the AES-CTR mode (see {{Section 8 of RFC9459}}).
 
 # Firmware Updates on IoT Devices with Flash Memory {#flash}
 
@@ -1196,7 +1075,7 @@ for many other scenarios involving software packages, configuration information,
 or personalization data, the use of AEAD ciphers is RECOMMENDED.
 
 The following subsections offer additional information on the selection of
-initialization vectors (IVs) for use with AES-CBC and AES-CTR in the context
+initialization vectors (IVs) for use with AES-CTR in the context
 of firmware encryption. A random CEK MUST be used with every plaintexts, as specified
 in {{content-key-distribution}}, since the IVs are not random but are instead based on
 the slot/sector combination in flash memory. The discussion assumes that the block size
@@ -1459,7 +1338,7 @@ operations take place.
 
 As specified in {{Section 8 of RFC9459}}, recipients must perform
 integrity checks before decryption to mitigate padding oracle
-vulnerabilities, particularly when using AES-CBC mode. This practice
+vulnerabilities, particularly when using the AES-CTR mode. This practice
 not only prevents padding oracle attacks but also protects against
 format and decryption oracles, as decryption is skipped if the
 integrity check fails. For further details on payload integrity
