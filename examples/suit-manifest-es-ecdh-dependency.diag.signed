@@ -7,14 +7,14 @@
 /  7/     ] >>,
 /  8/     << / COSE_Sign1_Tagged / 18([
 /  9/       / protected: / << {
-/ 10/         / algorithm-id / 1: -7 / ES256 /
+/ 10/         / algorithm-id / 1: -9 / ESP256 /
 / 11/       } >>,
 / 12/       / unprotected: / {},
 / 13/       / payload: / null,
-/ 14/       / signature: / h'421B30FE76DA848616D72FC1115EA610
-/ 15/                        5578CB95DF9C6BEAD931105C9D555CF8
-/ 16/                        CD38C8FD68ACE43445D8D2CAE6391A99
-/ 17/                        5A212487D92F8DAD789F65511AC61778'
+/ 14/       / signature: / h'3000301B7C54B3383CC4723C4B7BE667
+/ 15/                        C6760C504213A105DD38401BED5EEF8E
+/ 16/                        B915F8313420104F59467D76790A0EA2
+/ 17/                        20B6021B4ED87051B3B4A8D05F7E0254'
 / 18/     ]) >>
 / 19/   ] >>,
 / 20/   / manifest / 3: << {
@@ -106,14 +106,14 @@
 /106/         ] >>,
 /107/         << / COSE_Sign1_Tagged / 18([
 /108/           / protected: / << {
-/109/             / algorithm-id / 1: -7 / ES256 /
+/109/             / algorithm-id / 1: -9 / ESP256 /
 /110/           } >>,
 /111/           / unprotected: / {},
 /112/           / payload: / null,
-/113/           / signature: / h'2B1B9C4E44E52863A78F73DA2A935823
-/114/                            B28AEAE6A85CADAC4C4E3AABAAD56CBC
-/115/                            E5A47D288F86B54D0186657E972E748B
-/116/                            48CDB1D420FBAC1285DCC978382F62CC'
+/113/           / signature: / h'BF95C29295B45470EF819E7F4E3C9084
+/114/                            F4534E26469C0A0F2B8B9664881A5359
+/115/                            D500F81BD3A6436A025C3E92E51CD714
+/116/                            8F83DF47D29FF253F8D41B4D350A2B75'
 /117/         ]) >>
 /118/       ] >>,
 /119/       / manifest / 3: << {
