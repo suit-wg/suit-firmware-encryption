@@ -7,14 +7,14 @@
 /  7/     ] >>,
 /  8/     << / COSE_Sign1_Tagged / 18([
 /  9/       / protected: / << {
-/ 10/         / algorithm-id / 1: -7 / ES256 /
+/ 10/         / algorithm-id / 1: -9 / ESP256 /
 / 11/       } >>,
 / 12/       / unprotected: / {},
 / 13/       / payload: / null,
-/ 14/       / signature: / h'CB4EADA6BEC17EEB22EB836FB2BF9136
-/ 15/                        A6EF733C11DAC955F543BBDCAA373B85
-/ 16/                        9321BC77969917E4C70F049527607F4C
-/ 17/                        32752D53E01346E96BFF4880B437DF64'
+/ 14/       / signature: / h'2B20A797AC7DBEBC53147592BB110AEC
+/ 15/                        43A2489AC19A169BB59FF6BD429300A9
+/ 16/                        719FEB7DF277E4B8D1D821C816854229
+/ 17/                        F266AC62AFD9DB52114F608EE66B187B'
 / 18/     ]) >>
 / 19/   ] >>,
 / 20/   / manifest / 3: << {
