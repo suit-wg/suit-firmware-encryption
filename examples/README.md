@@ -9,7 +9,7 @@ Before each PR merged, examples are validated automatically.
 - sed
 - xxd
 - python3 and pip
-  - python-cwt: `pip install cwt>=2.7.0`
+  - python-cwt: `pip install 'cwt>=3.0.0'`
 - ruby and gem
   - cbor-diag: `gem install cbor-diag`
   - cddl: `gem install cddl`

@@ -1,8 +1,6 @@
 SUIT_ENCRYPTION_INFO := \
 	suit-encryption-info-aes-kw-aes-gcm.cose \
 	suit-encryption-info-es-ecdh-aes-gcm.cose \
-	suit-encryption-info-aes-kw-aes-cbc.cose \
-	suit-encryption-info-es-ecdh-aes-cbc.cose \
 	suit-encryption-info-aes-kw-aes-ctr.cose \
 	suit-encryption-info-es-ecdh-aes-ctr.cose
 
@@ -85,10 +83,6 @@ validate_cddl_match: all cddl
 	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-gcm.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
 	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-gcm.cose
-	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
-	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-cbc.cose
-	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
-	RUBYOPT="-W0" cddl esdh_aeskw.cddl validate suit-encryption-info-es-ecdh-aes-cbc.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
 	RUBYOPT="-W0" cddl aeskw.cddl validate suit-encryption-info-aes-kw-aes-ctr.cose
 	RUBYOPT="-W0" cddl draft-ietf-suit-firmware-encryption.cddl validate suit-encryption-info-es-ecdh-aes-ctr.cose
@@ -109,14 +103,10 @@ validate_decrypted_plaintext:
 	python3 ./validate_aeskw_encrypted_payload.py suit-encryption-info-aes-kw-aes-gcm.hex encrypted-payload-aes-kw-aes-gcm.hex
 	@echo "\n# AES-KW + A128CTR"
 	python3 ./validate_aeskw_encrypted_payload.py suit-encryption-info-aes-kw-aes-ctr.hex encrypted-payload-aes-kw-aes-ctr.hex --enable-non-aead
-	@echo "\n# AES-KW + A128CBC"
-	python3 ./validate_aeskw_encrypted_payload.py suit-encryption-info-aes-kw-aes-cbc.hex encrypted-payload-aes-kw-aes-cbc.hex --enable-non-aead
 	@echo "\n# ECDH-ES+AES-KW + A128GCM (Example 2)"
 	python3 ./validate_esdh_encrypted_payload.py suit-encryption-info-es-ecdh-aes-gcm.hex encrypted-payload-es-ecdh-aes-gcm.hex
 	@echo "\n# ECDH-ES+AES-KW + A128CTR"
 	python3 ./validate_esdh_encrypted_payload.py suit-encryption-info-es-ecdh-aes-ctr.hex encrypted-payload-es-ecdh-aes-ctr.hex --enable-non-aead
-	@echo "\n# ECDH-ES+AES-KW + A128CBC"
-	python3 ./validate_esdh_encrypted_payload.py suit-encryption-info-es-ecdh-aes-cbc.hex encrypted-payload-es-ecdh-aes-cbc.hex --enable-non-aead
 	@echo [SUCCESS] The expected plaintext firmware can be decrypted
 
 .PHONY: clean
