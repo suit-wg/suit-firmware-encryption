@@ -1,7 +1,7 @@
 ---
 title: Encrypted Payloads in SUIT Manifests
 abbrev: Encrypted Payloads in SUIT Manifests
-docname: draft-ietf-suit-firmware-encryption-24
+docname: draft-ietf-suit-firmware-encryption-25
 category: std
 
 ipr: trust200902
