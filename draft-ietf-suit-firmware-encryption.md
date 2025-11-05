@@ -1300,6 +1300,17 @@ utilized in an AES-KW-based content key distribution method for
 encryption should be distinct from the long-term symmetric key
 employed for authentication in a communication security protocol.
 
+The recipient MUST verify that the algorithm identifiers carried
+in both the outer header of the COSE_Encrypt structure and within
+each recipient structure correspond to the algorithm configuration
+expected at the recipient, as defined by local policy. If any
+mismatch is detected between the algorithm identifiers and the
+configured algorithms, the recipient MUST reject the message.
+This prevents an attacker from modifying the algorithm field to
+perform a downgrade attack (for example, changing an AEAD cipher to
+a non-AEAD cipher) or to cause the recipient to use a key for an
+unintended purpose.
+
 To further minimize the attack surface, it may be advantageous to
 use different long-term keys for encrypting various types of
 payloads. For example, KEK_1 could be used with an AES-KW content
@@ -1400,3 +1411,4 @@ Additionally, we would like to thank Michael Richardson, Dick Brooks, Øyvind R�
 Lundblade, Christian Amsüss, Ruud Derwig, Martin Thomson. Kris Kwiatkowski, Suresh Krishnan and Carsten Bormann for their review feedback.
 
 We would like to thank the IESG, in particular Deb Cooley, Éric Vyncke and Roman Danyliw, for their help to improve the quality of this document.
+
